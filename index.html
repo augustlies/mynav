@@ -91,13 +91,10 @@
     <section class="archive-search-section" aria-label="馆藏检索">
       <div class="search-box-frame">
         <span class="search-glyph" aria-hidden="true">§</span>
-        <div id="search-engine-picker" class="search-engine-picker" title="切换搜索引擎 (Tab 循环切换)">
+        <div id="search-engine-picker" class="search-engine-picker is-external" title="切换搜索引擎 (Tab 循环切换)">
           <select id="search-engine-select" class="search-engine-select" aria-label="切换搜索引擎">
+            <option value="google" selected>Google</option>
             <option value="site">站内</option>
-            <option value="bing">必应</option>
-            <option value="baidu">百度</option>
-            <option value="google">Google</option>
-            <option value="bilibili">B站</option>
             <option value="github">GitHub</option>
           </select>
           <span class="engine-caret" aria-hidden="true">▾</span>
@@ -106,7 +103,7 @@
           type="search"
           id="archive-search-input"
           class="archive-search-input"
-          placeholder="检索书目名称、简介、标签或域名... (按 / 快捷聚焦)"
+          placeholder="用 Google 搜索全网，回车打开... (Tab 切换引擎)"
           autocomplete="off"
           spellcheck="false"
           aria-label="全馆实时检索"

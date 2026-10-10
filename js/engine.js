@@ -1,12 +1,12 @@
 /**
  * 模块：搜索引擎切换器 (js/engine.js)
  * 职责：
- * 1. 管理站内书目检索与多外部引擎（必应、百度、Google、B站、GitHub）配置
+ * 1. 管理默认 Google 搜索、站内书目检索与 GitHub 快捷检索配置
  * 2. 外部引擎模式下，捕获阶段拦截 input 事件防站内实时筛选
  * 3. 外部引擎模式下回车跳转（带 encodeURIComponent 与 noopener,noreferrer）
  * 4. 防中文输入法回车误触 (e.isComposing / compositionstart / keyCode: 229)
  * 5. 输入框内按 Tab 循环切换引擎，placeholder 动态更新
- * 6. 本地持久化记住用户引擎选择 (localStorage: mynav_search_engine)
+ * 6. 本地持久化记住用户引擎选择 (localStorage: mynav_search_engine_v2)
  */
 
 (function (root, factory) {
@@ -18,28 +18,11 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  const STORAGE_KEY = "mynav_search_engine";
+  const STORAGE_KEY = "mynav_search_engine_v2";
+  const DEFAULT_ENGINE = "google";
 
-  // 搜索引擎配置列表 (方便按需增删与调整顺序)
+  // 搜索引擎配置列表 (默认 Google，支持站内书目与 GitHub)
   const ENGINES = [
-    {
-      id: "site",
-      name: "站内",
-      placeholder: "检索书目名称、简介、标签或域名... (按 / 快捷聚焦)",
-      url: null
-    },
-    {
-      id: "bing",
-      name: "必应",
-      placeholder: "用 必应 搜索全网，回车打开... (Tab 切换引擎)",
-      url: "https://www.bing.com/search?q=关键词"
-    },
-    {
-      id: "baidu",
-      name: "百度",
-      placeholder: "用 百度 搜索全网，回车打开... (Tab 切换引擎)",
-      url: "https://www.baidu.com/s?wd=关键词"
-    },
     {
       id: "google",
       name: "Google",
@@ -47,10 +30,10 @@
       url: "https://www.google.com/search?q=关键词"
     },
     {
-      id: "bilibili",
-      name: "B站",
-      placeholder: "用 B站 搜索全网，回车打开... (Tab 切换引擎)",
-      url: "https://search.bilibili.com/all?keyword=关键词"
+      id: "site",
+      name: "站内",
+      placeholder: "检索书目名称、简介、标签或域名... (按 / 快捷聚焦)",
+      url: null
     },
     {
       id: "github",
@@ -60,7 +43,7 @@
     }
   ];
 
-  let currentEngineId = "site";
+  let currentEngineId = DEFAULT_ENGINE;
   let selectEl = null;
   let pickerEl = null;
   let searchInput = null;
@@ -110,6 +93,7 @@
     // 持久化存储
     try {
       localStorage.setItem(STORAGE_KEY, currentEngineId);
+      localStorage.setItem("mynav_search_engine", currentEngineId);
     } catch (e) {}
 
     // 处理已输入文字与站内筛选的联动
@@ -183,10 +167,13 @@
       });
     }
 
-    // 读取持久化配置
-    let savedEngine = "site";
+    // 读取持久化配置（默认 Google，已选选项优先且校验存在性）
+    let savedEngine = DEFAULT_ENGINE;
     try {
-      savedEngine = localStorage.getItem(STORAGE_KEY) || "site";
+      const v2 = localStorage.getItem(STORAGE_KEY);
+      if (v2 && ENGINES.some(e => e.id === v2)) {
+        savedEngine = v2;
+      }
     } catch (e) {}
     setEngine(savedEngine, { userInitiated: false });
 

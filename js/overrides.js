@@ -527,7 +527,7 @@
       preferences: {
         theme: st.get("mynav_arch_theme", "light"),
         themeMode: st.get("mynav_theme_mode", "auto"),
-        searchEngine: st.get("mynav_search_engine", "site"),
+        searchEngine: st.get("mynav_search_engine_v2", st.get("mynav_search_engine", "google")),
         viewMode: st.get("mynav_arch_view", "grid")
       }
     };
@@ -598,7 +598,10 @@
         const p = backup.preferences;
         if (p.theme) st.set("mynav_arch_theme", p.theme);
         if (p.themeMode) st.set("mynav_theme_mode", p.themeMode);
-        if (p.searchEngine) st.set("mynav_search_engine", p.searchEngine);
+        if (p.searchEngine) {
+          st.set("mynav_search_engine_v2", p.searchEngine);
+          st.set("mynav_search_engine", p.searchEngine);
+        }
         if (p.viewMode) st.set("mynav_arch_view", p.viewMode);
       }
 
