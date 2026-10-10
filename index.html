@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人数字收藏馆 · The Digital Archive</title>
+  <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="archive-wrapper">
+    <!-- 顶部版记细栏 (Top Colophon Bar) -->
+    <header class="top-colophon-bar" role="banner">
+      <div class="colophon-left">
+        <span class="colophon-mark">EX LIBRIS</span>
+        <span class="colophon-divider" aria-hidden="true">/</span>
+        <span>个人数字收藏馆</span>
+      </div>
+      <div class="colophon-right">
+        <!-- 典雅双色主题切换按钮 -->
+        <button
+          type="button"
+          id="btn-theme-toggle"
+          class="theme-switch-btn"
+          aria-label="切换为炭黑深色主题"
+          title="切换主题"
+        >
+          <span class="theme-icon" aria-hidden="true">☾</span>
+          <span class="theme-label">深色</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 编辑式刊头 (Editorial Masthead) -->
+    <section class="editorial-masthead" aria-label="收藏馆刊头">
+      <div class="masthead-meta">
+        <div class="masthead-issue">
+          <span class="issue-dot" aria-hidden="true"></span>
+          <span>VOL. 2026 · PRIVATE DIGITAL COLLECTION</span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <span id="masthead-date-label">载入中...</span>
+          <span id="masthead-count-label">全馆典藏 -- 卷</span>
+        </div>
+      </div>
+      <h1 class="masthead-headline">个人数字收藏馆</h1>
+      <p class="masthead-epigraph">精心遴选的数字工具、知识航标与灵感索引。收录于此，静水流深。</p>
+    </section>
+
+    <!-- 醒目核心检索区 (Search Indexing) -->
+    <section class="archive-search-section" aria-label="馆藏检索">
+      <div class="search-box-frame">
+        <span class="search-glyph" aria-hidden="true">§</span>
+        <input
+          type="search"
+          id="archive-search-input"
+          class="archive-search-input"
+          placeholder="检索书目名称、简介、标签或域名... (按 / 快捷聚焦)"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="全馆实时检索"
+        >
+        <div class="search-tools">
+          <button
+            type="button"
+            id="btn-clear-search"
+            class="btn-clear-search"
+            title="清空检索 (Esc)"
+            aria-label="清空检索"
+            style="display: none;"
+          >
+            ✕
+          </button>
+          <kbd class="kbd-tag" title="按 / 键快速聚焦">/</kbd>
+        </div>
+      </div>
+    </section>
+
+    <!-- 栏目导航轨 (Category Index Tabs) -->
+    <nav class="category-index-nav" aria-label="典藏分类导览">
+      <div class="index-tabs-rail" id="index-tabs-rail">
+        <!-- 由 JavaScript 动态根据 data.js 计算并生成 -->
+      </div>
+    </nav>
+
+    <!-- 检索状态条 (有筛选或搜索词时展示) -->
+    <div id="search-status-bar" class="search-status-bar" style="display: none;">
+      <span id="search-status-text"></span>
+      <button type="button" id="btn-reset-filter" class="btn-reset-filter">重置检索</button>
+    </div>
+
+    <!-- 主典藏展示区 (Main Archive Content) -->
+    <main class="archive-main-area" id="archive-content-area" role="main">
+      <!-- 动态排版渲染区域 -->
+    </main>
+
+    <!-- 刊末页脚 (Colophon Footer) -->
+    <footer class="colophon-footer" role="contentinfo">
+      <div class="footer-inner-rail">
+        <p class="footer-quote">“博学之，审问之，慎思之，明辨之，笃行之。”</p>
+        <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
+        <div class="footer-shortcuts-line">
+          <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
+          <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤) -->
+  <script src="data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/favorites.js"></script>
+  <script src="js/visits.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,959 @@
+/* ==========================================================================
+   个人数字收藏馆 · 独立杂志排印设计系统 (styles.css)
+   设计方向：Editorial × Private Archive × Digital Library
+   特征：克制、雅致、排印驱动、无过度阴影、双色主题平滑渐变、高级微动效
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 设计令牌 (Design Tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* 基础排印字体栈 */
+  --font-serif: "Songti SC", "Source Han Serif SC", "Noto Serif SC", "STSong", "SimSun", Georgia, "Baskerville", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+
+  /* 尺度与圆角（克制的小圆角与锐利网格） */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-full: 9999px;
+
+  /* 动效节奏 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 浅色主题令牌 (暖象牙白纸张与墨黑印染) */
+  --bg-page: #F6F4EE;
+  --bg-surface: #FCFBF8;
+  --bg-subtle: #EFECE3;
+  --bg-hover: #E8E5DC;
+  
+  --text-main: #24251F;
+  --text-muted: #66685F;
+  --text-faint: #989A90;
+  
+  --color-accent: #3F523E;         /* 沉静橄榄墨绿 */
+  --color-accent-soft: #EBF0E9;
+  --color-accent-hover: #2E3E2D;
+  --color-bookmark: #B8621B;       /* 典藏书签赭石金 */
+  --color-bookmark-soft: #FBF3EB;
+
+  --border-hairline: #E2DFD4;      /* 极细纸张纤维分隔线 */
+  --border-card: #E5E1D6;
+  --border-focus: #3F523E;
+
+  --shadow-subtle: 0 1px 2px rgba(36, 37, 31, 0.03);
+  --shadow-lift: 0 10px 24px -4px rgba(36, 37, 31, 0.08), 0 2px 6px -1px rgba(36, 37, 31, 0.04);
+  --shadow-glow: 0 0 0 3px rgba(63, 82, 62, 0.12), 0 4px 16px rgba(36, 37, 31, 0.05);
+}
+
+/* 深色主题令牌 (炭黑书封与柔和纸页) */
+[data-theme="dark"] {
+  --bg-page: #171815;
+  --bg-surface: #20211D;
+  --bg-subtle: #292B25;
+  --bg-hover: #32352E;
+  
+  --text-main: #EDEAE1;
+  --text-muted: #A3A49C;
+  --text-faint: #6E7067;
+  
+  --color-accent: #8FA887;         /* 柔和鼠尾草灰绿 */
+  --color-accent-soft: #242E22;
+  --color-accent-hover: #A6C09E;
+  --color-bookmark: #D9883E;
+  --color-bookmark-soft: #2E251B;
+
+  --border-hairline: #2B2D26;
+  --border-card: #30332B;
+  --border-focus: #8FA887;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-lift: 0 12px 28px -4px rgba(0, 0, 0, 0.55), 0 3px 8px -1px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 0 3px rgba(143, 168, 135, 0.22), 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* --------------------------------------------------------------------------
+   2. 基础重置、主题渐变与排印排版 (Base & Typography)
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+}
+
+/* 昼夜模式平滑色彩渐变适配 */
+body,
+.archive-wrapper,
+.top-colophon-bar,
+.category-index-nav,
+.entry-card,
+.search-box-frame,
+.index-tab-item,
+.quiet-empty-state,
+.colophon-footer,
+.card-emblem,
+.tab-badge-num {
+  transition: background-color var(--transition-smooth),
+              border-color var(--transition-smooth),
+              color var(--transition-smooth),
+              box-shadow var(--transition-smooth);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 焦点无障碍支持 */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* 容器布局 */
+.archive-wrapper {
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   3. 顶部细导航条 (Colophon Bar)
+   -------------------------------------------------------------------------- */
+.top-colophon-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-hairline);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.colophon-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colophon-mark {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.12em;
+}
+
+.colophon-divider {
+  color: var(--border-hairline);
+}
+
+.colophon-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 主题切换开关 */
+.theme-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  will-change: transform;
+}
+
+.theme-switch-btn:hover {
+  color: var(--text-main);
+  border-color: var(--border-focus);
+  background-color: var(--bg-subtle);
+  transform: translateY(-1px);
+}
+
+.theme-switch-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.theme-icon {
+  font-size: 0.8125rem;
+}
+
+/* --------------------------------------------------------------------------
+   4. 编辑式刊头 (Masthead Header)
+   -------------------------------------------------------------------------- */
+.editorial-masthead {
+  padding: 42px 0 28px;
+  border-bottom: 2px solid var(--text-main);
+  margin-bottom: 24px;
+}
+
+.masthead-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-family: var(--font-serif);
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.masthead-issue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.issue-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  animation: pulseGentle 3s ease-in-out infinite;
+}
+
+@keyframes pulseGentle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+.masthead-headline {
+  font-family: var(--font-serif);
+  font-size: 2.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.masthead-epigraph {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   5. 核心搜索区域 (Search Indexing)
+   -------------------------------------------------------------------------- */
+.archive-search-section {
+  margin-bottom: 28px;
+}
+
+.search-box-frame {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  padding: 10px 16px;
+  box-shadow: var(--shadow-subtle);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+/* 搜索框聚焦低饱和柔光外轮廓 */
+.search-box-frame:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-glow);
+}
+
+.search-glyph {
+  font-size: 0.875rem;
+  color: var(--text-faint);
+  margin-right: 12px;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.search-box-frame:focus-within .search-glyph {
+  color: var(--color-accent);
+}
+
+.archive-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--text-main);
+  outline: none;
+}
+
+.archive-search-input::placeholder {
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.search-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 12px;
+}
+
+.btn-clear-search {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+
+.btn-clear-search:hover {
+  color: var(--text-main);
+  background-color: var(--bg-subtle);
+}
+
+.kbd-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   6. 分类与藏目导航 (Index Tabs)
+   -------------------------------------------------------------------------- */
+.category-index-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--bg-page);
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 28px;
+}
+
+.index-tabs-rail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.index-tabs-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.index-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all var(--transition-fast);
+  will-change: transform;
+}
+
+.index-tab-item:hover {
+  color: var(--text-main);
+  background-color: var(--bg-subtle);
+}
+
+.index-tab-item:active {
+  transform: scale(0.97);
+}
+
+.index-tab-item.active {
+  color: var(--text-main);
+  background-color: var(--bg-surface);
+  border-color: var(--border-card);
+  font-weight: 600;
+  box-shadow: var(--shadow-subtle);
+}
+
+.tab-badge-num {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-faint);
+  background-color: var(--bg-subtle);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition-fast);
+}
+
+.index-tab-item.active .tab-badge-num {
+  color: var(--color-accent);
+}
+
+/* --------------------------------------------------------------------------
+   7. 搜索状态提示 (Status Banner)
+   -------------------------------------------------------------------------- */
+.search-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border-left: 3px solid var(--color-accent);
+  border-top: 1px solid var(--border-hairline);
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  animation: barSlideIn 0.28s var(--transition-normal);
+}
+
+@keyframes barSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-status-bar strong {
+  color: var(--text-main);
+}
+
+.btn-reset-filter {
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast);
+}
+
+.btn-reset-filter:hover {
+  color: var(--color-accent-hover);
+}
+
+/* --------------------------------------------------------------------------
+   8. 典藏专栏板块 (Archive Sections)
+   -------------------------------------------------------------------------- */
+.archive-section {
+  margin-bottom: 40px;
+}
+
+.section-masthead-rule {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 18px;
+}
+
+.section-heading-group {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.section-code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.section-title-text {
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.section-desc-text {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+  margin-left: 4px;
+}
+
+.section-count-tag {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-clear-visits {
+  background: none;
+  border: 1px solid var(--border-hairline);
+  padding: 3px 8px;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+
+.btn-clear-visits:hover {
+  color: #DC2626;
+  border-color: #FCA5A5;
+  background-color: var(--bg-surface);
+}
+
+/* --------------------------------------------------------------------------
+   9. 网站网格与书目卡片 (Editorial Grid & Cards)
+   -------------------------------------------------------------------------- */
+.entries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+/* 卡片按顺序错峰渐入动画 */
+@keyframes cardStaggerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.entry-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+
+  /* 初始错峰进场动画 */
+  animation: cardStaggerFadeIn 0.36s var(--transition-normal) both;
+  animation-delay: calc(var(--stagger-idx, 0) * 32ms);
+
+  /* 悬停微位移与平滑弥散阴影 */
+  transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.2s ease,
+              box-shadow 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+/* 鼠标微光泽纸张质感层 */
+.entry-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(360px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.45), transparent 75%);
+}
+
+[data-theme="dark"] .entry-card::after {
+  background: radial-gradient(360px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 75%);
+}
+
+/* 悬停卡片纸张微抬升与弥散阴影 */
+.entry-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-lift);
+}
+
+.entry-card:hover::after {
+  opacity: 1;
+}
+
+/* 卡片顶部印记与书签 */
+.card-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.card-emblem {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-hairline);
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  transition: transform var(--transition-fast);
+}
+
+.entry-card:hover .card-emblem {
+  transform: scale(1.04);
+}
+
+.card-titles {
+  min-width: 0;
+}
+
+.card-title-text {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition-fast);
+}
+
+.entry-card:hover .card-title-text {
+  color: var(--color-accent);
+}
+
+.card-domain-slug {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 收藏书签微弹性动效 */
+@keyframes bookmarkSpring {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.24);
+  }
+  75% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-bookmark {
+  background: none;
+  border: none;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
+  z-index: 2;
+  will-change: transform;
+}
+
+.btn-bookmark:hover {
+  color: var(--color-bookmark);
+  background-color: var(--color-bookmark-soft);
+  transform: scale(1.08);
+}
+
+.btn-bookmark:active {
+  transform: scale(0.85);
+}
+
+.btn-bookmark.anim-spring {
+  animation: bookmarkSpring 0.42s var(--ease-spring) both;
+}
+
+.btn-bookmark.bookmarked {
+  color: var(--color-bookmark);
+}
+
+.btn-bookmark svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* 卡片简述摘要 */
+.card-synopsis {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 14px;
+  min-height: 2.45em;
+}
+
+/* 卡片底部底栏与外链微冲刺 */
+.card-bottom-rail {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px dotted var(--border-hairline);
+  font-size: 0.6875rem;
+}
+
+.card-tag-pill {
+  font-family: var(--font-sans);
+  color: var(--text-faint);
+  background-color: var(--bg-subtle);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.entry-card:hover .card-tag-pill {
+  color: var(--text-muted);
+}
+
+/* 外链箭头右上微冲刺动效 */
+.card-jump-mark {
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  display: inline-block;
+  transition: transform 0.22s var(--ease-spring), color 0.2s ease;
+  will-change: transform;
+}
+
+.entry-card:hover .card-jump-mark {
+  color: var(--color-accent);
+  transform: translate(3px, -3px);
+}
+
+/* --------------------------------------------------------------------------
+   10. 典雅空状态 (Quiet Empty State)
+   -------------------------------------------------------------------------- */
+.quiet-empty-state {
+  text-align: center;
+  padding: 64px 24px;
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-hairline);
+  border-radius: var(--radius-xs);
+  margin: 20px 0;
+  animation: emptyFadeIn 0.3s var(--transition-normal);
+}
+
+@keyframes emptyFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.empty-state-symbol {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+
+.empty-state-headline {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.empty-state-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto 20px;
+}
+
+.btn-empty-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--text-main);
+  color: var(--bg-page);
+  border: none;
+  padding: 7px 18px;
+  border-radius: var(--radius-xs);
+  font-size: 0.8125rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-empty-action:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.btn-empty-action:active {
+  transform: translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   11. 刊末页脚 (Colophon Footer)
+   -------------------------------------------------------------------------- */
+.colophon-footer {
+  margin-top: auto;
+  padding: 36px 0 48px;
+  border-top: 1px solid var(--border-hairline);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  line-height: 1.8;
+}
+
+.footer-inner-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.footer-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.footer-shortcuts-line {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+/* --------------------------------------------------------------------------
+   12. 响应式适配与媒体查询 (Responsive & A11y)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .archive-wrapper {
+    padding: 0 18px;
+  }
+
+  .editorial-masthead {
+    padding: 28px 0 20px;
+  }
+
+  .masthead-headline {
+    font-size: 1.75rem;
+  }
+
+  .masthead-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .entries-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .section-desc-text {
+    display: none;
+  }
+}
+
+/* 严格尊重减弱动效用户偏好 (Accessibility First) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .entry-card:hover {
+    transform: none !important;
+  }
+
+  .card-jump-mark,
+  .btn-bookmark {
+    transform: none !important;
+  }
+}
