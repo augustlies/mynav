@@ -166,15 +166,26 @@
         <p class="card-synopsis" title="${escapeHtml(site.description || '')}">${escapeHtml(site.description || '暂无描述')}</p>
         <div class="card-bottom-rail">
           <span class="card-tag-pill">#${firstTag}</span>
-          <a
-            href="${escapeHtml(site.url)}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="card-jump-mark"
-            aria-label="访问 ${escapeHtml(site.name)}"
-          >
-            № ${indexStr} ↗
-          </a>
+          <div class="card-bottom-actions">
+            <button
+              type="button"
+              class="btn-bookplate"
+              data-bookplate-id="${escapeHtml(site.id)}"
+              title="查看专属数字藏书票 (Ex Libris)"
+              aria-label="查看 ${escapeHtml(site.name)} 的藏书票"
+            >
+              📜 藏书票
+            </button>
+            <a
+              href="${escapeHtml(site.url)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="card-jump-mark"
+              aria-label="访问 ${escapeHtml(site.name)}"
+            >
+              № ${indexStr} ↗
+            </a>
+          </div>
         </div>
       </article>
     `;
@@ -539,6 +550,20 @@
         return;
       }
 
+      // 5.15 点击数字藏书票 (Ex Libris)
+      const bookplateBtn = e.target.closest("[data-bookplate-id]");
+      if (bookplateBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const siteId = bookplateBtn.getAttribute("data-bookplate-id");
+        const allSites = getRawSites();
+        const targetSite = allSites.find(s => s.id === siteId);
+        if (targetSite && window.NavExLibris) {
+          window.NavExLibris.open(targetSite);
+        }
+        return;
+      }
+
       // 5.2 点击清空案头记录
       if (e.target.closest("#btn-clear-visits-action")) {
         if (confirm("确定要清空本地记录的案头常驻访问统计吗？")) {
@@ -653,6 +678,11 @@
           renderContent();
         }
       });
+    }
+
+    // 2.5 初始化专属数字藏书票模块 (Ex Libris)
+    if (window.NavExLibris) {
+      window.NavExLibris.init();
     }
 
     // 3. 装配刊头信息

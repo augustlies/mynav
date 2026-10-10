@@ -134,6 +134,33 @@
     </footer>
   </div>
 
+  <!-- 藏书票印画模态展示层 (Ex Libris Modal) -->
+  <div id="bookplate-modal" class="bookplate-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="bookplate-modal-title">
+    <div class="bookplate-modal-card">
+      <header class="bookplate-modal-header">
+        <div class="bookplate-modal-titles">
+          <span class="bookplate-modal-badge">EX LIBRIS</span>
+          <h2 id="bookplate-modal-title" class="bookplate-modal-title">藏书票印画</h2>
+        </div>
+        <button type="button" id="btn-close-bookplate" class="btn-close-bookplate" aria-label="关闭藏书票 (Esc)" title="关闭 (Esc)">✕</button>
+      </header>
+      <div class="bookplate-preview-area" id="bookplate-preview-area">
+        <!-- 动态生成的确定性高精度矢量 SVG 藏书票 -->
+      </div>
+      <footer class="bookplate-modal-footer">
+        <span class="bookplate-modal-tip">每个网站依据唯一标识生成专属独立藏书票 · 纯本地矢量绘制</span>
+        <div class="bookplate-modal-actions">
+          <button type="button" id="btn-export-bookplate-png" class="btn-bookplate-action btn-bookplate-primary" title="导出 2x Retina 高清 PNG 印画">
+            <span>📥 导出高清印画 (PNG)</span>
+          </button>
+          <button type="button" id="btn-dismiss-bookplate" class="btn-bookplate-action" title="完成浏览并返回">
+            <span>完成</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.1.0"></script>
   <script src="js/storage.js?v=1.1.0"></script>
@@ -143,6 +170,7 @@
   <script src="js/search.js?v=1.1.0"></script>
   <script src="js/motion.js?v=1.1.0"></script>
   <script src="js/sortable.js?v=1.1.0"></script>
+  <script src="js/exlibris.js?v=1.1.0"></script>
   <script src="app.js?v=1.1.0"></script>
 </body>
 </html>

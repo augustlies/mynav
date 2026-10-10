@@ -826,6 +826,7 @@ body {
   padding-top: 10px;
   border-top: 1px dotted var(--border-hairline);
   font-size: 0.6875rem;
+  gap: 8px;
 }
 
 .card-tag-pill {
@@ -839,6 +840,43 @@ body {
 
 .entry-card:hover .card-tag-pill {
   color: var(--text-muted);
+}
+
+.card-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+/* 藏书票印记按钮 */
+.btn-bookplate {
+  position: relative;
+  z-index: 2;
+  background: none;
+  border: 1px solid var(--border-hairline);
+  background-color: var(--bg-subtle);
+  color: var(--text-faint);
+  padding: 1px 7px;
+  font-size: 0.6875rem;
+  font-family: var(--font-serif);
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  line-height: 1.4;
+  transition: all var(--transition-fast);
+}
+
+.btn-bookplate:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background-color: var(--bg-surface);
+  transform: translateY(-1px);
+}
+
+.btn-bookplate:active {
+  transform: translateY(0);
 }
 
 /* 外链箭头右上微冲刺动效 */
@@ -1131,8 +1169,15 @@ body {
 }
 
 .arrange-mode .entry-card:hover .card-jump-mark,
+.arrange-mode .entry-card:hover .btn-bookplate,
 .arrange-mode .entry-card:hover .card-emblem {
   transform: none !important;
+}
+
+.arrange-mode .btn-bookplate,
+.arrange-mode .card-jump-mark {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 /* 拖拽中的卡片：跟手、纸质微放大、浓重弥散阴影 */
@@ -1186,6 +1231,7 @@ body {
   }
 
   .card-jump-mark,
+  .btn-bookplate,
   .btn-bookmark {
     transform: none !important;
   }
@@ -1197,6 +1243,226 @@ body {
   .entry-placeholder,
   .entry-card {
     transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   14. 数字藏书票印画模态展示层 (Ex Libris Modal)
+   ========================================================================== */
+
+/* 模态背景遮罩 */
+.bookplate-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: rgba(30, 31, 26, 0.68);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: modalBackdropFadeIn 0.22s ease-out;
+}
+
+@keyframes modalBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 模态卡片容器 */
+.bookplate-modal-card {
+  position: relative;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.38), 0 0 0 1px var(--border-hairline);
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 模态顶栏 */
+.bookplate-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-hairline);
+  background-color: var(--bg-subtle);
+}
+
+.bookplate-modal-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bookplate-modal-badge {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.bookplate-modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.btn-close-bookplate {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-faint);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-close-bookplate:hover {
+  background-color: var(--bg-surface);
+  border-color: var(--border-hairline);
+  color: var(--text-main);
+}
+
+/* 藏书票印画预览区域 */
+.bookplate-preview-area {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-page);
+  overflow-y: auto;
+  min-height: 360px;
+}
+
+/* 矢量藏书票本体 */
+.exlibris-svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  box-shadow: 0 12px 32px -4px rgba(36, 37, 31, 0.22), 0 3px 10px -2px rgba(36, 37, 31, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.exlibris-svg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px -4px rgba(36, 37, 31, 0.28), 0 4px 12px -2px rgba(36, 37, 31, 0.16);
+}
+
+[data-theme="dark"] .exlibris-svg {
+  box-shadow: 0 16px 44px -4px rgba(0, 0, 0, 0.65), 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* 模态底栏与操作按钮 */
+.bookplate-modal-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-hairline);
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bookplate-modal-tip {
+  font-size: 0.6875rem;
+  color: var(--text-faint);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.bookplate-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-bookplate-action {
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-hairline);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-bookplate-action:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-focus);
+}
+
+.btn-bookplate-primary {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
+.btn-bookplate-primary:hover {
+  opacity: 0.92;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(184, 98, 27, 0.35);
+}
+
+.btn-bookplate-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 弹窗打开时背景锁滚动 */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* 移动端视口适配 */
+@media (max-width: 640px) {
+  .bookplate-modal-card {
+    max-height: 94vh;
+  }
+  .bookplate-preview-area {
+    padding: 16px 12px;
+  }
+  .exlibris-svg {
+    max-width: 270px;
   }
 }
 
