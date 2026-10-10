@@ -9,11 +9,13 @@
   // 全局应用状态
   const state = {
     activeCategory: "all", // 'all' | 'favorites' | 'frequent' | categoryId
-    searchQuery: ""
+    searchQuery: "",
+    viewMode: window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid"
   };
 
   // DOM 节点引用
   const dom = {
+    viewBtn: document.getElementById("btn-view-toggle"),
     themeBtn: document.getElementById("btn-theme-toggle"),
     searchInput: document.getElementById("archive-search-input"),
     searchClearBtn: document.getElementById("btn-clear-search"),
@@ -56,6 +58,19 @@
     } catch (e) {
       return "";
     }
+  }
+
+  // 切换视图模式按钮状态更新
+  function updateViewButton() {
+    if (!dom.viewBtn) dom.viewBtn = document.getElementById("btn-view-toggle");
+    if (!dom.viewBtn) return;
+    const isShelf = state.viewMode === "shelf";
+    const iconSpan = dom.viewBtn.querySelector(".view-icon");
+    const labelSpan = dom.viewBtn.querySelector(".view-label");
+    if (iconSpan) iconSpan.textContent = isShelf ? "⊞" : "🏛";
+    if (labelSpan) labelSpan.textContent = isShelf ? "网格" : "书架";
+    dom.viewBtn.setAttribute("title", isShelf ? "切换为期刊网格视图" : "切换为 3D 藏书馆书架视图");
+    dom.viewBtn.setAttribute("aria-label", isShelf ? "切换为期刊网格视图" : "切换为 3D 藏书馆书架视图");
   }
 
   // 计算当前仍有效存在的收藏数与常用数（自动忽略已在 data.js 中被删除的失效历史记录）
@@ -253,8 +268,13 @@
           "resetSearch"
         );
       } else {
-        const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-        dom.contentArea.innerHTML = `<div class="entries-grid">${cardsHtml}</div>`;
+        if (state.viewMode === "shelf" && window.NavBookshelf) {
+          dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
+          window.NavBookshelf.bindInteractions(dom.contentArea);
+        } else {
+          const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          dom.contentArea.innerHTML = `<div class="entries-grid">${cardsHtml}</div>`;
+        }
       }
       return;
     }
@@ -275,16 +295,28 @@
           "viewAll"
         );
       } else {
-        const cardsHtml = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-        dom.contentArea.innerHTML = createSectionHtml(
-          "私人典藏集",
-          "BOOKMARKS",
-          "保存在当前浏览器本地的精选书签",
-          favSites.length,
-          cardsHtml,
-          "",
-          "favorites"
-        );
+        if (state.viewMode === "shelf" && window.NavBookshelf) {
+          dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
+            "私人典藏集",
+            "BOOKMARKS",
+            "保存在当前浏览器本地的精选书签",
+            favSites,
+            "",
+            "favorites"
+          );
+          window.NavBookshelf.bindInteractions(dom.contentArea);
+        } else {
+          const cardsHtml = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          dom.contentArea.innerHTML = createSectionHtml(
+            "私人典藏集",
+            "BOOKMARKS",
+            "保存在当前浏览器本地的精选书签",
+            favSites.length,
+            cardsHtml,
+            "",
+            "favorites"
+          );
+        }
       }
       if (window.NavSortable && window.NavSortable.isArrangeMode()) {
         window.NavSortable.refreshCardAttributes();
@@ -303,21 +335,33 @@
           "viewAll"
         );
       } else {
-        const cardsHtml = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
         const clearActionHtml = `
           <button type="button" class="btn-clear-visits" id="btn-clear-visits-action" title="重置本地访问记录">
             清空案头记录
           </button>
         `;
-        dom.contentArea.innerHTML = createSectionHtml(
-          "常驻案头 (高频访问)",
-          "DESK",
-          "根据本地点击频次自动排序",
-          freqSites.length,
-          cardsHtml,
-          clearActionHtml,
-          "frequent"
-        );
+        if (state.viewMode === "shelf" && window.NavBookshelf) {
+          dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
+            "常驻案头 (高频访问)",
+            "DESK",
+            "根据本地点击频次自动排序",
+            freqSites,
+            clearActionHtml,
+            "frequent"
+          );
+          window.NavBookshelf.bindInteractions(dom.contentArea);
+        } else {
+          const cardsHtml = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          dom.contentArea.innerHTML = createSectionHtml(
+            "常驻案头 (高频访问)",
+            "DESK",
+            "根据本地点击频次自动排序",
+            freqSites.length,
+            cardsHtml,
+            clearActionHtml,
+            "frequent"
+          );
+        }
       }
       if (window.NavSortable && window.NavSortable.isArrangeMode()) {
         window.NavSortable.refreshCardAttributes();
@@ -327,6 +371,18 @@
 
     // 2.3 查看「全部」
     if (state.activeCategory === "all") {
+      // 书架视图渲染全馆各层
+      if (state.viewMode === "shelf" && window.NavBookshelf) {
+        const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
+        const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
+        const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
+
+        dom.contentArea.innerHTML = window.NavBookshelf.renderAllShelves(allSites, categories, favSites, freqSites);
+        window.NavBookshelf.bindInteractions(dom.contentArea);
+        return;
+      }
+
+      // 网格视图渲染全馆板块
       const sectionsHtml = [];
 
       // 若有收藏，置顶展示私人典藏专栏（支持独立排序）
@@ -380,16 +436,28 @@
         "viewAll"
       );
     } else {
-      const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-      dom.contentArea.innerHTML = createSectionHtml(
-        currentCategory.name,
-        currentCategory.code || "SEC",
-        currentCategory.desc,
-        catSites.length,
-        cards,
-        "",
-        currentCategory.id
-      );
+      if (state.viewMode === "shelf" && window.NavBookshelf) {
+        dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
+          currentCategory.name,
+          currentCategory.code || "SEC",
+          currentCategory.desc,
+          catSites,
+          "",
+          currentCategory.id
+        );
+        window.NavBookshelf.bindInteractions(dom.contentArea);
+      } else {
+        const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+        dom.contentArea.innerHTML = createSectionHtml(
+          currentCategory.name,
+          currentCategory.code || "SEC",
+          currentCategory.desc,
+          catSites.length,
+          cards,
+          "",
+          currentCategory.id
+        );
+      }
     }
     if (window.NavSortable && window.NavSortable.isArrangeMode()) {
       window.NavSortable.refreshCardAttributes();
@@ -608,10 +676,33 @@
       }
     });
 
+    // 5.9 视图模式切换 (网格 ⟷ 3D 书架)
+    const viewBtn = dom.viewBtn || document.getElementById("btn-view-toggle");
+    if (viewBtn) {
+      dom.viewBtn = viewBtn;
+      viewBtn.addEventListener("click", function () {
+        if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+          window.NavSortable.exitArrangeMode();
+        }
+        state.viewMode = state.viewMode === "grid" ? "shelf" : "grid";
+        if (window.NavStorage) {
+          window.NavStorage.set("mynav_arch_view", state.viewMode);
+        }
+        updateViewButton();
+        renderContent();
+      });
+    }
+
     // 6. 整理书架与拖拽排序控制
     const arrangeToggleBtn = document.getElementById("btn-arrange-toggle");
     if (arrangeToggleBtn) {
       arrangeToggleBtn.addEventListener("click", function () {
+        if (state.viewMode === "shelf") {
+          state.viewMode = "grid";
+          if (window.NavStorage) window.NavStorage.set("mynav_arch_view", "grid");
+          updateViewButton();
+          renderContent();
+        }
         if (window.NavSortable) window.NavSortable.toggleArrangeMode();
       });
     }
@@ -690,6 +781,8 @@
     if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
 
     // 4. 初始渲染与事件绑定
+    dom.viewBtn = document.getElementById("btn-view-toggle");
+    updateViewButton();
     renderIndexTabs();
     renderContent();
     bindEvents();

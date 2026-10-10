@@ -18,6 +18,18 @@
         <span>个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
+        <!-- 视图切换按钮：网格 ⟷ 书架 -->
+        <button
+          type="button"
+          id="btn-view-toggle"
+          class="theme-switch-btn view-switch-btn"
+          aria-label="切换为 3D 藏书馆书架视图"
+          title="切换展示视图"
+        >
+          <span class="view-icon" aria-hidden="true">🏛</span>
+          <span class="view-label">书架</span>
+        </button>
+
         <!-- 整理书架模式开关按钮 -->
         <button
           type="button"
@@ -162,15 +174,16 @@
   </div>
 
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
-  <script src="data.js?v=1.1.0"></script>
-  <script src="js/storage.js?v=1.1.0"></script>
-  <script src="js/theme.js?v=1.1.0"></script>
-  <script src="js/favorites.js?v=1.1.0"></script>
-  <script src="js/visits.js?v=1.1.0"></script>
-  <script src="js/search.js?v=1.1.0"></script>
-  <script src="js/motion.js?v=1.1.0"></script>
-  <script src="js/sortable.js?v=1.1.0"></script>
-  <script src="js/exlibris.js?v=1.1.0"></script>
-  <script src="app.js?v=1.1.0"></script>
+  <script src="data.js?v=1.2.0"></script>
+  <script src="js/storage.js?v=1.2.0"></script>
+  <script src="js/theme.js?v=1.2.0"></script>
+  <script src="js/favorites.js?v=1.2.0"></script>
+  <script src="js/visits.js?v=1.2.0"></script>
+  <script src="js/search.js?v=1.2.0"></script>
+  <script src="js/motion.js?v=1.2.0"></script>
+  <script src="js/sortable.js?v=1.2.0"></script>
+  <script src="js/exlibris.js?v=1.2.0"></script>
+  <script src="js/bookshelf.js?v=1.2.0"></script>
+  <script src="app.js?v=1.2.0"></script>
 </body>
 </html>

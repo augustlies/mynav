@@ -22,6 +22,7 @@
   const KEYS = {
     VERSION: PREFIX + "version",
     THEME: PREFIX + "theme",
+    VIEW: PREFIX + "view",
     FAVORITES: PREFIX + "favorites",
     VISITS: PREFIX + "visits",
     ORDER: PREFIX + "order"
