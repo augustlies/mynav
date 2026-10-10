@@ -2360,4 +2360,345 @@ body.modal-open {
   color: var(--text-faint);
 }
 
+/* ==========================================================================
+   17. 键盘无障碍漫游与微动效打磨 (Phase 6: Keyboard Accessibility & Micro-interactions)
+   ========================================================================== */
+
+/* 全站焦点环重塑：剔除浏览器默认生硬蓝框，代之以独立杂志暖调微光 */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 1px rgba(78, 93, 75, 0.2), 0 2px 8px rgba(36, 37, 31, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] :focus-visible {
+  outline-color: var(--color-accent);
+  box-shadow: 0 0 0 1px rgba(184, 150, 90, 0.35), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 顶部栏快捷键指南按钮 */
+.shortcuts-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shortcuts-icon {
+  font-size: 0.95rem;
+}
+
+/* 键盘漫游选中状态 (Keyboard Focused Items) */
+.entry-card.keyboard-focused {
+  border-color: var(--color-accent) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lift), 0 0 0 2px var(--color-accent) !important;
+  background-color: var(--card-bg) !important;
+  z-index: 10 !important;
+}
+
+[data-theme="dark"] .entry-card.keyboard-focused {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 14px 32px -4px rgba(0, 0, 0, 0.7), 0 0 0 2px var(--color-accent) !important;
+}
+
+.book-item.keyboard-focused {
+  transform: translateY(-14px) !important;
+  z-index: 40 !important;
+}
+
+.book-item.keyboard-focused .book-spine-face {
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 0 2px var(--color-accent) !important;
+}
+
+/* 快捷键指南模态背景遮罩 */
+.shortcuts-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background-color: rgba(28, 29, 25, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 快捷键指南卡片 */
+.shortcuts-modal-card {
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.shortcuts-modal-card::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: calc(var(--radius-md) - 3px);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* 模态刊头 */
+.shortcuts-modal-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+}
+
+.shortcuts-modal-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  margin-bottom: 4px;
+}
+
+.shortcuts-modal-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.btn-close-shortcuts {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-close-shortcuts:hover {
+  color: var(--text-main);
+  border-color: var(--border-focus);
+  background-color: var(--bg-card);
+}
+
+/* 模态正文与网格排版 */
+.shortcuts-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.shortcut-columns-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .shortcut-columns-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shortcut-group-card {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.shortcut-group-title {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 6px;
+}
+
+.shortcut-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shortcut-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.8125rem;
+}
+
+.shortcut-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.kbd-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-bottom: 2px solid var(--border-focus);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  line-height: 1.2;
+}
+
+.shortcut-desc {
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 0.8125rem;
+}
+
+/* 模态底部 */
+.shortcuts-modal-footer {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+  gap: 16px;
+}
+
+.shortcuts-modal-tip {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.btn-shortcuts-action {
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .btn-shortcuts-action {
+  color: #171815;
+}
+
+.btn-shortcuts-action:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+/* ==========================================================================
+   微印记 Toast 提示浮层 (Editorial Micro-Toasts)
+   ========================================================================== */
+.editorial-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 360px;
+}
+
+.editorial-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 28px rgba(36, 37, 31, 0.16), 0 1px 3px rgba(0, 0, 0, 0.06);
+  animation: toastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+[data-theme="dark"] .editorial-toast {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.editorial-toast.toast-leaving {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+}
+
+.toast-emblem {
+  font-size: 1.15rem;
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-title {
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.toast-sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@keyframes toastSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 

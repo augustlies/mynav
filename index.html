@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=1.4.0">
+  <link rel="stylesheet" href="styles.css?v=1.5.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -52,6 +52,18 @@
         >
           <span class="theme-icon" aria-hidden="true">◐</span>
           <span class="theme-label">自动</span>
+        </button>
+
+        <!-- 键盘漫游指南开关按钮 -->
+        <button
+          type="button"
+          id="btn-shortcuts-toggle"
+          class="theme-switch-btn shortcuts-switch-btn"
+          aria-label="查看全站键盘漫游指南 (?)"
+          title="键盘漫游指南 (?)"
+        >
+          <span class="shortcuts-icon" aria-hidden="true">⌨</span>
+          <span class="shortcuts-label">指南</span>
         </button>
       </div>
     </header>
@@ -140,6 +152,12 @@
         <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
         <div class="footer-shortcuts-line">
           <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
+          <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
+          <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
+          <span><kbd class="kbd-tag">f</kbd> 典藏</span>
+          <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
+          <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
+          <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
           <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
         </div>
       </div>
@@ -173,17 +191,113 @@
     </div>
   </div>
 
+  <!-- 全站快捷键漫游指南模态层 (Shortcuts Modal) -->
+  <div id="shortcuts-modal" class="shortcuts-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="shortcuts-modal-title">
+    <div class="shortcuts-modal-card">
+      <header class="shortcuts-modal-header">
+        <div class="shortcuts-modal-titles">
+          <span class="shortcuts-modal-badge">NAVIGATOR · 快捷指令</span>
+          <h2 id="shortcuts-modal-title" class="shortcuts-modal-title">藏书馆键盘漫游指南</h2>
+        </div>
+        <button type="button" id="btn-close-shortcuts" class="btn-close-shortcuts" aria-label="关闭快捷键指南 (Esc)" title="关闭 (Esc)">✕</button>
+      </header>
+      <div class="shortcuts-modal-body">
+        <div class="shortcut-columns-grid">
+          <div class="shortcut-group-card">
+            <h3 class="shortcut-group-title">🔍 馆藏检索与导航</h3>
+            <ul class="shortcut-list">
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">/</kbd> 或 <kbd class="kbd-badge">Ctrl</kbd>+<kbd class="kbd-badge">K</kbd></div>
+                <div class="shortcut-desc">瞬时聚焦全馆检索框</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Esc</kbd></div>
+                <div class="shortcut-desc">退出搜索 / 关闭弹窗 / 取消聚焦</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">?</kbd> 或 <kbd class="kbd-badge">Shift</kbd>+<kbd class="kbd-badge">/</kbd></div>
+                <div class="shortcut-desc">唤出 / 收起此快捷键指南</div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="shortcut-group-card">
+            <h3 class="shortcut-group-title">📖 书籍漫游与查阅</h3>
+            <ul class="shortcut-list">
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">j</kbd> / <kbd class="kbd-badge">↓</kbd></div>
+                <div class="shortcut-desc">顺序对焦下一卷藏书</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">k</kbd> / <kbd class="kbd-badge">↑</kbd></div>
+                <div class="shortcut-desc">对焦上一卷藏书</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Enter</kbd></div>
+                <div class="shortcut-desc">开卷阅读所选藏书 (新标签页)</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">h</kbd> / <kbd class="kbd-badge">l</kbd></div>
+                <div class="shortcut-desc">向左 / 向右切换分类专栏</div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="shortcut-group-card">
+            <h3 class="shortcut-group-title">⭐ 典藏与印画</h3>
+            <ul class="shortcut-list">
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">f</kbd></div>
+                <div class="shortcut-desc">收入 / 移出私人典藏阁</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">e</kbd></div>
+                <div class="shortcut-desc">品鉴专属数字藏书票 (Ex Libris)</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">1</kbd> ~ <kbd class="kbd-badge">7</kbd></div>
+                <div class="shortcut-desc">数字快捷键直达分类专栏</div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="shortcut-group-card">
+            <h3 class="shortcut-group-title">🏛 氛围与视图</h3>
+            <ul class="shortcut-list">
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">v</kbd></div>
+                <div class="shortcut-desc">切换期刊网格 ⟷ 3D 立体书架</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">t</kbd></div>
+                <div class="shortcut-desc">循环切换昼夜模式 (浅色/深色/自动)</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <footer class="shortcuts-modal-footer">
+        <span class="shortcuts-modal-tip">无需鼠标，指尖轻敲键盘即可漫游整座私人藏书馆</span>
+        <button type="button" id="btn-dismiss-shortcuts" class="btn-shortcuts-action" title="完成并返回">收起指南 (Esc)</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 典雅微印记 Toast 提示浮层 (Editorial Toast Container) -->
+  <div id="editorial-toast-container" class="editorial-toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
-  <script src="data.js?v=1.4.0"></script>
-  <script src="js/storage.js?v=1.4.0"></script>
-  <script src="js/theme.js?v=1.4.0"></script>
-  <script src="js/favorites.js?v=1.4.0"></script>
-  <script src="js/visits.js?v=1.4.0"></script>
-  <script src="js/search.js?v=1.4.0"></script>
-  <script src="js/motion.js?v=1.4.0"></script>
-  <script src="js/sortable.js?v=1.4.0"></script>
-  <script src="js/exlibris.js?v=1.4.0"></script>
-  <script src="js/bookshelf.js?v=1.4.0"></script>
-  <script src="app.js?v=1.4.0"></script>
+  <script src="data.js?v=1.5.0"></script>
+  <script src="js/storage.js?v=1.5.0"></script>
+  <script src="js/theme.js?v=1.5.0"></script>
+  <script src="js/favorites.js?v=1.5.0"></script>
+  <script src="js/visits.js?v=1.5.0"></script>
+  <script src="js/search.js?v=1.5.0"></script>
+  <script src="js/motion.js?v=1.5.0"></script>
+  <script src="js/sortable.js?v=1.5.0"></script>
+  <script src="js/exlibris.js?v=1.5.0"></script>
+  <script src="js/bookshelf.js?v=1.5.0"></script>
+  <script src="js/shortcuts.js?v=1.5.0"></script>
+  <script src="app.js?v=1.5.0"></script>
 </body>
 </html>

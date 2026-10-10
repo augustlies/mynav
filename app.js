@@ -806,27 +806,7 @@
       });
     }
 
-    // 7. 快捷键监听 (/ 聚焦搜索, Escape 退出搜索)
-    window.addEventListener("keydown", function (e) {
-      if (e.key === "/" && document.activeElement !== dom.searchInput) {
-        const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
-        if (tag !== "input" && tag !== "textarea") {
-          e.preventDefault();
-          dom.searchInput.focus();
-          dom.searchInput.select();
-        }
-      }
-
-      if (e.key === "Escape") {
-        if (dom.searchInput.value !== "") {
-          dom.searchInput.value = "";
-          state.searchQuery = "";
-          dom.searchClearBtn.style.display = "none";
-          renderContent();
-        }
-        dom.searchInput.blur();
-      }
-    });
+    // 7. 全站快捷键漫游由独立模块 js/shortcuts.js 统管，此处无需重复监听
   }
 
   // ==========================================================================
@@ -857,6 +837,114 @@
     // 2.6 初始化 3D 藏书馆书架事件委托 (一次性绑定)
     if (window.NavBookshelf && dom.contentArea) {
       window.NavBookshelf.bindInteractions(dom.contentArea);
+    }
+
+    // 2.7 初始化全站键盘无障碍漫游与微交互控制模块
+    if (window.NavShortcuts) {
+      window.NavShortcuts.init({
+        getViewMode: () => state.viewMode,
+        isArrangeMode: () => Boolean(window.NavSortable && window.NavSortable.isArrangeMode()),
+        getAllSites: () => getRawSites(),
+        onSearchFocus: () => {
+          if (dom.searchInput) {
+            dom.searchInput.focus();
+            dom.searchInput.select();
+          }
+        },
+        onSearchBlur: () => {
+          if (dom.searchInput) {
+            if (dom.searchInput.value !== "") {
+              dom.searchInput.value = "";
+              state.searchQuery = "";
+              dom.searchClearBtn.style.display = "none";
+              renderContent();
+            }
+            dom.searchInput.blur();
+          }
+        },
+        onViewToggle: () => {
+          if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+            window.NavSortable.exitArrangeMode();
+          }
+          state.viewMode = state.viewMode === "grid" ? "shelf" : "grid";
+          if (window.NavStorage) {
+            window.NavStorage.set("mynav_arch_view", state.viewMode);
+          }
+          updateViewButton();
+          renderContent();
+          window.NavShortcuts.showToast(
+            state.viewMode === "shelf" ? "已切换至 3D 藏书馆书架" : "已切换至期刊网格视图",
+            "按 v 随时往复切换",
+            state.viewMode === "shelf" ? "🏛" : "⊞"
+          );
+        },
+        onThemeToggle: () => {
+          if (window.NavTheme) {
+            const res = window.NavTheme.toggle();
+            const mode = res ? res.mode : window.NavTheme.getMode();
+            const modeNames = { light: "浅色象牙白纸张", dark: "深色桑皮炭黑纸张", auto: "自然时序自适应" };
+            const modeIcons = { light: "☼", dark: "☾", auto: "◐" };
+            window.NavShortcuts.showToast(
+              `已切换为 ${modeNames[mode] || mode}`,
+              "按 t 循环切换阅读氛围",
+              modeIcons[mode] || "◐"
+            );
+          }
+        },
+        onCategorySwitch: (delta, directNumber) => {
+          const tabButtons = Array.from(dom.tabsRail.querySelectorAll(".index-tab-item"));
+          if (tabButtons.length === 0) return;
+
+          let targetBtn = null;
+          if (typeof directNumber === "number" && directNumber >= 1 && directNumber <= tabButtons.length) {
+            targetBtn = tabButtons[directNumber - 1];
+          } else if (typeof delta === "number") {
+            const currentIdx = tabButtons.findIndex(b => b.classList.contains("active"));
+            let newIdx = currentIdx + delta;
+            if (newIdx < 0) newIdx = tabButtons.length - 1;
+            if (newIdx >= tabButtons.length) newIdx = 0;
+            targetBtn = tabButtons[newIdx];
+          }
+
+          if (targetBtn) {
+            const targetCat = targetBtn.getAttribute("data-cat-target");
+            if (targetCat) {
+              state.activeCategory = targetCat;
+              if (state.searchQuery) {
+                state.searchQuery = "";
+                dom.searchInput.value = "";
+                dom.searchClearBtn.style.display = "none";
+              }
+              tabButtons.forEach(t => t.classList.toggle("active", t === targetBtn));
+              renderContent();
+              const catLabel = targetBtn.querySelector("span")?.textContent?.trim() || targetCat;
+              window.NavShortcuts.showToast(`专栏：${catLabel}`, "按 h/l 或数字键 1~7 导航", "📑");
+            }
+          }
+        },
+        onBookmarkToggle: (siteId) => {
+          if (window.NavFavorites) {
+            const isBookmarked = window.NavFavorites.toggle(siteId);
+            updateBadges();
+            renderContent();
+            const allSites = getRawSites();
+            const site = allSites.find(s => s.id === siteId);
+            const siteName = site ? site.name : siteId;
+            window.NavShortcuts.showToast(
+              isBookmarked ? "⭐ 已收入私人典藏阁" : "已移出私人典藏阁",
+              siteName,
+              isBookmarked ? "⭐" : "✦"
+            );
+          }
+        },
+        onBookplateOpen: (siteId) => {
+          const allSites = getRawSites();
+          const targetSite = allSites.find(s => s.id === siteId);
+          if (targetSite && window.NavExLibris) {
+            window.NavExLibris.open(targetSite);
+          }
+        }
+      });
     }
 
     // 3. 装配刊头信息
