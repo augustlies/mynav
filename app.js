@@ -115,14 +115,24 @@
   // 视图组件渲染器 (HTML Builders)
   // ==========================================================================
 
-  // 生成书目卡片条目（语义化 article + Stretched Link，符合 W3C 无交互元素嵌套规范）
-  function createEntryCardHtml(site, index) {
+  // 生成书目卡片条目（语义化 article + Stretched Link，符合 W3C 无交互元素嵌套规范，支持出版物划线批注高亮）
+  function createEntryCardHtml(site, index, query = "") {
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const domain = extractDomain(site.url);
     const host = getHostname(site.url);
     const emblemText = escapeHtml(site.icon || site.name.slice(0, 2));
-    const firstTag = Array.isArray(site.tags) && site.tags[0] ? escapeHtml(site.tags[0]) : "典藏";
+    const rawTag = Array.isArray(site.tags) && site.tags[0] ? site.tags[0] : "典藏";
+    const firstTag = (query && window.NavSearch)
+      ? window.NavSearch.highlight(rawTag, query)
+      : escapeHtml(rawTag);
     const indexStr = String(index + 1).padStart(2, "0");
+
+    const displayName = (query && window.NavSearch)
+      ? window.NavSearch.highlight(site.name, query)
+      : escapeHtml(site.name);
+    const displayDesc = (query && window.NavSearch)
+      ? window.NavSearch.highlight(site.description || '暂无描述', query)
+      : escapeHtml(site.description || '暂无描述');
 
     // 图标三级加载策略：1. site.favicon 或 icons/<id>.png -> 2. DuckDuckGo 外链 -> 3. 移除 img 显示文本兜底
     const primaryIcon = site.favicon ? site.favicon : `icons/${encodeURIComponent(site.id)}.png`;
@@ -157,7 +167,7 @@
                   class="card-title-link"
                   title="${escapeHtml(site.name)}"
                 >
-                  ${escapeHtml(site.name)}
+                  ${displayName}
                 </a>
               </h3>
               <div class="card-domain-slug">${escapeHtml(domain)}</div>
@@ -178,7 +188,7 @@
             </svg>
           </button>
         </div>
-        <p class="card-synopsis" title="${escapeHtml(site.description || '')}">${escapeHtml(site.description || '暂无描述')}</p>
+        <p class="card-synopsis" title="${escapeHtml(site.description || '')}">${displayDesc}</p>
         <div class="card-bottom-rail">
           <span class="card-tag-pill">#${firstTag}</span>
           <div class="card-bottom-actions">
@@ -228,18 +238,58 @@
     `;
   }
 
-  // 生成典雅空状态
-  function createEmptyStateHtml(title, desc, buttonText = "清空检索", action = "resetSearch") {
+  // 生成专用于检索未命中的典雅图书馆式空状态与推荐藏书
+  function createSearchEmptyStateHtml(query, allSites) {
+    // 挑选 3 本馆藏代表性典籍（优先选取已收藏或常驻案头条目，不足则取前列条目）
+    const favs = allSites.filter(s => window.NavFavorites && window.NavFavorites.has(s.id));
+    const freqs = window.NavVisits ? window.NavVisits.getTopSites(allSites, 3) : [];
+    const pool = [...favs, ...freqs, ...allSites];
+    const recSites = [];
+    const seenIds = new Set();
+    for (const site of pool) {
+      if (!seenIds.has(site.id)) {
+        seenIds.add(site.id);
+        recSites.push(site);
+        if (recSites.length >= 3) break;
+      }
+    }
+
+    const recCardsHtml = recSites.map(s => `
+      <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="empty-rec-card" title="${escapeHtml(s.name)}">
+        <span class="empty-rec-icon">${escapeHtml(s.icon || s.name.slice(0, 2))}</span>
+        <div class="empty-rec-meta">
+          <span class="empty-rec-name">${escapeHtml(s.name)}</span>
+          <span class="empty-rec-desc">${escapeHtml(s.description || '')}</span>
+        </div>
+      </a>
+    `).join("");
+
+    const exploreTags = ["#ai", "#代码", "#前端", "#效率", "#知识库", "#开源"];
+    const tagPillsHtml = exploreTags.map(tag => `
+      <button type="button" class="empty-tag-pill" data-suggest-tag="${escapeHtml(tag)}">
+        ${escapeHtml(tag)}
+      </button>
+    `).join("");
+
     return `
       <div class="quiet-empty-state">
         <div class="empty-state-symbol" aria-hidden="true">❦</div>
-        <h3 class="empty-state-headline">${escapeHtml(title)}</h3>
-        <p class="empty-state-text">${escapeHtml(desc)}</p>
-        ${buttonText ? `
-          <button type="button" class="btn-empty-action" data-empty-action="${escapeHtml(action)}">
-            ${escapeHtml(buttonText)}
-          </button>
-        ` : ''}
+        <h3 class="empty-state-headline">馆藏目录未检索到 “${escapeHtml(query)}”</h3>
+        <p class="empty-state-text">暂无完全匹配之书卷。您可以尝试缩短检索词、使用拼音简拼（如 kl、ds、xtjj、yq）或点击下方标签展开探索。</p>
+        <button type="button" class="btn-empty-action" data-empty-action="resetSearch">
+          清空检索
+        </button>
+
+        <div class="empty-recommendation-box">
+          <div class="empty-recommendation-title">—— 馆席精选藏目推荐 ——</div>
+          <div class="empty-recommendation-grid">
+            ${recCardsHtml}
+          </div>
+          <div class="empty-suggest-tags">
+            <span class="empty-suggest-label">热门探索分类：</span>
+            ${tagPillsHtml}
+          </div>
+        </div>
       </div>
     `;
   }
@@ -257,21 +307,29 @@
     if (query) {
       dom.statusBar.style.display = "flex";
       const matches = window.NavSearch ? window.NavSearch.filter(allSites, query) : allSites;
+      const dist = window.NavSearch ? window.NavSearch.getCategoryDistribution(matches, categories) : [];
 
-      dom.statusText.innerHTML = `检索词 “<strong>${escapeHtml(query)}</strong>” · 共寻得 <strong>${matches.length}</strong> 卷藏书`;
+      const distHtml = dist.map(d => `
+        <button type="button" class="search-cat-pill" data-focus-cat="${escapeHtml(d.id)}" title="一键聚焦至「${escapeHtml(d.name)}」">
+          <span>${escapeHtml(d.name)}</span>
+          <span class="pill-count">${d.count}</span>
+        </button>
+      `).join("");
+
+      dom.statusText.innerHTML = `
+        <div class="search-status-content">
+          <span>检索 “<strong>${escapeHtml(query)}</strong>” · 共寻得 <strong>${matches.length}</strong> 卷藏书</span>
+          ${distHtml ? `<div class="search-dist-pills">${distHtml}</div>` : ''}
+        </div>
+      `;
 
       if (matches.length === 0) {
-        dom.contentArea.innerHTML = createEmptyStateHtml(
-          "未检索到相关典藏",
-          `暂无与 “${query}” 匹配的网站。建议缩短检索词或浏览下方分类专栏。`,
-          "清空检索",
-          "resetSearch"
-        );
+        dom.contentArea.innerHTML = createSearchEmptyStateHtml(query, allSites);
       } else {
         if (state.viewMode === "shelf" && window.NavBookshelf) {
           dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
         } else {
-          const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx, query)).join("");
           dom.contentArea.innerHTML = `<div class="entries-grid">${cardsHtml}</div>`;
         }
       }
@@ -557,7 +615,21 @@
       renderContent();
     });
 
-    // 3. 状态条重置按钮
+    // 3. 状态条重置与编目分类小胶囊聚焦
+    dom.statusBar.addEventListener("click", function (e) {
+      const focusPill = e.target.closest("[data-focus-cat]");
+      if (focusPill) {
+        const catId = focusPill.getAttribute("data-focus-cat");
+        state.activeCategory = catId;
+        state.searchQuery = "";
+        dom.searchInput.value = "";
+        dom.searchClearBtn.style.display = "none";
+        renderIndexTabs();
+        renderContent();
+        return;
+      }
+    });
+
     dom.statusResetBtn.addEventListener("click", function () {
       dom.searchInput.value = "";
       state.searchQuery = "";
@@ -639,7 +711,18 @@
         return;
       }
 
-      // 5.3 空状态重置动作
+      // 5.3 空状态重置与推荐动作
+      const suggestBtn = e.target.closest("[data-suggest-tag]");
+      if (suggestBtn) {
+        const tag = suggestBtn.getAttribute("data-suggest-tag");
+        dom.searchInput.value = tag;
+        state.searchQuery = tag;
+        dom.searchClearBtn.style.display = "block";
+        renderContent();
+        dom.searchInput.focus();
+        return;
+      }
+
       const emptyBtn = e.target.closest("[data-empty-action]");
       if (emptyBtn) {
         const action = emptyBtn.getAttribute("data-empty-action");

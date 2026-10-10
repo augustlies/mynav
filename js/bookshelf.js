@@ -123,7 +123,7 @@
   }
 
   // 4. 生成单本书籍 3D DOM (Book Item)
-  function createBookItemHtml(site, index, categoryContext) {
+  function createBookItemHtml(site, index, categoryContext, query = "") {
     const { width, height } = calculateDimensions(site);
     const domain = extractDomain(site.url);
     const emblemText = escapeHtml(site.icon || site.name.slice(0, 2));
@@ -132,6 +132,13 @@
 
     const catKey = categoryContext || site.category;
     const palette = SHELF_PALETTES[catKey] || DEFAULT_PALETTE;
+
+    const displayName = (query && window.NavSearch)
+      ? window.NavSearch.highlight(site.name, query)
+      : escapeHtml(site.name);
+    const displayDesc = (query && window.NavSearch)
+      ? window.NavSearch.highlight(site.description || '暂无描述', query)
+      : escapeHtml(site.description || '暂无描述');
 
     return `
       <div
@@ -183,7 +190,7 @@
             <div class="flyout-card-identity">
               <span class="flyout-card-emblem">${emblemText}</span>
               <div class="flyout-card-titles">
-                <h4 class="flyout-card-name">${escapeHtml(site.name)}</h4>
+                <h4 class="flyout-card-name">${displayName}</h4>
                 <span class="flyout-card-domain">${escapeHtml(domain)}</span>
               </div>
             </div>
@@ -203,7 +210,7 @@
             </button>
           </div>
 
-          <p class="flyout-card-desc" title="${escapeHtml(site.description || '')}">${escapeHtml(site.description || '暂无描述')}</p>
+          <p class="flyout-card-desc" title="${escapeHtml(site.description || '')}">${displayDesc}</p>
 
           <div class="flyout-card-actions">
             <button
@@ -231,8 +238,8 @@
   }
 
   // 5. 生成单层书架 (Bookshelf Tier)
-  function createBookshelfTierHtml(title, code, desc, count, sites, actionHtml = "", categoryKey = "") {
-    const booksHtml = sites.map((site, idx) => createBookItemHtml(site, idx, categoryKey)).join("");
+  function createBookshelfTierHtml(title, code, desc, count, sites, actionHtml = "", categoryKey = "", query = "") {
+    const booksHtml = sites.map((site, idx) => createBookItemHtml(site, idx, categoryKey, query)).join("");
 
     return `
       <section class="bookshelf-tier" data-tier-category="${escapeHtml(categoryKey)}">
@@ -320,7 +327,8 @@
       matches.length,
       matches,
       "",
-      "search"
+      "search",
+      query
     );
     return `<div class="bookshelf-container">${tierHtml}</div>`;
   }

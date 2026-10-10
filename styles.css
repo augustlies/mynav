@@ -521,6 +521,69 @@ body::before {
   color: var(--text-main);
 }
 
+.search-status-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 检索分类分布小胶囊 (Category Distribution Pills) */
+.search-dist-pills {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.search-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
+  padding: 1px 7px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.search-cat-pill:hover {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.search-cat-pill .pill-count {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* 出版物划线批注高亮 (Editorial Mark Highlighting) */
+.editorial-highlight {
+  background-color: rgba(229, 169, 98, 0.28);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: var(--radius-xs);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  text-decoration: underline;
+  text-decoration-color: rgba(184, 98, 27, 0.45);
+  text-underline-offset: 2px;
+}
+
+[data-theme="dark"] .editorial-highlight {
+  background-color: rgba(212, 176, 123, 0.24);
+  color: inherit;
+  text-decoration-color: rgba(212, 176, 123, 0.5);
+}
+
 .btn-reset-filter {
   background: none;
   border: none;
@@ -1017,6 +1080,126 @@ body::before {
 
 .btn-empty-action:active {
   transform: translateY(0);
+}
+
+/* 图书馆式空状态精选推荐 (Curated Library Recommendations) */
+.empty-recommendation-box {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-hairline);
+  width: 100%;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.empty-recommendation-title {
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.empty-recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.empty-rec-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  color: var(--text-main);
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.empty-rec-card:hover {
+  border-color: var(--color-accent);
+  background-color: var(--bg-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+.empty-rec-icon {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+.empty-rec-meta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.empty-rec-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-rec-desc {
+  font-size: 0.6875rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 推荐检索词/标签胶囊 */
+.empty-suggest-tags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.empty-suggest-label {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+}
+
+.empty-tag-pill {
+  background: none;
+  border: 1px dashed var(--border-hairline);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.empty-tag-pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background-color: var(--bg-subtle);
+  transform: translateY(-1px);
 }
 
 /* --------------------------------------------------------------------------
