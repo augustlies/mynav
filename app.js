@@ -49,6 +49,29 @@
     }
   }
 
+  function getHostname(urlStr) {
+    try {
+      const u = new URL(urlStr);
+      return u.hostname.replace(/^www\./, "").toLowerCase();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  // 计算当前仍有效存在的收藏数与常用数（自动忽略已在 data.js 中被删除的失效历史记录）
+  function getValidFavCount() {
+    const allSites = getRawSites();
+    return allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id)).length;
+  }
+
+  function getValidFreqCount() {
+    const allSites = getRawSites();
+    return allSites.filter(site => {
+      const st = window.NavVisits ? window.NavVisits.getStat(site.id) : null;
+      return st && st.count > 0;
+    }).length;
+  }
+
   // 格式化本地中文编辑日期
   function formatEditorialDate() {
     try {
@@ -81,9 +104,14 @@
   function createEntryCardHtml(site, index) {
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const domain = extractDomain(site.url);
-    const emblem = escapeHtml(site.icon || site.name.slice(0, 2));
+    const host = getHostname(site.url);
+    const emblemText = escapeHtml(site.icon || site.name.slice(0, 2));
     const firstTag = Array.isArray(site.tags) && site.tags[0] ? escapeHtml(site.tags[0]) : "典藏";
     const indexStr = String(index + 1).padStart(2, "0");
+
+    // 图标三级加载策略：1. site.favicon 或 icons/<id>.png -> 2. DuckDuckGo 外链 -> 3. 移除 img 显示文本兜底
+    const primaryIcon = site.favicon ? site.favicon : `icons/${encodeURIComponent(site.id)}.png`;
+    const ddgFallback = host ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico` : "";
 
     return `
       <a
@@ -95,7 +123,18 @@
       >
         <div class="card-masthead">
           <div class="card-identity">
-            <span class="card-emblem" aria-hidden="true">${emblem}</span>
+            <span class="card-emblem" aria-hidden="true">
+              <img
+                class="emblem-img"
+                src="${escapeHtml(primaryIcon)}"
+                loading="lazy"
+                alt=""
+                width="20"
+                height="20"
+                onerror="if(!this.dataset.fallback){this.dataset.fallback='1';if('${escapeHtml(ddgFallback)}'){this.src='${escapeHtml(ddgFallback)}';}else{this.remove();}}else{this.remove();}"
+              >
+              <span class="emblem-fallback-text">${emblemText}</span>
+            </span>
             <div class="card-titles">
               <h3 class="card-title-text" title="${escapeHtml(site.name)}">${escapeHtml(site.name)}</h3>
               <div class="card-domain-slug">${escapeHtml(domain)}</div>
@@ -126,9 +165,9 @@
   }
 
   // 生成专栏板块
-  function createSectionHtml(title, code, desc, count, cardsHtml, actionHtml = "") {
+  function createSectionHtml(title, code, desc, count, cardsHtml, actionHtml = "", categoryKey = "") {
     return `
-      <section class="archive-section">
+      <section class="archive-section" data-section-category="${escapeHtml(categoryKey)}">
         <div class="section-masthead-rule">
           <div class="section-heading-group">
             <span class="section-code">[${escapeHtml(code)}]</span>
@@ -140,7 +179,7 @@
             <span class="section-count-tag">${count} 卷</span>
           </div>
         </div>
-        <div class="entries-grid">
+        <div class="entries-grid" data-category-key="${escapeHtml(categoryKey)}">
           ${cardsHtml}
         </div>
       </section>
@@ -198,7 +237,9 @@
 
     // 2.1 查看「我的典藏」
     if (state.activeCategory === "favorites") {
-      const favSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
+      const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
+      const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
+
       if (favSites.length === 0) {
         dom.contentArea.innerHTML = createEmptyStateHtml(
           "典藏阁暂无藏书",
@@ -213,8 +254,13 @@
           "BOOKMARKS",
           "保存在当前浏览器本地的精选书签",
           favSites.length,
-          cardsHtml
+          cardsHtml,
+          "",
+          "favorites"
         );
+      }
+      if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+        window.NavSortable.refreshCardAttributes();
       }
       return;
     }
@@ -242,8 +288,12 @@
           "根据本地点击频次自动排序",
           freqSites.length,
           cardsHtml,
-          clearActionHtml
+          clearActionHtml,
+          "frequent"
         );
+      }
+      if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+        window.NavSortable.refreshCardAttributes();
       }
       return;
     }
@@ -252,26 +302,28 @@
     if (state.activeCategory === "all") {
       const sectionsHtml = [];
 
-      // 若有收藏，置顶展示私人典藏专栏
-      const favSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
+      // 若有收藏，置顶展示私人典藏专栏（支持独立排序）
+      const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
+      const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
       if (favSites.length > 0) {
         const favCards = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-        sectionsHtml.push(createSectionHtml("私人典藏", "FAV", "随时查阅的归档藏书", favSites.length, favCards));
+        sectionsHtml.push(createSectionHtml("私人典藏", "FAV", "随时查阅的归档藏书", favSites.length, favCards, "", "favorites"));
       }
 
       // 若有访问统计，展示常驻案头专栏 (前 6 个)
       const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
       if (freqSites.length > 0) {
         const freqCards = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-        sectionsHtml.push(createSectionHtml("常驻案头", "TOP", "近期高频访问入口", freqSites.length, freqCards));
+        sectionsHtml.push(createSectionHtml("常驻案头", "TOP", "近期高频访问入口", freqSites.length, freqCards, "", "frequent"));
       }
 
-      // 依次展示各分类专栏
+      // 依次展示各分类专栏（按本地记住的顺序排列）
       categories.forEach(cat => {
-        const catSites = allSites.filter(s => s.category === cat.id);
+        const rawCatSites = allSites.filter(s => s.category === cat.id);
+        const catSites = window.NavSortable ? window.NavSortable.sortSites(cat.id, rawCatSites) : rawCatSites;
         if (catSites.length > 0) {
           const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
-          sectionsHtml.push(createSectionHtml(cat.name, cat.code || "SEC", cat.desc, catSites.length, cards));
+          sectionsHtml.push(createSectionHtml(cat.name, cat.code || "SEC", cat.desc, catSites.length, cards, "", cat.id));
         }
       });
 
@@ -280,12 +332,18 @@
       } else {
         dom.contentArea.innerHTML = sectionsHtml.join("");
       }
+      if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+        window.NavSortable.refreshCardAttributes();
+      }
       return;
     }
 
     // 2.4 查看指定专栏
     const currentCategory = categories.find(c => c.id === state.activeCategory);
-    const catSites = allSites.filter(s => s.category === state.activeCategory);
+    const rawCatSites = allSites.filter(s => s.category === state.activeCategory);
+    const catSites = window.NavSortable && currentCategory
+      ? window.NavSortable.sortSites(currentCategory.id, rawCatSites)
+      : rawCatSites;
 
     if (!currentCategory || catSites.length === 0) {
       dom.contentArea.innerHTML = createEmptyStateHtml(
@@ -301,8 +359,13 @@
         currentCategory.code || "SEC",
         currentCategory.desc,
         catSites.length,
-        cards
+        cards,
+        "",
+        currentCategory.id
       );
+    }
+    if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+      window.NavSortable.refreshCardAttributes();
     }
   }
 
@@ -313,8 +376,8 @@
   function renderIndexTabs() {
     const allSites = getRawSites();
     const categories = getRawCategories();
-    const favCount = window.NavFavorites ? window.NavFavorites.count() : 0;
-    const freqCount = window.NavVisits ? window.NavVisits.count() : 0;
+    const favCount = getValidFavCount();
+    const freqCount = getValidFreqCount();
 
     const tabs = [];
 
@@ -374,12 +437,12 @@
 
   function updateBadges() {
     const favBadge = document.getElementById("badge-fav-num");
-    if (favBadge && window.NavFavorites) {
-      favBadge.textContent = window.NavFavorites.count();
+    if (favBadge) {
+      favBadge.textContent = getValidFavCount();
     }
     const freqBadge = document.getElementById("badge-freq-num");
-    if (freqBadge && window.NavVisits) {
-      freqBadge.textContent = window.NavVisits.count();
+    if (freqBadge) {
+      freqBadge.textContent = getValidFreqCount();
     }
   }
 
@@ -437,6 +500,15 @@
 
     // 5. 内容委托（书签点击、清空案头、外链点击统计、空状态操作）
     dom.contentArea.addEventListener("click", function (e) {
+      // 5.0 若处于整理模式或刚完成拖拽，禁止一切卡片跳转
+      if (window.NavSortable && (window.NavSortable.isArrangeMode() || window.NavSortable.isJustFinishedDrag())) {
+        if (!e.target.closest("[data-bookmark-id]")) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
       // 5.1 点击书签收藏按钮
       const bookmarkBtn = e.target.closest("[data-bookmark-id]");
       if (bookmarkBtn) {
@@ -495,7 +567,36 @@
       }
     });
 
-    // 6. 快捷键监听 (/ 聚焦搜索, Escape 退出搜索)
+    // 6. 整理书架与拖拽排序控制
+    const arrangeToggleBtn = document.getElementById("btn-arrange-toggle");
+    if (arrangeToggleBtn) {
+      arrangeToggleBtn.addEventListener("click", function () {
+        if (window.NavSortable) window.NavSortable.toggleArrangeMode();
+      });
+    }
+
+    const resetOrderBtn = document.getElementById("btn-reset-order");
+    if (resetOrderBtn) {
+      resetOrderBtn.addEventListener("click", function () {
+        const catName = state.activeCategory === "all" ? "全馆" : "当前专栏";
+        if (confirm(`确定要恢复${catName}的默认排列顺序吗？`)) {
+          if (window.NavSortable) {
+            const targetCat = state.activeCategory === "all" ? null : state.activeCategory;
+            window.NavSortable.resetOrder(targetCat);
+            renderContent();
+          }
+        }
+      });
+    }
+
+    const finishArrangeBtn = document.getElementById("btn-finish-arrange");
+    if (finishArrangeBtn) {
+      finishArrangeBtn.addEventListener("click", function () {
+        if (window.NavSortable) window.NavSortable.exitArrangeMode();
+      });
+    }
+
+    // 7. 快捷键监听 (/ 聚焦搜索, Escape 退出搜索)
     window.addEventListener("keydown", function (e) {
       if (e.key === "/" && document.activeElement !== dom.searchInput) {
         const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
@@ -528,11 +629,21 @@
     if (window.NavFavorites) window.NavFavorites.init();
     if (window.NavVisits) window.NavVisits.init();
 
-    // 2. 装配刊头信息
+    // 2. 初始化书架整理与拖动排序模块
+    if (window.NavSortable) {
+      window.NavSortable.init({
+        isSearchActive: () => Boolean(state.searchQuery.trim()),
+        onOrderChange: () => {
+          renderContent();
+        }
+      });
+    }
+
+    // 3. 装配刊头信息
     if (dom.mastheadDate) dom.mastheadDate.textContent = formatEditorialDate();
     if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
 
-    // 3. 初始渲染与事件绑定
+    // 4. 初始渲染与事件绑定
     renderIndexTabs();
     renderContent();
     bindEvents();

@@ -4,7 +4,7 @@
  * 🏛 架构原则：
  * 1. 内容与展示彻底分离：页面结构不硬编码任何具体网站或分类。
  * 2. 稳定标识：每个分类与网站使用全局唯一且稳定的 id，收藏与点击统计基于此 ID 绑定。
- * 3. 极简维护：新增网站直接在 sites 数组末尾追加；新增分类直接在 categories 追加。
+ * 3. 极简维护：新增网站直接在 sites 数组追加；新增分类直接在 categories 追加。
  */
 
 const NAV_DATA = {
@@ -29,12 +29,6 @@ const NAV_DATA = {
       code: "LIB"
     },
     {
-      id: "search",
-      name: "探索与搜索引擎",
-      desc: "全网信息检索、学术文献与高纯度探索入口",
-      code: "SRC"
-    },
-    {
       id: "tools",
       name: "案头效率工具",
       desc: "知识沉淀库、架构图解与高频轻量实用工具",
@@ -42,35 +36,53 @@ const NAV_DATA = {
     }
   ],
 
-  // 馆藏网站条目列表
+  // 馆藏网站条目列表 (共 19 卷)
   sites: [
-    // --- 1. AI 思考与生成 ---
-    {
-      id: "ai-chatgpt",
-      name: "ChatGPT",
-      url: "https://chatgpt.com",
-      description: "OpenAI 旗下通用智能对话与深度推理助手，支持多模态创作与分析",
-      category: "ai",
-      tags: ["ai", "openai", "chatgpt", "大模型", "写作", "推理"],
-      icon: "GPT"
-    },
+    // --- 1. AI 思考与生成 (6 卷) ---
     {
       id: "ai-claude",
       name: "Claude",
       url: "https://claude.ai",
       description: "Anthropic 推出的高质量语言模型，擅长长文深度研读与编程代码实现",
       category: "ai",
-      tags: ["ai", "claude", "anthropic", "代码", "长文", "分析"],
+      tags: ["ai", "claude", "anthropic", "代码", "长文", "分析", "克劳德"],
       icon: "CL"
     },
     {
-      id: "ai-kimi",
-      name: "Kimi 智能助手",
-      url: "https://kimi.moonshot.cn",
-      description: "月之暗面长文本对话助手，支持海量文献研读、网页实时检索与资料汇总",
+      id: "ai-chatgpt",
+      name: "ChatGPT",
+      url: "https://chatgpt.com",
+      description: "OpenAI 旗下通用智能对话与深度推理助手，支持多模态创作与分析",
       category: "ai",
-      tags: ["ai", "kimi", "月之暗面", "长文本", "文献", "搜索"],
-      icon: "KM"
+      tags: ["ai", "openai", "chatgpt", "大模型", "写作", "推理", "gpt"],
+      icon: "GPT"
+    },
+    {
+      id: "ai-gemini",
+      name: "Gemini",
+      url: "https://gemini.google.com",
+      description: "Google 多模态大模型助手，深度整合搜索与云端文档",
+      category: "ai",
+      tags: ["ai", "gemini", "谷歌", "大模型", "多模态"],
+      icon: "GM"
+    },
+    {
+      id: "ai-hark",
+      name: "Hark",
+      url: "https://hark.com",
+      description: "生活操作系统式 AI 助手，能替你订餐、管邮件、做网页与定时任务",
+      category: "ai",
+      tags: ["ai", "hark", "助理", "效率", "任务"],
+      icon: "HK"
+    },
+    {
+      id: "ai-muse",
+      name: "Muse",
+      url: "https://muse.ai",
+      description: "主动式 AI 个人助手，记住你的偏好并替你处理日常事务",
+      category: "ai",
+      tags: ["ai", "muse", "助手", "智能", "日常"],
+      icon: "MU"
     },
     {
       id: "ai-deepseek",
@@ -82,7 +94,7 @@ const NAV_DATA = {
       icon: "DS"
     },
 
-    // --- 2. 开发与代码工坊 ---
+    // --- 2. 开发与代码工坊 (5 卷) ---
     {
       id: "dev-github",
       name: "GitHub",
@@ -129,7 +141,7 @@ const NAV_DATA = {
       icon: "▲"
     },
 
-    // --- 3. 知识与研习 ---
+    // --- 3. 知识与研习 (4 卷) ---
     {
       id: "learn-juejin",
       name: "稀土掘金",
@@ -167,36 +179,7 @@ const NAV_DATA = {
       icon: "哔"
     },
 
-    // --- 4. 探索与搜索引擎 ---
-    {
-      id: "search-bing",
-      name: "必应 Bing",
-      url: "https://cn.bing.com",
-      description: "微软旗下全球化搜索引擎，提供纯净的网页检索、学术论文与每日典雅壁纸",
-      category: "search",
-      tags: ["搜索", "微软", "bing", "必应", "壁纸", "学术"],
-      icon: "BG"
-    },
-    {
-      id: "search-google",
-      name: "Google",
-      url: "https://www.google.com",
-      description: "全球知名的多语言搜索引擎，检索海量互联网知识档案与全球开放信息",
-      category: "search",
-      tags: ["搜索", "谷歌", "google", "外文", "检索"],
-      icon: "GG"
-    },
-    {
-      id: "search-baidu",
-      name: "百度",
-      url: "https://www.baidu.com",
-      description: "全球领先的中文搜索引擎，支持中文网页、即时资讯与百科全书检索",
-      category: "search",
-      tags: ["搜索", "中文", "百度", "baidu", "资讯"],
-      icon: "度"
-    },
-
-    // --- 5. 案头效率工具 ---
+    // --- 4. 案头效率工具 (4 卷) ---
     {
       id: "tool-notion",
       name: "Notion",

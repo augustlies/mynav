@@ -34,6 +34,7 @@ MyNav/
 │   ├── visits.js       # 常用案头访问频次与最近访问时间排序
 │   ├── search.js       # 多维多字段模糊多词检索引擎
 │   └── motion.js       # 错峰渐入、书签微弹性与卡片微动效增强器
+├── icons/              # 本地高清网站 Favicon 图标库 (64x64 PNG)
 ├── README.md           # 维护说明、预览方法与部署指南
 └── .gitignore          # Git 忽略文件规则
 ```
@@ -77,6 +78,8 @@ python -m http.server 8080
   icon: "FG"                                 // 典藏印记徽标（1~3 个字母或汉字）
 },
 ```
+
+> 💡 **图标说明**：新网站可以把图标放到 `icons/<id>.png`，不放也会自动用外链获取。
 
 ### 2. 新增一个专栏分类模板
 在 `data.js` 的 `categories` 数组中追加新分类：

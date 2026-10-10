@@ -640,11 +640,35 @@ body {
 }
 
 .card-emblem {
+  position: relative;
   width: 28px;
   height: 28px;
   border: 1px solid var(--border-hairline);
   background-color: var(--bg-subtle);
   border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  overflow: hidden;
+  transition: transform var(--transition-fast), background-color var(--transition-smooth), border-color var(--transition-smooth);
+}
+
+.emblem-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  border-radius: 2px;
+}
+
+/* 有图片时隐藏文本字母徽标 */
+.emblem-img + .emblem-fallback-text {
+  display: none;
+}
+
+.emblem-fallback-text {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -652,9 +676,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  user-select: none;
-  transition: transform var(--transition-fast);
+  line-height: 1;
+}
+
+/* 深色主题下给图标底色用浅色（#F6F4EE），避免 GitHub、Vercel、Hark 等暗黑图标无法辨识 */
+[data-theme="dark"] .card-emblem {
+  background-color: #F6F4EE;
+  border-color: #E2DFD4;
+}
+
+[data-theme="dark"] .card-emblem .emblem-fallback-text {
+  color: #24251F;
 }
 
 .entry-card:hover .card-emblem {
@@ -939,6 +971,183 @@ body {
   }
 }
 
+/* --------------------------------------------------------------------------
+   13. 书架整理与拖动排序专属设计 (Arrange Shelf & Drag-and-Drop)
+   -------------------------------------------------------------------------- */
+
+/* 顶部栏整理开关激活态 */
+.arrange-switch-btn.active {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .arrange-switch-btn.active {
+  background-color: var(--color-accent);
+  color: #171815;
+  border-color: var(--color-accent);
+}
+
+.arrange-switch-btn.active:hover {
+  background-color: var(--color-accent-hover);
+  color: #FFFFFF;
+}
+
+/* 整理操作横条 (Arrange Mode Toolbar) */
+.arrange-toolbar {
+  margin-bottom: 24px;
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-xs);
+  padding: 12px 18px;
+  animation: barSlideIn 0.25s var(--transition-normal);
+}
+
+.arrange-toolbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.arrange-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.arrange-badge {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.arrange-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-arrange-action {
+  background: var(--bg-page);
+  border: 1px solid var(--border-hairline);
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-arrange-action:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-focus);
+}
+
+.btn-arrange-action.btn-arrange-primary {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .btn-arrange-action.btn-arrange-primary {
+  color: #171815;
+}
+
+.btn-arrange-action.btn-arrange-primary:hover {
+  background-color: var(--color-accent-hover);
+}
+
+/* 整理模式卡片外观与轻微抖动动效 */
+@keyframes cardJiggle {
+  0% {
+    transform: rotate(-0.35deg) translateY(0);
+  }
+  100% {
+    transform: rotate(0.35deg) translateY(-1px);
+  }
+}
+
+.arrange-mode .entry-card {
+  cursor: grab;
+  cursor: -webkit-grab;
+  border: 1px dashed var(--color-accent);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  animation: cardJiggle 0.3s ease-in-out infinite alternate !important;
+}
+
+.arrange-mode .entry-card:nth-child(even) {
+  animation-direction: alternate-reverse !important;
+  animation-duration: 0.34s !important;
+}
+
+/* 整理模式下彻底关闭悬停光泽、悬停位移与外链箭头冲刺 */
+.arrange-mode .entry-card::after {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.arrange-mode .entry-card:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-subtle) !important;
+  border-color: var(--color-accent) !important;
+}
+
+.arrange-mode .entry-card:hover .card-jump-mark,
+.arrange-mode .entry-card:hover .card-emblem {
+  transform: none !important;
+}
+
+/* 拖拽中的卡片：跟手、纸质微放大、浓重弥散阴影 */
+.entry-card.is-dragging {
+  cursor: grabbing !important;
+  cursor: -webkit-grabbing !important;
+  animation: none !important;
+  transform: scale(1.03) !important;
+  box-shadow: 0 16px 36px -4px rgba(36, 37, 31, 0.2), 0 6px 14px -2px rgba(36, 37, 31, 0.12) !important;
+  border-color: var(--color-accent) !important;
+  opacity: 0.96;
+  z-index: 9999 !important;
+}
+
+[data-theme="dark"] .entry-card.is-dragging {
+  box-shadow: 0 18px 40px -4px rgba(0, 0, 0, 0.7), 0 8px 16px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 原位置纸张色占位符 */
+.entry-placeholder {
+  background-color: var(--bg-subtle);
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius-xs);
+  box-sizing: border-box;
+  opacity: 0.75;
+  min-height: 120px;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 键盘操作选中的卡片高亮标识 */
+.entry-card.is-keyboard-picked {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 3px !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: var(--shadow-lift) !important;
+  transform: scale(1.02) !important;
+  animation: none !important;
+}
+
 /* 严格尊重减弱动效用户偏好 (Accessibility First) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -956,4 +1165,14 @@ body {
   .btn-bookmark {
     transform: none !important;
   }
+
+  .arrange-mode .entry-card {
+    animation: none !important;
+  }
+
+  .entry-placeholder,
+  .entry-card {
+    transition: none !important;
+  }
 }
+

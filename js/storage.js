@@ -17,7 +17,8 @@
   const KEYS = {
     THEME: PREFIX + "theme",
     FAVORITES: PREFIX + "favorites",
-    VISITS: PREFIX + "visits"
+    VISITS: PREFIX + "visits",
+    ORDER: PREFIX + "order"
   };
 
   function isAvailable() {

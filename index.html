@@ -17,6 +17,18 @@
         <span>个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
+        <!-- 整理书架模式开关按钮 -->
+        <button
+          type="button"
+          id="btn-arrange-toggle"
+          class="theme-switch-btn arrange-switch-btn"
+          aria-label="整理书架：调整卡片排序"
+          title="整理书架 (拖动排序)"
+        >
+          <span class="arrange-icon" aria-hidden="true">✥</span>
+          <span class="arrange-label">整理</span>
+        </button>
+
         <!-- 典雅双色主题切换按钮 -->
         <button
           type="button"
@@ -83,6 +95,20 @@
       </div>
     </nav>
 
+    <!-- 整理模式提示与恢复操作条 (仅在整理模式激活时展示) -->
+    <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
+      <div class="arrange-toolbar-content">
+        <span class="arrange-tip">
+          <strong class="arrange-badge">整理模式</strong>
+          <span>拖拽卡片调整排序，或按空格选中后用方向键移动，松手自动记住顺序</span>
+        </span>
+        <div class="arrange-actions">
+          <button type="button" id="btn-reset-order" class="btn-arrange-action" title="恢复为默认排列顺序">恢复默认顺序</button>
+          <button type="button" id="btn-finish-arrange" class="btn-arrange-action btn-arrange-primary" title="完成并退出整理模式 (Esc)">完成 (Esc)</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 检索状态条 (有筛选或搜索词时展示) -->
     <div id="search-status-bar" class="search-status-bar" style="display: none;">
       <span id="search-status-text"></span>
@@ -115,6 +141,7 @@
   <script src="js/visits.js"></script>
   <script src="js/search.js"></script>
   <script src="js/motion.js"></script>
+  <script src="js/sortable.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
