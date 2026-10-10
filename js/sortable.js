@@ -35,7 +35,6 @@
   let offsetY = 0;
   let pendingCard = null;
   let initialPointerEvent = null;
-  let touchHoldTimer = null;
   let autoScrollRaf = null;
 
   // 键盘操作状态
@@ -245,20 +244,7 @@
   function handlePointerMove(e) {
     if (!arrangeMode) return;
 
-    // 1. 若处于长按判定等待期（触屏长按判定）
-    if (pendingCard && touchHoldTimer) {
-      const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-      if (dist > 8) {
-        // 移动超阈值，判定为用户页面正常滚动，取消长按拖拽
-        clearTimeout(touchHoldTimer);
-        touchHoldTimer = null;
-        pendingCard = null;
-        initialPointerEvent = null;
-      }
-      return;
-    }
-
-    // 2. 鼠标微移动阈值触发（> 3px 时开始拖动）
+    // 鼠标与触屏微移动阈值触发（> 3px 时开始拖动）
     if (pendingCard && !isDragging) {
       const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
       if (dist > 3) {
@@ -323,10 +309,6 @@
   }
 
   function handlePointerUp(e) {
-    if (touchHoldTimer) {
-      clearTimeout(touchHoldTimer);
-      touchHoldTimer = null;
-    }
     pendingCard = null;
     initialPointerEvent = null;
     stopAutoScroll();
@@ -562,15 +544,8 @@
         // 阻止浏览器原生的 <a> 标签链接拖拽行为
         e.preventDefault();
       } else if (e.pointerType === "touch") {
-        // 触屏长按 250ms 判定才进入拖拽，保障垂直滚动不冲突
-        touchHoldTimer = setTimeout(() => {
-          touchHoldTimer = null;
-          if (pendingCard) {
-            startDrag(pendingCard, initialPointerEvent);
-            pendingCard = null;
-            initialPointerEvent = null;
-          }
-        }, 250);
+        // 处于整理模式下，卡片具备 touch-action: none，直接随手指微移动(>3px)开始拖拽
+        // 不再设置 250ms 延迟，长按判定全权由右键菜单统一托管
       }
     });
 

@@ -404,10 +404,14 @@
     return true;
   }
 
-  // 重置全部本地修改
+  // 重置全部本地修改与排序
   function resetAll() {
     const st = getStorage();
     st.remove(STORAGE_KEY);
+    st.remove("mynav_arch_order");
+    if (typeof window !== "undefined" && window.NavSortable && typeof window.NavSortable.resetOrder === "function") {
+      window.NavSortable.resetOrder(null);
+    }
     notifyChange();
     return true;
   }
@@ -415,6 +419,28 @@
   // ==========================================================================
   // 导出与导入引擎 (Export & Import)
   // ==========================================================================
+
+  // 依据当前分类用户实际排序提取条目
+  function sortCategorySites(categoryKey, sitesList) {
+    if (!Array.isArray(sitesList) || sitesList.length <= 1) return (sitesList || []).slice();
+    if (typeof window !== "undefined" && window.NavSortable && typeof window.NavSortable.sortSites === "function") {
+      return window.NavSortable.sortSites(categoryKey, sitesList);
+    }
+    const st = getStorage();
+    const allOrders = st.get("mynav_arch_order", {});
+    const savedOrder = allOrders && Array.isArray(allOrders[categoryKey]) ? allOrders[categoryKey] : null;
+    if (!savedOrder || savedOrder.length === 0) return sitesList.slice();
+    const siteMap = new Map(sitesList.map(s => [s.id, s]));
+    const result = [];
+    savedOrder.forEach(id => {
+      if (siteMap.has(id)) {
+        result.push(siteMap.get(id));
+        siteMap.delete(id);
+      }
+    });
+    siteMap.forEach(s => result.push(s));
+    return result;
+  }
 
   // 生成格式完全符合现有工程规约的 data.js 文件文本
   function exportDataJsString() {
@@ -449,7 +475,8 @@
     js += `  sites: [\n`;
 
     categories.forEach((cat, catIdx) => {
-      const catSites = allSites.filter(s => s.category === cat.id);
+      const rawCatSites = allSites.filter(s => s.category === cat.id);
+      const catSites = sortCategorySites(cat.id, rawCatSites);
       js += `    // --- ${catIdx + 1}. ${cat.name} (${catSites.length} 卷) ---\n`;
 
       catSites.forEach((site, siteIdx) => {
@@ -524,6 +551,7 @@
       overrides: loadOverrides(),
       favorites: st.get("mynav_arch_favorites", []),
       visits: st.get("mynav_arch_visits", {}),
+      sortOrders: st.get("mynav_arch_order", {}),
       preferences: {
         theme: st.get("mynav_arch_theme", "light"),
         themeMode: st.get("mynav_theme_mode", "auto"),
@@ -570,13 +598,40 @@
     }
 
     const st = getStorage();
+    const URL_REGEX = /^https?:\/\/.+/i;
+    let skippedInvalidUrlCount = 0;
 
     try {
-      // 1. 恢复覆写层
+      // 1. 恢复覆写层（伴随严格的 URL 合规校验，非 http(s):// 开头直接跳过）
       if (backup.overrides && typeof backup.overrides === "object") {
+        const rawAdded = Array.isArray(backup.overrides.added) ? backup.overrides.added : [];
+        const cleanAdded = [];
+        rawAdded.forEach(s => {
+          if (s && s.url && typeof s.url === "string" && URL_REGEX.test(s.url.trim())) {
+            cleanAdded.push(s);
+          } else {
+            skippedInvalidUrlCount++;
+          }
+        });
+
+        const rawModified = (backup.overrides.modified && typeof backup.overrides.modified === "object") ? backup.overrides.modified : {};
+        const cleanModified = {};
+        for (const [id, patch] of Object.entries(rawModified)) {
+          if (patch && typeof patch === "object") {
+            const pCopy = { ...patch };
+            if ("url" in pCopy) {
+              if (!pCopy.url || typeof pCopy.url !== "string" || !URL_REGEX.test(pCopy.url.trim())) {
+                delete pCopy.url;
+                skippedInvalidUrlCount++;
+              }
+            }
+            cleanModified[id] = pCopy;
+          }
+        }
+
         st.set(STORAGE_KEY, {
-          modified: backup.overrides.modified || {},
-          added: Array.isArray(backup.overrides.added) ? backup.overrides.added : [],
+          modified: cleanModified,
+          added: cleanAdded,
           hidden: Array.isArray(backup.overrides.hidden) ? backup.overrides.hidden : [],
           deleted: Array.isArray(backup.overrides.deleted) ? backup.overrides.deleted : [],
           unhidden: Array.isArray(backup.overrides.unhidden) ? backup.overrides.unhidden : []
@@ -605,6 +660,11 @@
         if (p.viewMode) st.set("mynav_arch_view", p.viewMode);
       }
 
+      // 5. 恢复分类自定义排序
+      if (backup.sortOrders && typeof backup.sortOrders === "object") {
+        st.set("mynav_arch_order", backup.sortOrders);
+      }
+
       // 触发全站重绘更新
       notifyChange();
 
@@ -613,7 +673,12 @@
         window.NavTheme.apply(st.get("mynav_arch_theme", "light"));
       }
 
-      return { success: true, message: "备份数据已成功导入并恢复！" };
+      let returnMsg = "备份数据已成功导入并恢复！";
+      if (skippedInvalidUrlCount > 0) {
+        returnMsg = `备份已恢复（已跳过 ${skippedInvalidUrlCount} 处网址不符合 http(s):// 规范的条目）。`;
+      }
+
+      return { success: true, message: returnMsg, skippedCount: skippedInvalidUrlCount };
     } catch (err) {
       return { success: false, message: "写入本地配置失败: " + err.message };
     }

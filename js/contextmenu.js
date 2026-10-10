@@ -284,6 +284,10 @@
           ${subCategoriesHtml}
         </div>
       </div>
+      <div class="ctx-item" data-action="arrange-order" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">🔀</span>
+        <span class="ctx-label">整理顺序</span>
+      </div>
 
       <div class="ctx-divider"></div>
 
@@ -318,6 +322,10 @@
       <div class="ctx-item" data-action="new-card" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">➕</span>
         <span class="ctx-label">新建卡片…</span>
+      </div>
+      <div class="ctx-item" data-action="arrange-order" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">🔀</span>
+        <span class="ctx-label">整理书架顺序</span>
       </div>
       <div class="ctx-item" data-action="show-hidden" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">👁️</span>
@@ -457,6 +465,18 @@
           const catName = targetCatObj ? targetCatObj.name : targetCat;
           ov.moveCategory(site.id, targetCat);
           showToast(`已移动至「${catName}」`, site.name, "📁");
+        }
+        break;
+
+      case "arrange-order":
+        if (window.NavSortable) {
+          const curView = window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid";
+          if (curView === "shelf") {
+            const viewBtn = document.getElementById("btn-view-toggle");
+            if (viewBtn) viewBtn.click();
+          }
+          window.NavSortable.setArrangeMode(true);
+          showToast("已开启书架整理", "拖动卡片调整顺序，按顶部「完成」保存", "🔀");
         }
         break;
 
@@ -821,6 +841,11 @@
 
     // 1. 右键菜单拦截
     document.addEventListener("contextmenu", function (e) {
+      // 处于整理模式时，全权由拖拽引擎控制，不弹出上下文菜单
+      if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+        return;
+      }
+
       // 忽略在输入框与文本域内的原生右键菜单（让用户能正常黏贴复制）
       const tagName = e.target.tagName;
       if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT") {
@@ -942,6 +967,10 @@
 
     // 6. 移动端触摸长按 (约 500ms) 触发右键菜单
     document.addEventListener("touchstart", function (e) {
+      // 处于整理模式时，触控全权交由拖拽引擎控制，不启动长按菜单计时
+      if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+        return;
+      }
       if (e.touches.length !== 1) return;
       const touch = e.touches[0];
       touchStartX = touch.clientX;
