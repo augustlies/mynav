@@ -36,9 +36,9 @@ const NAV_DATA = {
     }
   ],
 
-  // 馆藏网站条目列表 (共 19 卷)
+  // 馆藏网站条目列表 (共 27 卷)
   sites: [
-    // --- 1. AI 思考与生成 (6 卷) ---
+    // --- 1. AI 思考与生成 (7 卷) ---
     {
       id: "ai-claude",
       name: "Claude",
@@ -93,8 +93,17 @@ const NAV_DATA = {
       tags: ["ai", "deepseek", "深度求索", "开源", "代码", "推理"],
       icon: "DS"
     },
+    {
+      id: "ai-deepseek-platform",
+      name: "DeepSeek 开放平台",
+      url: "https://platform.deepseek.com",
+      description: "DeepSeek 官方 API 平台，管理 API Key、充值与用量",
+      category: "ai",
+      tags: ["ai", "deepseek", "api", "开放平台", "密钥", "用量"],
+      icon: "DP"
+    },
 
-    // --- 2. 开发与代码工坊 (5 卷) ---
+    // --- 2. 开发与代码工坊 (6 卷) ---
     {
       id: "dev-github",
       name: "GitHub",
@@ -140,8 +149,17 @@ const NAV_DATA = {
       tags: ["部署", "托管", "前端", "静态网站", "云服务"],
       icon: "▲"
     },
+    {
+      id: "dev-cloudflare",
+      name: "Cloudflare",
+      url: "https://dash.cloudflare.com",
+      description: "域名解析、CDN 加速与 Pages / Workers 静态部署控制台",
+      category: "dev",
+      tags: ["cloudflare", "dns", "域名", "cdn", "pages", "workers", "部署"],
+      icon: "CF"
+    },
 
-    // --- 3. 知识与研习 (4 卷) ---
+    // --- 3. 知识与研习 (8 卷) ---
     {
       id: "learn-juejin",
       name: "稀土掘金",
@@ -178,8 +196,44 @@ const NAV_DATA = {
       tags: ["视频", "课程", "教程", "b站", "公开课", "学习"],
       icon: "哔"
     },
+    {
+      id: "learn-cnki",
+      name: "中国知网",
+      url: "https://www.cnki.net/",
+      description: "中文学术期刊、学位论文与会议文献检索",
+      category: "knowledge",
+      tags: ["cnki", "知网", "论文", "文献", "学术", "期刊"],
+      icon: "知"
+    },
+    {
+      id: "learn-ecut",
+      name: "东华理工大学",
+      url: "https://www.ecut.edu.cn/main.htm",
+      description: "东华理工大学官网，学校新闻、通知公告与各类入口",
+      category: "knowledge",
+      tags: ["ecut", "东华理工", "学校", "官网", "通知"],
+      icon: "东"
+    },
+    {
+      id: "learn-ecut-ehall",
+      name: "网上办事服务大厅",
+      url: "https://ehall.ecut.edu.cn/new/index.html",
+      description: "东华理工大学教务、成绩、课表与各类校园事务办理",
+      category: "knowledge",
+      tags: ["ecut", "ehall", "办事大厅", "教务", "成绩", "课表"],
+      icon: "办"
+    },
+    {
+      id: "learn-ecut-atrust",
+      name: "aTrust 校园 VPN",
+      url: "https://atrust1.ecut.edu.cn/portal/#/app_center",
+      description: "东华理工大学校外访问门户，在校外登录后使用校内系统与数据库",
+      category: "knowledge",
+      tags: ["ecut", "atrust", "vpn", "校外访问", "校园网", "应用中心"],
+      icon: "VP"
+    },
 
-    // --- 4. 案头效率工具 (4 卷) ---
+    // --- 4. 案头效率工具 (6 卷) ---
     {
       id: "tool-notion",
       name: "Notion",
@@ -215,6 +269,24 @@ const NAV_DATA = {
       category: "tools",
       tags: ["图片", "压缩", "优化", "轻量化", "格式", "工具"],
       icon: "PNG"
+    },
+    {
+      id: "tool-cobalt",
+      name: "cobalt",
+      url: "https://cobalt.tools/",
+      description: "无广告、无追踪的在线视频与音频下载工具，粘贴链接即可",
+      category: "tools",
+      tags: ["cobalt", "视频下载", "音频", "解析", "去水印"],
+      icon: "CO"
+    },
+    {
+      id: "tool-icon-icons",
+      name: "icon-icons",
+      url: "https://icon-icons.com/zh/",
+      description: "免费 SVG、PNG、ICO 图标素材库，支持中文搜索",
+      category: "tools",
+      tags: ["图标", "icon", "svg", "png", "素材", "设计"],
+      icon: "IC"
     }
   ]
 };

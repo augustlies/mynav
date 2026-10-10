@@ -46,7 +46,8 @@
     "写": "x", "作": "z", "生": "s", "产": "c", "力": "l", "作": "z", "流": "l", "博": "b", "客": "k",
     "兼": "j", "容": "r", "性": "x", "浏": "l", "览": "l", "器": "q",
     "报": "b", "错": "c", "社": "s", "区": "q", "调": "t", "试": "s", "问": "w", "答": "d",
-    "初": "c", "者": "z", "手": "s", "册": "c", "速": "s", "查": "c", "语": "y", "法": "f", "入": "r", "门": "m"
+    "初": "c", "者": "z", "手": "s", "册": "c", "速": "s", "查": "c", "语": "y", "法": "f", "入": "r", "门": "m",
+    "中": "z", "国": "g", "东": "d", "华": "h", "理": "l", "大": "d", "上": "s", "办": "b", "事": "s", "厅": "t", "校": "x", "园": "y", "平": "p", "台": "t", "下": "x", "载": "z", "域": "y", "名": "m"
   };
 
   // 专有名称/缩写快速助记词映射 (扩展助记)
@@ -57,19 +58,27 @@
     "ai-hark": ["hk", "hark"],
     "ai-muse": ["mu", "muse"],
     "ai-deepseek": ["ds", "sdqs", "sd", "deep", "seek"],
+    "ai-deepseek-platform": ["dsp", "dp", "platform", "open", "api"],
     "dev-github": ["gh", "git", "hub"],
     "dev-mdn": ["mdn", "w3c", "mozilla"],
     "dev-caniuse": ["ciu", "use", "cani"],
     "dev-stackoverflow": ["so", "stack", "overflow"],
     "dev-vercel": ["vc", "vercel", "next"],
+    "dev-cloudflare": ["cf", "cloudflare", "dns", "pages", "workers"],
     "learn-juejin": ["jj", "xtjj", "juejin"],
     "learn-sspai": ["ssp", "sspai", "pai"],
     "learn-runoob": ["cn", "cnjc", "runoob", "niao"],
     "learn-bilibili": ["blbl", "bz", "b站", "bili"],
+    "learn-cnki": ["cnki", "zw", "zgzw", "lunwen"],
+    "learn-ecut": ["ecut", "dhlg", "dhlgdx", "xiaoyuan"],
+    "learn-ecut-ehall": ["ehall", "bsdt", "wsbs"],
+    "learn-ecut-atrust": ["atrust", "vpn", "xyvpn"],
     "tool-notion": ["no", "notion"],
     "tool-yuque": ["yq", "yuque", "que"],
     "tool-processon": ["po", "process", "on"],
-    "tool-tinypng": ["png", "tp", "tiny"]
+    "tool-tinypng": ["png", "tp", "tiny"],
+    "tool-cobalt": ["co", "cobalt", "down", "video"],
+    "tool-icon-icons": ["ii", "icon", "icons", "svg"]
   };
 
   function normalize(str) {
