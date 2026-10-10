@@ -709,6 +709,25 @@ body {
   transition: color var(--transition-fast);
 }
 
+/* Stretched Link 规范：整卡可点击且标题具备完整无障碍链接 */
+.card-title-link {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.card-title-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.card-title-link:focus-visible::after {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
 .entry-card:hover .card-title-text {
   color: var(--color-accent);
 }
@@ -744,6 +763,8 @@ body {
 }
 
 .btn-bookmark {
+  position: relative;
+  z-index: 3;
   background: none;
   border: none;
   width: 26px;
@@ -756,7 +777,6 @@ body {
   border-radius: var(--radius-xs);
   transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
   flex-shrink: 0;
-  z-index: 2;
   will-change: transform;
 }
 
@@ -823,8 +843,11 @@ body {
 
 /* 外链箭头右上微冲刺动效 */
 .card-jump-mark {
+  position: relative;
+  z-index: 2;
   font-family: var(--font-mono);
   color: var(--text-faint);
+  text-decoration: none;
   display: inline-block;
   transition: transform 0.22s var(--ease-spring), color 0.2s ease;
   will-change: transform;
@@ -1094,8 +1117,9 @@ body {
   animation-duration: 0.34s !important;
 }
 
-/* 整理模式下彻底关闭悬停光泽、悬停位移与外链箭头冲刺 */
-.arrange-mode .entry-card::after {
+/* 整理模式下彻底关闭悬停光泽、全卡点击链接覆盖层与悬停位移 */
+.arrange-mode .entry-card::after,
+.arrange-mode .card-title-link::after {
   display: none !important;
   opacity: 0 !important;
 }

@@ -100,7 +100,7 @@
   // 视图组件渲染器 (HTML Builders)
   // ==========================================================================
 
-  // 生成书目卡片条目
+  // 生成书目卡片条目（语义化 article + Stretched Link，符合 W3C 无交互元素嵌套规范）
   function createEntryCardHtml(site, index) {
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const domain = extractDomain(site.url);
@@ -114,12 +114,10 @@
     const ddgFallback = host ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico` : "";
 
     return `
-      <a
-        href="${escapeHtml(site.url)}"
-        target="_blank"
-        rel="noopener noreferrer"
+      <article
         class="entry-card"
         data-site-id="${escapeHtml(site.id)}"
+        data-site-url="${escapeHtml(site.url)}"
       >
         <div class="card-masthead">
           <div class="card-identity">
@@ -136,7 +134,17 @@
               <span class="emblem-fallback-text">${emblemText}</span>
             </span>
             <div class="card-titles">
-              <h3 class="card-title-text" title="${escapeHtml(site.name)}">${escapeHtml(site.name)}</h3>
+              <h3 class="card-title-text">
+                <a
+                  href="${escapeHtml(site.url)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="card-title-link"
+                  title="${escapeHtml(site.name)}"
+                >
+                  ${escapeHtml(site.name)}
+                </a>
+              </h3>
               <div class="card-domain-slug">${escapeHtml(domain)}</div>
             </div>
           </div>
@@ -158,9 +166,17 @@
         <p class="card-synopsis" title="${escapeHtml(site.description || '')}">${escapeHtml(site.description || '暂无描述')}</p>
         <div class="card-bottom-rail">
           <span class="card-tag-pill">#${firstTag}</span>
-          <span class="card-jump-mark" aria-hidden="true">№ ${indexStr} ↗</span>
+          <a
+            href="${escapeHtml(site.url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="card-jump-mark"
+            aria-label="访问 ${escapeHtml(site.name)}"
+          >
+            № ${indexStr} ↗
+          </a>
         </div>
-      </a>
+      </article>
     `;
   }
 

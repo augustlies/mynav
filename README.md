@@ -23,17 +23,19 @@
 ```text
 MyNav/
 ├── index.html          # 典藏馆主刊页面结构（刊头、检索框、导览轨与网格）
-├── styles.css          # 杂志设计系统（双色 CSS 变量、排印尺度与响应式网格）
-├── data.js             # 独立数据源（分类定义与 20 卷精选初始馆藏）
-├── validate.js         # 数据格式合规性与规范校验工具
+├── favicon.svg         # 典雅墨绿 Ex Libris 矢量藏书印章网站徽标
+├── styles.css          # 杂志设计系统（双色 CSS 变量、排印尺度、整理模式与网格）
+├── data.js             # 独立数据源（分类定义与精选初始馆藏）
+├── validate.js         # 数据格式与工程合规校验工具
 ├── app.js              # 核心装配控制器（协调子模块、处理刊期时间与事件分发）
-├── js/                 # 独立业务子模块目录
-│   ├── storage.js      # 统一 localStorage 本地存储与防崩溃封装
+├── js/                 # 独立业务子模块目录 (UMD 规范)
+│   ├── storage.js      # 统一 localStorage 本地存储、版本迁移与自愈防崩封装
 │   ├── theme.js        # 浅色/深色主题检测、切换与持久化
 │   ├── favorites.js    # 私人典藏（书签）增删查统计管理
 │   ├── visits.js       # 常用案头访问频次与最近访问时间排序
 │   ├── search.js       # 多维多字段模糊多词检索引擎
-│   └── motion.js       # 错峰渐入、书签微弹性与卡片微动效增强器
+│   ├── motion.js       # 错峰渐入、书签微弹性与卡片微光泽追踪器
+│   └── sortable.js     # 书架整理与自由拖拽排序引擎 (Pointer Events + FLIP)
 ├── icons/              # 本地高清网站 Favicon 图标库 (64x64 PNG)
 ├── README.md           # 维护说明、预览方法与部署指南
 └── .gitignore          # Git 忽略文件规则
