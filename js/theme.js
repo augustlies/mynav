@@ -1,6 +1,7 @@
 /**
- * 模块：典雅双色主题管理 (js/theme.js)
- * 支持暖象牙白（浅色）与炭黑书籍（深色）平滑切换，默认遵从系统偏好
+ * 模块：典雅双色与时序自适应主题管理 (js/theme.js)
+ * 支持三态流转：浅色象牙纸 ☼ ➔ 炭黑夜读室 ☾ ➔ 自然时序自适应 ◐
+ * 自动时序遵循自然光照作息（06:00 ~ 18:00 为白昼，18:00 ~ 06:00 为夜间），定时心跳平滑过渡
  */
 
 (function (root, factory) {
@@ -12,77 +13,143 @@
 })(typeof self !== "undefined" ? self : this, function (NavStorage) {
   "use strict";
 
-  let currentTheme = "light";
-  let themeToggleBtn = null;
+  const MODES = {
+    LIGHT: "light",
+    DARK: "dark",
+    AUTO: "auto"
+  };
 
-  function getSystemPreference() {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    return "light";
+  let currentMode = MODES.AUTO;
+  let effectiveTheme = "light";
+  let themeToggleBtn = null;
+  let autoTimer = null;
+
+  function resolveAutoTheme(customHour) {
+    const hour = typeof customHour === "number" ? customHour : new Date().getHours();
+    return (hour >= 6 && hour < 18) ? "light" : "dark";
   }
 
-  function applyTheme(theme, save = true) {
-    currentTheme = theme;
+  function applyMode(mode, save = true) {
+    if (mode !== MODES.LIGHT && mode !== MODES.DARK && mode !== MODES.AUTO) {
+      mode = MODES.AUTO;
+    }
+
+    currentMode = mode;
+    effectiveTheme = mode === MODES.AUTO ? resolveAutoTheme() : mode;
+
     if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.setAttribute("data-theme", effectiveTheme);
+      document.documentElement.setAttribute("data-theme-mode", currentMode);
     }
+
     if (save && NavStorage) {
-      NavStorage.set(NavStorage.KEYS.THEME, theme);
+      NavStorage.set(NavStorage.KEYS.THEME, currentMode);
     }
+
     updateButtonUI();
   }
 
   function updateButtonUI() {
     if (!themeToggleBtn) return;
-    const isDark = currentTheme === "dark";
     const iconSpan = themeToggleBtn.querySelector(".theme-icon");
     const textSpan = themeToggleBtn.querySelector(".theme-label");
 
-    if (iconSpan) {
-      iconSpan.textContent = isDark ? "☼" : "☾";
+    if (currentMode === MODES.LIGHT) {
+      if (iconSpan) iconSpan.textContent = "☼";
+      if (textSpan) textSpan.textContent = "浅色";
+      themeToggleBtn.setAttribute("aria-label", "主题模式：浅色纸张（点击切换为炭黑深色）");
+      themeToggleBtn.setAttribute("title", "主题：浅色纸张（点击切换深色）");
+    } else if (currentMode === MODES.DARK) {
+      if (iconSpan) iconSpan.textContent = "☾";
+      if (textSpan) textSpan.textContent = "深色";
+      themeToggleBtn.setAttribute("aria-label", "主题模式：炭黑夜读（点击切换为自动时序）");
+      themeToggleBtn.setAttribute("title", "主题：炭黑夜读（点击切换自动时序）");
+    } else {
+      // AUTO 自动时序
+      const periodName = effectiveTheme === "light" ? "白昼暖白" : "夜间炭黑";
+      if (iconSpan) iconSpan.textContent = "◐";
+      if (textSpan) textSpan.textContent = "自动";
+      themeToggleBtn.setAttribute(
+        "aria-label",
+        `主题模式：自动时序（当前呈现${periodName}，点击切换为浅色）`
+      );
+      themeToggleBtn.setAttribute(
+        "title",
+        `主题：自动时序（当前${periodName}，点击切换浅色）`
+      );
     }
-    if (textSpan) {
-      textSpan.textContent = isDark ? "浅色" : "深色";
-    }
-    themeToggleBtn.setAttribute(
-      "aria-label",
-      isDark ? "切换为暖白浅色主题" : "切换为炭黑深色主题"
-    );
-    themeToggleBtn.setAttribute("title", isDark ? "切换为浅色主题" : "切换为深色主题");
+  }
+
+  function startAutoTick() {
+    if (autoTimer) clearInterval(autoTimer);
+    if (typeof window === "undefined") return;
+
+    // 每 60 秒校准一次自然时序变化（例如早 6 点或晚 18 点交界）
+    autoTimer = setInterval(() => {
+      if (currentMode === MODES.AUTO) {
+        const nextEffective = resolveAutoTheme();
+        if (nextEffective !== effectiveTheme) {
+          applyMode(MODES.AUTO, false);
+        }
+      }
+    }, 60000);
   }
 
   return {
+    MODES,
+
     init(btnElement) {
       if (btnElement) {
         themeToggleBtn = btnElement;
         themeToggleBtn.addEventListener("click", () => this.toggle());
       }
 
-      // 优先读取用户已保存的主题偏好，其次使用操作系统偏好
+      // 优先读取持久化配置；若无配置则默认开启自然时序 AUTO
       const saved = NavStorage ? NavStorage.get(NavStorage.KEYS.THEME) : null;
-      const initial = saved || getSystemPreference();
-      applyTheme(initial, false);
+      const initial = (saved === "light" || saved === "dark" || saved === "auto") ? saved : MODES.AUTO;
+      applyMode(initial, false);
 
-      // 监听系统主题变化（若用户尚未手动锁定偏好）
+      startAutoTick();
+
+      // 监听系统偏好变化（若处于 AUTO 模式时提供备用参考）
       if (typeof window !== "undefined" && window.matchMedia) {
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-          const userSaved = NavStorage ? NavStorage.get(NavStorage.KEYS.THEME) : null;
-          if (!userSaved) {
-            applyTheme(e.matches ? "dark" : "light", false);
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+          if (currentMode === MODES.AUTO) {
+            applyMode(MODES.AUTO, false);
           }
         });
       }
     },
 
     toggle() {
-      const nextTheme = currentTheme === "dark" ? "light" : "dark";
-      applyTheme(nextTheme, true);
-      return nextTheme;
+      let nextMode;
+      if (currentMode === MODES.LIGHT) {
+        nextMode = MODES.DARK;
+      } else if (currentMode === MODES.DARK) {
+        nextMode = MODES.AUTO;
+      } else {
+        nextMode = MODES.LIGHT;
+      }
+
+      applyMode(nextMode, true);
+      return {
+        mode: currentMode,
+        theme: effectiveTheme
+      };
+    },
+
+    setMode(mode) {
+      applyMode(mode, true);
+    },
+
+    getMode() {
+      return currentMode;
     },
 
     getCurrent() {
-      return currentTheme;
-    }
+      return effectiveTheme;
+    },
+
+    resolveAutoTheme
   };
 });

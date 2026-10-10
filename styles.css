@@ -102,13 +102,18 @@ body,
 .quiet-empty-state,
 .colophon-footer,
 .card-emblem,
-.tab-badge-num {
+.tab-badge-num,
+.bookshelf-stage,
+.book-spine,
+.book-cover,
+.bookshelf-plank {
   transition: background-color var(--transition-smooth),
               border-color var(--transition-smooth),
               color var(--transition-smooth),
               box-shadow var(--transition-smooth);
 }
 
+/* 页面主体与自然阅读室光照氛围 (Reading Room Daylight Vignette) */
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-page);
@@ -118,6 +123,42 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  /* 暖象牙白微光漫反射晕影 */
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(255, 253, 246, 0.8) 0%, rgba(246, 244, 238, 0) 70%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(216, 211, 198, 0.22) 100%);
+  background-attachment: fixed;
+}
+
+/* 炭黑夜读室沉浸暗房台灯光晕 (Reading Room Night Lampglow Vignette) */
+[data-theme="dark"] body {
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(ellipse 85% 55% at 50% 0%, rgba(143, 168, 135, 0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(10, 11, 9, 0.45) 100%);
+  background-attachment: fixed;
+}
+
+/* 纸张纤维噪点底纹 (Archival Paper Fiber Texture Grain - 纯内联 SVG，零外部网络请求) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.038;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 160px 160px;
+}
+
+/* 深色模式下呈现古籍炭黑桑皮纸手工肌理 */
+[data-theme="dark"] body::before {
+  opacity: 0.052;
+  filter: contrast(125%) brightness(85%);
 }
 
 /* 焦点无障碍支持 */
@@ -205,6 +246,18 @@ body {
 
 .theme-icon {
   font-size: 0.8125rem;
+  transition: transform var(--transition-fast);
+}
+
+#btn-theme-toggle:hover .theme-icon {
+  transform: rotate(25deg) scale(1.15);
+}
+
+/* 处于自然时序 AUTO 模式时的专属高质感指示 */
+[data-theme-mode="auto"] #btn-theme-toggle {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
 }
 
 /* --------------------------------------------------------------------------
@@ -2087,4 +2140,41 @@ body.modal-open {
     transform: translateY(-50%) !important;
   }
 }
+
+/* ==========================================================================
+   16. 昼夜时序与阅读室氛围系统 (Phase 4: Day/Night Circadian & Reading Room Ambiance)
+   ========================================================================== */
+
+/* 纸张质感强化：为主要卡片容器补充纯正出版物纸面边缘微投影与触感 */
+.entry-card,
+.bookplate-modal-card,
+.book-flyout-card {
+  position: relative;
+}
+
+/* 纸面微光感与墨色融合提升 */
+[data-theme="light"] .entry-card {
+  box-shadow: 0 1px 3px rgba(36, 37, 31, 0.04), 0 0 0 1px rgba(226, 223, 212, 0.6);
+}
+
+[data-theme="dark"] .entry-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(43, 45, 38, 0.8);
+}
+
+/* 阅读室台灯焦点晕染：突出当前活跃/悬停卡片的聚光灯质感 */
+.entry-card:hover {
+  box-shadow: var(--shadow-lift), 0 0 0 1px var(--color-accent);
+}
+
+/* 自动时序状态标签微提示 */
+.circadian-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
 
