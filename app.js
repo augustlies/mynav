@@ -270,7 +270,6 @@
       } else {
         if (state.viewMode === "shelf" && window.NavBookshelf) {
           dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
-          window.NavBookshelf.bindInteractions(dom.contentArea);
         } else {
           const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx)).join("");
           dom.contentArea.innerHTML = `<div class="entries-grid">${cardsHtml}</div>`;
@@ -304,7 +303,6 @@
             "",
             "favorites"
           );
-          window.NavBookshelf.bindInteractions(dom.contentArea);
         } else {
           const cardsHtml = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
           dom.contentArea.innerHTML = createSectionHtml(
@@ -349,7 +347,6 @@
             clearActionHtml,
             "frequent"
           );
-          window.NavBookshelf.bindInteractions(dom.contentArea);
         } else {
           const cardsHtml = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
           dom.contentArea.innerHTML = createSectionHtml(
@@ -378,7 +375,6 @@
         const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
 
         dom.contentArea.innerHTML = window.NavBookshelf.renderAllShelves(allSites, categories, favSites, freqSites);
-        window.NavBookshelf.bindInteractions(dom.contentArea);
         return;
       }
 
@@ -445,7 +441,6 @@
           "",
           currentCategory.id
         );
-        window.NavBookshelf.bindInteractions(dom.contentArea);
       } else {
         const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
         dom.contentArea.innerHTML = createSectionHtml(
@@ -774,6 +769,11 @@
     // 2.5 初始化专属数字藏书票模块 (Ex Libris)
     if (window.NavExLibris) {
       window.NavExLibris.init();
+    }
+
+    // 2.6 初始化 3D 藏书馆书架事件委托 (一次性绑定)
+    if (window.NavBookshelf && dom.contentArea) {
+      window.NavBookshelf.bindInteractions(dom.contentArea);
     }
 
     // 3. 装配刊头信息

@@ -325,9 +325,17 @@
     return `<div class="bookshelf-container">${tierHtml}</div>`;
   }
 
-  // 7. 绑定书架交互事件
+  let lastNavTimestamp = 0;
+
+  // 7. 绑定书架交互事件 (具备严格的单次幂等绑定保护与防抖机制)
   function bindInteractions(container) {
     if (!container) return;
+    // 防御性幂等保护：同一个根容器绝不重复绑定事件监听器
+    if (container._bookshelfBound || container.dataset.bookshelfBound === "true") {
+      return;
+    }
+    container._bookshelfBound = true;
+    container.dataset.bookshelfBound = "true";
 
     // 点击书脊正面直接开启阅读 (非整理模式下)
     container.addEventListener("click", function (e) {
@@ -359,7 +367,11 @@
           }
         }
 
-        // 桌面端或已展开触屏：直接访问网站
+        // 桌面端或已展开触屏：直接访问网站 (带防抖保护，400ms 内禁止并发触发)
+        const now = Date.now();
+        if (now - lastNavTimestamp < 400) return;
+        lastNavTimestamp = now;
+
         const url = book.getAttribute("data-site-url");
         const siteId = book.getAttribute("data-site-id");
         if (siteId && window.NavVisits) {
@@ -412,6 +424,10 @@
         if (spine) {
           const book = spine.closest(".book-item");
           if (book) {
+            const now = Date.now();
+            if (now - lastNavTimestamp < 400) return;
+            lastNavTimestamp = now;
+
             const url = book.getAttribute("data-site-url");
             const siteId = book.getAttribute("data-site-id");
             if (siteId && window.NavVisits) {
