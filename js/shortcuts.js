@@ -243,10 +243,14 @@
     const shortcutsModal = document.getElementById("shortcuts-modal");
     const bookplateModal = document.getElementById("bookplate-modal");
     const colophonModal = document.getElementById("colophon-modal");
+    const cardEditModal = document.getElementById("card-edit-modal");
+    const hiddenCardsModal = document.getElementById("hidden-cards-modal");
     return (
       (shortcutsModal && shortcutsModal.style.display !== "none") ||
       (bookplateModal && bookplateModal.style.display !== "none") ||
-      (colophonModal && colophonModal.style.display !== "none")
+      (colophonModal && colophonModal.style.display !== "none") ||
+      (cardEditModal && cardEditModal.style.display !== "none") ||
+      (hiddenCardsModal && hiddenCardsModal.style.display !== "none")
     );
   }
 

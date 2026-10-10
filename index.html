@@ -174,6 +174,10 @@
           <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
           <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
           <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
+          <button type="button" id="btn-footer-export" class="footer-export-action-btn" title="导出与备份数据">💾 导出</button>
+        </div>
+        <div id="footer-overrides-note" class="footer-overrides-note" style="display: none;">
+          有 <strong id="overrides-count-num">0</strong> 处修改仅保存在本机，建议<button type="button" id="btn-note-export-data" class="btn-text-link">导出 data.js</button>
         </div>
       </div>
     </footer>
@@ -370,6 +374,7 @@
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.6.0"></script>
   <script src="js/storage.js?v=1.6.0"></script>
+  <script src="js/overrides.js?v=1.6.0"></script>
   <script src="js/theme.js?v=1.6.0"></script>
   <script src="js/favorites.js?v=1.6.0"></script>
   <script src="js/visits.js?v=1.6.0"></script>
@@ -381,6 +386,7 @@
   <script src="js/bookshelf.js?v=1.6.0"></script>
   <script src="js/shortcuts.js?v=1.6.0"></script>
   <script src="js/lore.js?v=1.6.0"></script>
+  <script src="js/contextmenu.js?v=1.6.0"></script>
   <script src="app.js?v=1.6.0"></script>
 </body>
 </html>

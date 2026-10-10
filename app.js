@@ -102,8 +102,11 @@
     }
   }
 
-  // 数据源安全获取
+  // 数据源安全获取（优先采用用户本地修改合并层）
   function getRawSites() {
+    if (window.NavOverrides && typeof window.NavOverrides.getSites === "function") {
+      return window.NavOverrides.getSites();
+    }
     return window.NAV_DATA && Array.isArray(window.NAV_DATA.sites) ? window.NAV_DATA.sites : [];
   }
 
@@ -969,6 +972,55 @@
     renderIndexTabs();
     renderContent();
     bindEvents();
+    updateOverridesNote();
+
+    // 5. 挂载全局刷新方法并监听修改层变化事件
+    window.NavApp = {
+      refresh() {
+        if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
+        renderIndexTabs();
+        renderContent();
+        updateBadges();
+        updateOverridesNote();
+      },
+      updateBadges,
+      renderContent,
+      renderIndexTabs
+    };
+
+    window.addEventListener("nav-overrides-changed", function () {
+      if (window.NavApp && typeof window.NavApp.refresh === "function") {
+        window.NavApp.refresh();
+      }
+    });
+  }
+
+  // 更新页脚未导出修改小提示
+  function updateOverridesNote() {
+    const noteEl = document.getElementById("footer-overrides-note");
+    const countEl = document.getElementById("overrides-count-num");
+    if (!noteEl) return;
+
+    const count = window.NavOverrides && typeof window.NavOverrides.getModificationCount === "function"
+      ? window.NavOverrides.getModificationCount()
+      : 0;
+
+    if (count > 0) {
+      noteEl.style.display = "block";
+      if (countEl) countEl.textContent = String(count);
+    } else {
+      noteEl.style.display = "none";
+    }
+
+    const noteBtn = document.getElementById("btn-note-export-data");
+    if (noteBtn && !noteBtn.dataset.bound) {
+      noteBtn.dataset.bound = "1";
+      noteBtn.addEventListener("click", function () {
+        if (window.NavOverrides && typeof window.NavOverrides.downloadDataJs === "function") {
+          window.NavOverrides.downloadDataJs();
+        }
+      });
+    }
   }
 
   if (document.readyState === "loading") {
