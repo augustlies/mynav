@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=1.5.0">
+  <link rel="stylesheet" href="styles.css?v=1.6.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -13,7 +13,9 @@
     <!-- 顶部版记细栏 (Top Colophon Bar) -->
     <header class="top-colophon-bar" role="banner">
       <div class="colophon-left">
-        <span class="colophon-mark">EX LIBRIS</span>
+        <button type="button" id="btn-colophon-mark" class="btn-colophon-badge" title="查阅馆长手记与建馆理念 (按 c 键)" aria-label="查阅馆长手记">
+          <span class="colophon-mark">EX LIBRIS</span>
+        </button>
         <span class="colophon-divider" aria-hidden="true">/</span>
         <span>个人数字收藏馆</span>
       </div>
@@ -74,6 +76,7 @@
         <div class="masthead-issue">
           <span class="issue-dot" aria-hidden="true"></span>
           <span>VOL. 2026 · PRIVATE DIGITAL COLLECTION</span>
+          <span id="masthead-milestone-slot" class="masthead-milestone-slot" style="display: none;"></span>
         </div>
         <div style="display: flex; gap: 16px;">
           <span id="masthead-date-label">载入中...</span>
@@ -156,6 +159,7 @@
           <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
           <span><kbd class="kbd-tag">f</kbd> 典藏</span>
           <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
+          <span><kbd class="kbd-tag">c</kbd> 馆长手记</span>
           <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
           <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
           <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
@@ -283,21 +287,88 @@
     </div>
   </div>
 
+  <!-- 馆长手记与出版版记模态抽屉 (Colophon Modal) -->
+  <div id="colophon-modal" class="colophon-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="colophon-modal-title">
+    <div class="colophon-modal-card">
+      <header class="colophon-modal-header">
+        <div class="colophon-modal-titles">
+          <span class="colophon-modal-badge">COLOPHON · 出版版记</span>
+          <h2 id="colophon-modal-title" class="colophon-modal-title">馆长手记与设计哲学</h2>
+        </div>
+        <button type="button" id="btn-close-colophon" class="btn-close-colophon" aria-label="关闭馆长手记 (Esc)" title="关闭 (Esc)">✕</button>
+      </header>
+      <div class="colophon-modal-body">
+        <!-- 典藏里程碑成就展示区 -->
+        <div id="colophon-milestone-box" class="colophon-milestone-box"></div>
+
+        <!-- 馆长题词手记 -->
+        <section class="colophon-letter-section">
+          <h3 class="colophon-section-title">§ 馆长序言：方寸之间的静水流深</h3>
+          <p class="colophon-paragraph">
+            在算法投喂与浮躁信息充斥的数字浪潮中，我们比以往任何时候都更需要一间安静的书房。
+          </p>
+          <p class="colophon-paragraph">
+            <strong>MyNav</strong> 不是千篇一律的 SaaS 仪表盘，而是一本可以不断扩充、温润有度的私人期刊。暖象牙白纸与桑皮炭黑的质感，是向铅字与物理装帧的致敬；独一无二的确定性矢量藏书票、纯原生 3D 物理书架与精准键盘漫游，则是方寸数字世界里的工匠精神。
+          </p>
+        </section>
+
+        <!-- 三大核心原则 -->
+        <section class="colophon-pillars-grid">
+          <div class="colophon-pillar-card">
+            <h4>🔒 私密自愈</h4>
+            <p>100% 留存于您本地浏览器。无中心数据库，无用户跟踪，数据所有权完全属于您。</p>
+          </div>
+          <div class="colophon-pillar-card">
+            <h4>🌿 纯粹静谧</h4>
+            <p>零外部运行依赖、零打包构建链。哪怕断网或数十年后打开，依然纤细如初、随时可用。</p>
+          </div>
+          <div class="colophon-pillar-card">
+            <h4>🏛 装帧美学</h4>
+            <p>独立杂志式排印、双色时序自适应、确定性矢量藏书票版印与 3D 物理书架交织共鸣。</p>
+          </div>
+        </section>
+
+        <!-- 出版规格与技术版记 -->
+        <section class="colophon-specs-section">
+          <h3 class="colophon-section-title">§ 出版版记与技术参数</h3>
+          <div class="colophon-specs-table">
+            <div class="specs-row"><span>刊期标识</span><span>VOL. 2026 · PRIVATE DIGITAL COLLECTION</span></div>
+            <div class="specs-row"><span>字体系统</span><span>Cinzel / Noto Serif SC / JetBrains Mono</span></div>
+            <div class="specs-row"><span>色彩令牌</span><span>Ivory Paper (#F8F6F0) & Charcoal Ink (#1C1D19)</span></div>
+            <div class="specs-row"><span>版印算法</span><span>FNV-1a 32-bit 确定性矢量几何星芒与藏书票</span></div>
+            <div class="specs-row"><span>馆藏编目</span><span>19 卷经典藏书 · 4 大分类专栏 · 83 组索引词</span></div>
+          </div>
+        </section>
+
+        <!-- 馆长朱砂钤印 -->
+        <div class="colophon-seal-wrapper">
+          <div id="colophon-seal-slot"></div>
+          <span class="colophon-seal-caption">私人数字收藏馆 · 馆长亲笔印</span>
+        </div>
+      </div>
+      <footer class="colophon-modal-footer">
+        <span class="colophon-modal-tip">“博学之，审问之，慎思之，明辨之，笃行之。”</span>
+        <button type="button" id="btn-dismiss-colophon" class="btn-colophon-action" title="收起手记">收卷归馆 (Esc)</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- 典雅微印记 Toast 提示浮层 (Editorial Toast Container) -->
   <div id="editorial-toast-container" class="editorial-toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
-  <script src="data.js?v=1.5.0"></script>
-  <script src="js/storage.js?v=1.5.0"></script>
-  <script src="js/theme.js?v=1.5.0"></script>
-  <script src="js/favorites.js?v=1.5.0"></script>
-  <script src="js/visits.js?v=1.5.0"></script>
-  <script src="js/search.js?v=1.5.0"></script>
-  <script src="js/motion.js?v=1.5.0"></script>
-  <script src="js/sortable.js?v=1.5.0"></script>
-  <script src="js/exlibris.js?v=1.5.0"></script>
-  <script src="js/bookshelf.js?v=1.5.0"></script>
-  <script src="js/shortcuts.js?v=1.5.0"></script>
-  <script src="app.js?v=1.5.0"></script>
+  <script src="data.js?v=1.6.0"></script>
+  <script src="js/storage.js?v=1.6.0"></script>
+  <script src="js/theme.js?v=1.6.0"></script>
+  <script src="js/favorites.js?v=1.6.0"></script>
+  <script src="js/visits.js?v=1.6.0"></script>
+  <script src="js/search.js?v=1.6.0"></script>
+  <script src="js/motion.js?v=1.6.0"></script>
+  <script src="js/sortable.js?v=1.6.0"></script>
+  <script src="js/exlibris.js?v=1.6.0"></script>
+  <script src="js/bookshelf.js?v=1.6.0"></script>
+  <script src="js/shortcuts.js?v=1.6.0"></script>
+  <script src="js/lore.js?v=1.6.0"></script>
+  <script src="app.js?v=1.6.0"></script>
 </body>
 </html>

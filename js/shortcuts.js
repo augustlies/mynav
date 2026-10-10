@@ -242,9 +242,11 @@
   function isAnyModalOpen() {
     const shortcutsModal = document.getElementById("shortcuts-modal");
     const bookplateModal = document.getElementById("bookplate-modal");
+    const colophonModal = document.getElementById("colophon-modal");
     return (
       (shortcutsModal && shortcutsModal.style.display !== "none") ||
-      (bookplateModal && bookplateModal.style.display !== "none")
+      (bookplateModal && bookplateModal.style.display !== "none") ||
+      (colophonModal && colophonModal.style.display !== "none")
     );
   }
 
@@ -281,6 +283,9 @@
         }
         if (window.NavExLibris && typeof window.NavExLibris.close === "function") {
           window.NavExLibris.close();
+        }
+        if (window.NavLore && typeof window.NavLore.close === "function") {
+          window.NavLore.close();
         }
       }
       return; // 模态窗打开时，禁用背景卡片漫游
@@ -397,6 +402,15 @@
         }
       } else {
         showToast("请先用 j / k 键选中藏书", "按 e 打开该书专属 Ex Libris 印画", "ℹ");
+      }
+      return;
+    }
+
+    // 12.5 馆长手记与出版版记 (c)
+    if (key === "c" || key === "C") {
+      e.preventDefault();
+      if (window.NavLore && typeof window.NavLore.toggle === "function") {
+        window.NavLore.toggle();
       }
       return;
     }

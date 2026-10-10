@@ -592,6 +592,10 @@
     if (freqBadge) {
       freqBadge.textContent = getValidFreqCount();
     }
+    // 同步刷新刊头金石里程碑印章
+    if (window.NavLore) {
+      window.NavLore.renderMastheadSeal(document.getElementById("masthead-milestone-slot"));
+    }
   }
 
   // ==========================================================================
@@ -599,10 +603,13 @@
   // ==========================================================================
 
   function bindEvents() {
-    // 1. 实时搜索监听
+    // 1. 实时搜索监听 (支持彩蛋探测)
     dom.searchInput.addEventListener("input", function (e) {
       state.searchQuery = e.target.value;
       dom.searchClearBtn.style.display = state.searchQuery.trim().length > 0 ? "block" : "none";
+      if (window.NavLore && window.NavLore.checkSearchEasterEgg(state.searchQuery)) {
+        window.NavLore.open("about");
+      }
       renderContent();
     });
 
@@ -945,6 +952,11 @@
           }
         }
       });
+    }
+
+    // 2.8 初始化文化手记与金石印章模块 (Phase 8)
+    if (window.NavLore) {
+      window.NavLore.init();
     }
 
     // 3. 装配刊头信息

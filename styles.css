@@ -2701,4 +2701,549 @@ body.modal-open {
   }
 }
 
+/* ==========================================================================
+   18. 细节、纪念与文化彩蛋 (Phase 8: Archive Lore & Easter Eggs)
+   ========================================================================== */
+
+/* 顶部刊印徽章按钮 */
+.btn-colophon-badge {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-colophon-badge:hover {
+  opacity: 0.8;
+}
+
+/* 刊头金石印章微勋章 (Stone Seal Milestone Badge) */
+.masthead-milestone-slot {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.milestone-seal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px 1px 5px;
+  border-radius: 3px;
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid currentColor;
+  background: transparent;
+  transition: all var(--transition-fast);
+  line-height: 1.3;
+}
+
+.milestone-seal-badge .seal-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-size: 0.5625rem;
+  line-height: 1;
+}
+
+/* 朱砂金石印 */
+.seal-cinnabar {
+  color: #B23A22 !important;
+  border-color: #B23A22 !important;
+  background-color: rgba(178, 58, 34, 0.08) !important;
+}
+
+.seal-cinnabar:hover {
+  background-color: rgba(178, 58, 34, 0.16) !important;
+  box-shadow: 0 0 8px rgba(178, 58, 34, 0.3);
+}
+
+/* 青玉古印 */
+.seal-jade {
+  color: #2F6153 !important;
+  border-color: #2F6153 !important;
+  background-color: rgba(47, 97, 83, 0.08) !important;
+}
+
+.seal-jade:hover {
+  background-color: rgba(47, 97, 83, 0.16) !important;
+  box-shadow: 0 0 8px rgba(47, 97, 83, 0.3);
+}
+
+/* 铜墨印 */
+.seal-bronze {
+  color: #8C6239 !important;
+  border-color: #8C6239 !important;
+  background-color: rgba(140, 98, 57, 0.08) !important;
+}
+
+.seal-bronze:hover {
+  background-color: rgba(140, 98, 57, 0.16) !important;
+  box-shadow: 0 0 8px rgba(140, 98, 57, 0.3);
+}
+
+/* 馆长手记模态窗 */
+.colophon-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background-color: rgba(28, 29, 25, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.colophon-modal-card {
+  width: 100%;
+  max-width: 740px;
+  max-height: 90vh;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.colophon-modal-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: calc(var(--radius-md) - 4px);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.colophon-modal-header {
+  padding: 22px 28px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+}
+
+.colophon-modal-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  margin-bottom: 4px;
+}
+
+.colophon-modal-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.btn-close-colophon {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-close-colophon:hover {
+  color: var(--text-main);
+  border-color: var(--border-focus);
+  background-color: var(--bg-card);
+}
+
+.colophon-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* 里程碑荣誉卡片 */
+.colophon-milestone-card {
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+}
+
+.milestone-badge-display {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.milestone-big-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.milestone-stage-tag {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.milestone-title-text {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.milestone-motto {
+  margin: 6px 0;
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+.milestone-desc-text {
+  margin: 6px 0 10px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.milestone-stats-rail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 8px;
+}
+
+.milestone-stats-rail strong {
+  color: var(--text-main);
+}
+
+/* 馆长序言文章 */
+.colophon-letter-section {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 18px;
+}
+
+.colophon-section-title {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.colophon-paragraph {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-main);
+}
+
+/* 三大核心原则卡片 */
+.colophon-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .colophon-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.colophon-pillar-card {
+  padding: 14px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.colophon-pillar-card h4 {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  color: var(--text-main);
+}
+
+.colophon-pillar-card p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* 出版规格参数表格 */
+.colophon-specs-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+.specs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78125rem;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--border-subtle);
+}
+
+.specs-row:last-child {
+  border-bottom: none;
+}
+
+.specs-row span:first-child {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.specs-row span:last-child {
+  font-family: var(--font-serif);
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* 馆长朱砂钤印区 */
+.colophon-seal-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.cinnabar-seal-svg {
+  color: #B23A22;
+  transition: transform 0.3s ease;
+}
+
+.cinnabar-seal-svg:hover {
+  transform: rotate(2deg) scale(1.05);
+}
+
+.colophon-seal-caption {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+}
+
+/* 模态底部 */
+.colophon-modal-footer {
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+  gap: 16px;
+}
+
+.colophon-modal-tip {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.btn-colophon-action {
+  padding: 7px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .btn-colophon-action {
+  color: #171815;
+}
+
+.btn-colophon-action:hover {
+  background-color: var(--color-accent-hover);
+}
+
+/* ==========================================================================
+   404 散佚书卷页面排版 (404 Lost Folio Page)
+   ========================================================================== */
+.page-404-body {
+  min-height: 100vh;
+}
+
+.page-404-main {
+  padding: 60px 24px 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.editorial-404-card {
+  max-width: 580px;
+  width: 100%;
+  text-align: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 48px 36px;
+  box-shadow: var(--shadow-modal);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.editorial-404-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: calc(var(--radius-md) - 4px);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.lost-folio-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  margin-bottom: 24px;
+}
+
+.lost-folio-crest {
+  margin-bottom: 16px;
+  color: var(--color-accent);
+}
+
+.lost-folio-code {
+  font-family: var(--font-serif);
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+  margin: 0 0 10px;
+  letter-spacing: -0.04em;
+  color: var(--text-main);
+  opacity: 0.9;
+}
+
+.lost-folio-headline {
+  margin: 0 0 14px;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.lost-folio-epigraph {
+  margin: 0 0 28px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 440px;
+}
+
+.lost-folio-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-lost-action {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 22px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-medium);
+  background-color: var(--bg-card);
+  color: var(--text-main);
+}
+
+.btn-lost-action:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-focus);
+}
+
+.btn-lost-action.btn-lost-primary {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .btn-lost-action.btn-lost-primary {
+  color: #171815;
+}
+
+.btn-lost-action.btn-lost-primary:hover {
+  background-color: var(--color-accent-hover);
+}
+
+
 

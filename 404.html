@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>此卷已佚 · 404 · 个人数字收藏馆</title>
+  <meta name="description" content="独立杂志排印风格的个人数字收藏馆 · 此卷已佚，藏书未收录。">
+  <link rel="stylesheet" href="styles.css?v=1.6.0">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script>
+    // 立即初始化夜读/浅色偏好防闪烁
+    (function () {
+      try {
+        const theme = localStorage.getItem("mynav_arch_theme") || "auto";
+        let eff = theme;
+        if (theme === "auto") {
+          const h = new Date().getHours();
+          eff = (h >= 6 && h < 18) ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", eff);
+        document.documentElement.setAttribute("data-theme-mode", theme);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="page-404-body">
+  <div class="archive-wrapper">
+    <!-- 顶部版记细栏 (Top Colophon Bar) -->
+    <header class="top-colophon-bar" role="banner">
+      <div class="colophon-left">
+        <a href="index.html" class="btn-colophon-badge" title="返回藏书大厅" style="text-decoration: none;">
+          <span class="colophon-mark">EX LIBRIS</span>
+        </a>
+        <span class="colophon-divider" aria-hidden="true">/</span>
+        <span>个人数字收藏馆</span>
+      </div>
+      <div class="colophon-right">
+        <a href="index.html" class="theme-switch-btn" style="text-decoration: none;">
+          <span class="view-icon" aria-hidden="true">🏛</span>
+          <span class="view-label">馆藏大厅</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- 404 散佚书卷核心区 (Editorial 404 Stage) -->
+    <main class="page-404-main" role="main">
+      <section class="editorial-404-card" aria-label="散佚篇章说明">
+        <div class="lost-folio-meta">
+          <span class="issue-dot" aria-hidden="true"></span>
+          <span>FOLIO DEPERDITUS · VOL. 2026 · DISPERSED ARCHIVE</span>
+        </div>
+
+        <div class="lost-folio-crest" aria-hidden="true">
+          <!-- 散佚印画几何星芒与断简矢量图 -->
+          <svg viewBox="0 0 120 120" width="80" height="80" class="lost-folio-svg">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.4"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+            <!-- 翻开的残页 -->
+            <path d="M36 42 Q60 48 60 78 Q60 48 84 42 L84 76 Q60 82 60 102 Q60 82 36 76 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+            <line x1="60" y1="48" x2="60" y2="102" stroke="currentColor" stroke-width="1.8" stroke-dasharray="4,2"/>
+            <!-- 古典星芒十字印 -->
+            <path d="M60 22 L63 32 L73 35 L63 38 L60 48 L57 38 L47 35 L57 32 Z" fill="currentColor" opacity="0.85"/>
+          </svg>
+        </div>
+
+        <h1 class="lost-folio-code">404</h1>
+        <h2 class="lost-folio-headline">此卷已佚 · 藏书未收录</h2>
+        <p class="lost-folio-epigraph">
+          “山重水复，卷轶散佚。您所寻访的篇章未曾编目入库，或已迁入隐秘典藏。”
+        </p>
+
+        <div class="lost-folio-actions">
+          <a href="index.html" class="btn-lost-action btn-lost-primary">
+            <span>🏛 返回藏书馆大厅</span>
+          </a>
+          <a href="index.html" class="btn-lost-action">
+            <span>🔍 探索全馆目录</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- 刊末页脚 (Colophon Footer) -->
+    <footer class="colophon-footer" role="contentinfo">
+      <div class="footer-inner-rail">
+        <p class="footer-quote">“往昔不可谏，来者犹可追。”</p>
+        <p>个人纯静态数字收藏馆 · 独立杂志排印设计系统</p>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
