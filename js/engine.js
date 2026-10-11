@@ -219,6 +219,18 @@
               return;
             }
 
+            // 特工暗号彩蛋拦截 (***REMOVED*** 直达哪吒探针面板)
+            const rawVal = (e.target.value || "").trim();
+            if (rawVal === "***REMOVED***") {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              e.target.value = "";
+              const clearBtn = document.getElementById("btn-clear-search");
+              if (clearBtn) clearBtn.style.display = "none";
+              window.open("http://***REMOVED***:8008", "_blank");
+              return;
+            }
+
             if (currentEngineId !== "site") {
               e.preventDefault();
               e.stopImmediatePropagation();
