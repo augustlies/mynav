@@ -314,6 +314,14 @@
         }));
     },
 
+    /**
+     * 特工暗号彩蛋探测 (7355608 唤起哪吒探针面板)
+     */
+    isAgentCode(query) {
+      if (!query) return false;
+      return String(query).trim() === "7355608";
+    },
+
     // 辅助工具方法暴露
     toPinyinInitials
   };

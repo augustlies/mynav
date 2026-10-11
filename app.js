@@ -616,6 +616,70 @@
       renderContent();
     });
 
+    // 1.1 特工暗号彩蛋 (7355608 直达哪吒探针面板)
+    const AGENT_SECRET_CODE = "7355608";
+    const AGENT_PROBE_URL = "http://8.235.22.83:8008";
+
+    function handleAgentEasterEgg(e) {
+      const input = dom.searchInput || document.getElementById("archive-search-input");
+      if (!input) return false;
+      const rawVal = (input.value || "").trim();
+      if (rawVal === AGENT_SECRET_CODE) {
+        if (e) {
+          if (typeof e.preventDefault === "function") e.preventDefault();
+          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          if (typeof e.stopPropagation === "function") e.stopPropagation();
+        }
+        input.value = "";
+        state.searchQuery = "";
+        if (dom.searchClearBtn) dom.searchClearBtn.style.display = "none";
+        renderContent();
+        window.open(AGENT_PROBE_URL, "_blank");
+        return true;
+      }
+      return false;
+    }
+
+    // 捕获阶段优先拦截回车事件 (防止外部引擎外跳或站内快捷焦点移交)
+    window.addEventListener(
+      "keydown",
+      function (e) {
+        if (e.target && e.target.id === "archive-search-input" && e.key === "Enter") {
+          if (e.isComposing || e.keyCode === 229) return;
+          if (handleAgentEasterEgg(e)) {
+            return;
+          }
+        }
+      },
+      true
+    );
+
+    // 搜索框元素事件监听
+    if (dom.searchInput) {
+      dom.searchInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          if (e.isComposing || e.keyCode === 229) return;
+          if (handleAgentEasterEgg(e)) {
+            return;
+          }
+        }
+      });
+    }
+
+    // 表单提交事件兜底拦截 (若存在外部插件或辅助提交)
+    window.addEventListener(
+      "submit",
+      function (e) {
+        const input = dom.searchInput || document.getElementById("archive-search-input");
+        if (input && (input.value || "").trim() === AGENT_SECRET_CODE) {
+          if (handleAgentEasterEgg(e)) {
+            return;
+          }
+        }
+      },
+      true
+    );
+
     // 2. 清空搜索按钮
     dom.searchClearBtn.addEventListener("click", function () {
       dom.searchInput.value = "";
