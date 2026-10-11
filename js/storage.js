@@ -25,7 +25,9 @@
     VIEW: PREFIX + "view",
     FAVORITES: PREFIX + "favorites",
     VISITS: PREFIX + "visits",
-    ORDER: PREFIX + "order"
+    ORDER: PREFIX + "order",
+    PARTICLES: PREFIX + "particles",
+    NIER_BG: PREFIX + "nier_bg"
   };
 
   function isAvailable() {

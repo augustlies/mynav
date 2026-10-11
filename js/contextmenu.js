@@ -318,6 +318,11 @@
 
   // 生成空白处全局菜单 HTML
   function buildBlankMenuHtml() {
+    const isParticles = window.NavParticlesBg ? window.NavParticlesBg.isEnabled() : true;
+    const isNierBg = (window.NavTheme && typeof window.NavTheme.isNierBg === "function")
+      ? window.NavTheme.isNierBg()
+      : (typeof document !== "undefined" && document.documentElement.getAttribute("data-nier-bg") === "true");
+
     return `
       <div class="ctx-item" data-action="new-card" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">➕</span>
@@ -330,6 +335,17 @@
       <div class="ctx-item" data-action="show-hidden" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">👁️</span>
         <span class="ctx-label">显示已隐藏的卡片</span>
+      </div>
+
+      <div class="ctx-divider"></div>
+
+      <div class="ctx-item" data-action="toggle-particles" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">${isParticles ? "✨" : "💤"}</span>
+        <span class="ctx-label">背景动效：${isParticles ? "开" : "关"}</span>
+      </div>
+      <div class="ctx-item" data-action="toggle-nier-bg" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">${isNierBg ? "📜" : "📄"}</span>
+        <span class="ctx-label">尼尔底色：${isNierBg ? "开" : "关"}</span>
       </div>
 
       <div class="ctx-divider"></div>
@@ -520,6 +536,28 @@
 
       case "show-hidden":
         openHiddenModal();
+        break;
+
+      case "toggle-particles":
+        if (window.NavParticlesBg) {
+          const nextState = window.NavParticlesBg.toggle();
+          showToast(
+            nextState ? "背景动效已开启" : "背景动效已关闭",
+            nextState ? "满屏方块微粒子漂移与鼠标引力连线" : "已暂停背景粒子渲染以节省系统资源",
+            nextState ? "✨" : "💤"
+          );
+        }
+        break;
+
+      case "toggle-nier-bg":
+        if (window.NavTheme && typeof window.NavTheme.toggleNierBg === "function") {
+          const nextNier = window.NavTheme.toggleNierBg();
+          showToast(
+            nextNier ? "已开启尼尔底色" : "已恢复经典纸张底色",
+            nextNier ? "浅色主题应用 #CFCAB5 工业工程米灰色调" : "恢复为暖象牙白原生纸张质感",
+            nextNier ? "📜" : "📄"
+          );
+        }
         break;
 
       case "export-datajs":

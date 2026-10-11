@@ -111,6 +111,14 @@
 
       startAutoTick();
 
+      // 初始化可选尼尔工程纸张底色偏好
+      if (NavStorage && typeof document !== "undefined") {
+        const isNier = NavStorage.get(NavStorage.KEYS.NIER_BG, false);
+        if (isNier) {
+          document.documentElement.setAttribute("data-nier-bg", "true");
+        }
+      }
+
       // 监听系统偏好变化（若处于 AUTO 模式时提供备用参考）
       if (typeof window !== "undefined" && window.matchMedia) {
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
@@ -119,6 +127,26 @@
           }
         });
       }
+    },
+
+    toggleNierBg() {
+      const isCurrently = typeof document !== "undefined" && document.documentElement.getAttribute("data-nier-bg") === "true";
+      const next = !isCurrently;
+      if (typeof document !== "undefined") {
+        if (next) {
+          document.documentElement.setAttribute("data-nier-bg", "true");
+        } else {
+          document.documentElement.removeAttribute("data-nier-bg");
+        }
+      }
+      if (NavStorage) {
+        NavStorage.set(NavStorage.KEYS.NIER_BG, next);
+      }
+      return next;
+    },
+
+    isNierBg() {
+      return typeof document !== "undefined" && document.documentElement.getAttribute("data-nier-bg") === "true";
     },
 
     toggle() {
