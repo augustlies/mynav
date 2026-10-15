@@ -37,9 +37,15 @@ const NAV_DATA = {
       desc: "知识沉淀库、架构图解与高频轻量实用工具",
       code: "EFF",
     },
+    {
+      id: "social",
+      name: "联络与社交",
+      desc: "邮箱、即时通讯与社交网络，维系联络的日常工具",
+      code: "SOC",
+    },
   ],
 
-  // 馆藏网站条目列表 (共 27 卷)
+  // 馆藏网站条目列表 (共 34 卷)
   sites: [
 
     // --- AI 思考与生成 (7 卷) ---
@@ -107,7 +113,25 @@ const NAV_DATA = {
       icon: "CL",
     },
 
-    // --- 开发与代码工坊 (6 卷) ---
+    // --- 开发与代码工坊 (8 卷) ---
+    {
+      id: "dev-dujing",
+      name: "独角鲸",
+      url: "https://dash.fuckip.me/",
+      description: "VPS 云服务器商家，价格实惠，适合个人建站与轻量应用",
+      category: "dev",
+      tags: ["vps", "服务器", "云服务", "建站", "独角鲸"],
+      icon: "鲸",
+    },
+    {
+      id: "dev-termius",
+      name: "Termius",
+      url: "https://termius.com/",
+      description: "现代 SSH 终端客户端，多设备同步，管理服务器的得力助手",
+      category: "dev",
+      tags: ["开发", "ssh", "终端", "服务器", "termius"],
+      icon: "TM",
+    },
     {
       id: "dev-vercel",
       name: "Vercel",
@@ -165,13 +189,22 @@ const NAV_DATA = {
 
     // --- 知识与研习 (8 卷) ---
     {
-      id: "learn-juejin",
-      name: "稀土掘金",
-      url: "https://juejin.cn",
-      description: "面向开发者的中文技术写作与交流社区，沉淀大量高质量工程实战文章",
+      id: "learn-youtube",
+      name: "YouTube",
+      url: "https://www.youtube.com/",
+      description: "全球最大视频平台，教程、公开课与技术分享的宝库",
       category: "knowledge",
-      tags: ["社区", "博客", "前端", "后端", "实战", "经验"],
-      icon: "掘",
+      tags: ["视频", "youtube", "学习", "教程", "公开课"],
+      icon: "YT",
+    },
+    {
+      id: "learn-scholar",
+      name: "谷歌学术",
+      url: "https://scholar.google.com/",
+      description: "Google 学术文献搜索引擎，查论文、看引用、找学术资源",
+      category: "knowledge",
+      tags: ["学术", "谷歌学术", "论文", "文献", "scholar"],
+      icon: "GS",
     },
     {
       id: "learn-ecut-ehall",
@@ -181,15 +214,6 @@ const NAV_DATA = {
       category: "knowledge",
       tags: ["ecut", "ehall", "办事大厅", "教务", "成绩", "课表"],
       icon: "办",
-    },
-    {
-      id: "learn-runoob",
-      name: "菜鸟教程",
-      url: "https://www.runoob.com",
-      description: "通俗易懂的基础编程语言与 Web 标准入门教程，提供丰富的交互示例",
-      category: "knowledge",
-      tags: ["教程", "入门", "语法", "速查", "初学者", "手册"],
-      icon: "鸟",
     },
     {
       id: "learn-bilibili",
@@ -291,6 +315,53 @@ const NAV_DATA = {
       category: "tools",
       tags: ["流程图", "思维导图", "画图", "架构", "设计"],
       icon: "PO",
+    },
+
+    // --- 联络与社交 (5 卷) ---
+    {
+      id: "social-telegram",
+      name: "Telegram",
+      url: "https://web.telegram.org/",
+      description: "简洁快速的即时通讯应用，群组与频道生态活跃",
+      category: "social",
+      tags: ["社交", "telegram", "即时通讯", "聊天", "电报"],
+      icon: "TG",
+    },
+    {
+      id: "mail-gmail",
+      name: "Gmail",
+      url: "https://mail.google.com/",
+      description: "Google 免费邮箱，全球通用，垃圾邮件过滤出色",
+      category: "social",
+      tags: ["邮箱", "gmail", "谷歌", "邮件", "通讯"],
+      icon: "邮",
+    },
+    {
+      id: "mail-163",
+      name: "163邮箱",
+      url: "https://mail.163.com/",
+      description: "网易旗下免费邮箱，国内常用的个人邮件服务，收发稳定",
+      category: "social",
+      tags: ["邮箱", "163", "网易", "邮件", "通讯"],
+      icon: "163",
+    },
+    {
+      id: "social-discord",
+      name: "Discord",
+      url: "https://discord.com/",
+      description: "游戏社群起家的聊天平台，支持文字、语音与直播互动",
+      category: "social",
+      tags: ["社交", "discord", "社群", "聊天", "语音"],
+      icon: "DC",
+    },
+    {
+      id: "social-x",
+      name: "X",
+      url: "https://x.com/",
+      description: "全球实时动态社交平台，前沿资讯与公开讨论的集散地",
+      category: "social",
+      tags: ["社交", "x", "推特", "资讯", "动态"],
+      icon: "X",
     },
   ],
 };

@@ -31,7 +31,7 @@ const DB = {
 };
 
 // 分类在 data.js 里的固定顺序（对应站内数字快捷键 1~7，不要随意改）
-const CATEGORY_ORDER = ["ai", "dev", "knowledge", "tools"];
+const CATEGORY_ORDER = ["ai", "dev", "knowledge", "tools", "social"];
 
 const NOTION_VERSION = "2022-06-28";
 
