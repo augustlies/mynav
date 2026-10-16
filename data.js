@@ -45,7 +45,7 @@ const NAV_DATA = {
     },
   ],
 
-  // 馆藏网站条目列表 (共 34 卷)
+  // 馆藏网站条目列表 (共 35 卷)
   sites: [
 
     // --- AI 思考与生成 (7 卷) ---
@@ -113,7 +113,16 @@ const NAV_DATA = {
       icon: "CL",
     },
 
-    // --- 开发与代码工坊 (8 卷) ---
+    // --- 开发与代码工坊 (9 卷) ---
+    {
+      id: "dev-gcp-console",
+      name: "Google Cloud Console",
+      url: "https://console.cloud.google.com/home/dashboard?project=project-f423a41b-e415-4102-adc",
+      description: "谷歌云控制台，管理 GCP 项目、计算实例与账单",
+      category: "dev",
+      tags: ["云服务", "gcp", "谷歌云", "控制台", "服务器"],
+      icon: "GCP",
+    },
     {
       id: "dev-dujing",
       name: "独角鲸",
