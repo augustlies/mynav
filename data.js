@@ -45,7 +45,7 @@ const NAV_DATA = {
     },
   ],
 
-  // 馆藏网站条目列表 (共 35 卷)
+  // 馆藏网站条目列表 (共 36 卷)
   sites: [
 
     // --- AI 思考与生成 (7 卷) ---
@@ -113,7 +113,16 @@ const NAV_DATA = {
       icon: "CL",
     },
 
-    // --- 开发与代码工坊 (9 卷) ---
+    // --- 开发与代码工坊 (10 卷) ---
+    {
+      id: "dev-qinglong",
+      name: "青龙面板",
+      url: "https://ql.sueexin.dev/dashboard",
+      description: "支持 Python、JS、Shell 的定时任务管理面板，可视化管理脚本、环境变量与任务日志",
+      category: "dev",
+      tags: ["青龙", "定时任务", "qinglong", "面板", "脚本"],
+      icon: "青",
+    },
     {
       id: "dev-gcp-console",
       name: "Google Cloud Console",
