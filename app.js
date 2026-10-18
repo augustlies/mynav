@@ -118,8 +118,17 @@
   // 视图组件渲染器 (HTML Builders)
   // ==========================================================================
 
+  // 按索引选择三种密度：主卷、标准典藏、窄幅索书签。
+  function getCardTier(index, total, isSearch = false) {
+    if (isSearch && total <= 4) return "archive";
+    if (total <= 2) return "full";
+    if (index === 0) return "monograph";
+    if (index <= 3) return "archive";
+    return "slip";
+  }
+
   // 生成书目卡片条目（语义化 article + Stretched Link，符合 W3C 无交互元素嵌套规范，支持出版物划线批注高亮）
-  function createEntryCardHtml(site, index, query = "") {
+  function createEntryCardHtml(site, index, query = "", total = 1, isSearch = false) {
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const domain = extractDomain(site.url);
     const host = getHostname(site.url);
@@ -136,14 +145,15 @@
     const displayDesc = (query && window.NavSearch)
       ? window.NavSearch.highlight(site.description || '暂无描述', query)
       : escapeHtml(site.description || '暂无描述');
-
+    const tier = getCardTier(index, total, isSearch);
+    const tierClass = `card--${tier}`;
     // 图标三级加载策略：1. site.favicon 或 icons/<id>.png -> 2. DuckDuckGo 外链 -> 3. 移除 img 显示文本兜底
     const primaryIcon = site.favicon ? site.favicon : `icons/${encodeURIComponent(site.id)}.png`;
     const ddgFallback = host ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico` : "";
 
     return `
       <article
-        class="entry-card"
+        class="entry-card ${tierClass}"
         data-site-id="${escapeHtml(site.id)}"
         data-site-url="${escapeHtml(site.url)}"
       >
@@ -215,6 +225,60 @@
             </a>
           </div>
         </div>
+        <aside class="card-monograph-plate" aria-label="第 ${indexStr} 卷藏书票印鉴">
+          <span class="card-monograph-orbit" aria-hidden="true"></span>
+          <span class="card-monograph-number">№ ${indexStr}</span>
+          <button
+            type="button"
+            class="btn-bookplate btn-monograph-plate"
+            data-bookplate-id="${escapeHtml(site.id)}"
+            title="查看专属数字藏书票 (Ex Libris)"
+            aria-label="查看 ${escapeHtml(site.name)} 的藏书票"
+          >
+            ★ 藏书票
+          </button>
+        </aside>
+        <div class="card-slip-compact">
+          <span class="card-slip-index">№ ${indexStr}</span>
+          <span class="card-emblem card-slip-emblem" aria-hidden="true">
+            <img
+              class="emblem-img"
+              src="${escapeHtml(primaryIcon)}"
+              loading="lazy"
+              alt=""
+              width="20"
+              height="20"
+              onerror="if(!this.dataset.fallback){this.dataset.fallback='1';if('${escapeHtml(ddgFallback)}'){this.src='${escapeHtml(ddgFallback)}';}else{this.remove();}}else{this.remove();}"
+            >
+            <span class="emblem-fallback-text">${emblemText}</span>
+          </span>
+          <a
+            href="${escapeHtml(site.url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="card-slip-link"
+            aria-label="访问 ${escapeHtml(site.name)}"
+          >
+            <span class="card-slip-title">${displayName}</span>
+            <span class="card-slip-summary">${displayDesc}</span>
+          </a>
+          <span class="card-slip-domain">${escapeHtml(domain)}</span>
+          <span class="card-slip-arrow" aria-hidden="true">↗</span>
+          <button
+            type="button"
+            class="btn-bookmark card-slip-bookmark ${isBookmarked ? 'bookmarked' : ''}"
+            title="${isBookmarked ? '取消典藏' : '收入典藏'}"
+            aria-label="${isBookmarked ? '取消典藏 ' + site.name : '收藏 ' + site.name}"
+            data-bookmark-id="${escapeHtml(site.id)}"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              ${isBookmarked
+                ? '<path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>'
+                : '<path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>'
+              }
+            </svg>
+          </button>
+        </div>
       </article>
     `;
   }
@@ -234,7 +298,7 @@
             <span class="section-count-tag">${count} 卷</span>
           </div>
         </div>
-        <div class="entries-grid" data-category-key="${escapeHtml(categoryKey)}">
+        <div class="entries-grid cards-asymmetric-grid" data-category-key="${escapeHtml(categoryKey)}">
           ${cardsHtml}
         </div>
       </section>
@@ -332,8 +396,10 @@
         if (state.viewMode === "shelf" && window.NavBookshelf) {
           dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
         } else {
-          const cardsHtml = matches.map((site, idx) => createEntryCardHtml(site, idx, query)).join("");
-          dom.contentArea.innerHTML = `<div class="entries-grid">${cardsHtml}</div>`;
+          const cardsHtml = matches.map((site, idx) =>
+            createEntryCardHtml(site, idx, query, matches.length, true)
+          ).join("");
+          dom.contentArea.innerHTML = `<div class="entries-grid cards-asymmetric-grid" data-category-key="search">${cardsHtml}</div>`;
         }
       }
       return;
@@ -365,7 +431,9 @@
             "favorites"
           );
         } else {
-          const cardsHtml = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          const cardsHtml = favSites.map((site, idx) =>
+            createEntryCardHtml(site, idx, "", favSites.length)
+          ).join("");
           dom.contentArea.innerHTML = createSectionHtml(
             "私人典藏集",
             "BOOKMARKS",
@@ -409,7 +477,9 @@
             "frequent"
           );
         } else {
-          const cardsHtml = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          const cardsHtml = freqSites.map((site, idx) =>
+            createEntryCardHtml(site, idx, "", freqSites.length)
+          ).join("");
           dom.contentArea.innerHTML = createSectionHtml(
             "常驻案头 (高频访问)",
             "DESK",
@@ -446,14 +516,18 @@
       const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
       const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
       if (favSites.length > 0) {
-        const favCards = favSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+        const favCards = favSites.map((site, idx) =>
+          createEntryCardHtml(site, idx, "", favSites.length)
+        ).join("");
         sectionsHtml.push(createSectionHtml("私人典藏", "FAV", "随时查阅的归档藏书", favSites.length, favCards, "", "favorites"));
       }
 
       // 若有访问统计，展示常驻案头专栏 (前 6 个)
       const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
       if (freqSites.length > 0) {
-        const freqCards = freqSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+        const freqCards = freqSites.map((site, idx) =>
+          createEntryCardHtml(site, idx, "", freqSites.length)
+        ).join("");
         sectionsHtml.push(createSectionHtml("常驻案头", "TOP", "近期高频访问入口", freqSites.length, freqCards, "", "frequent"));
       }
 
@@ -462,7 +536,9 @@
         const rawCatSites = allSites.filter(s => s.category === cat.id);
         const catSites = window.NavSortable ? window.NavSortable.sortSites(cat.id, rawCatSites) : rawCatSites;
         if (catSites.length > 0) {
-          const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+          const cards = catSites.map((site, idx) =>
+            createEntryCardHtml(site, idx, "", catSites.length)
+          ).join("");
           sectionsHtml.push(createSectionHtml(cat.name, cat.code || "SEC", cat.desc, catSites.length, cards, "", cat.id));
         }
       });
@@ -503,7 +579,9 @@
           currentCategory.id
         );
       } else {
-        const cards = catSites.map((site, idx) => createEntryCardHtml(site, idx)).join("");
+        const cards = catSites.map((site, idx) =>
+          createEntryCardHtml(site, idx, "", catSites.length)
+        ).join("");
         dom.contentArea.innerHTML = createSectionHtml(
           currentCategory.name,
           currentCategory.code || "SEC",
@@ -531,59 +609,45 @@
     const freqCount = getValidFreqCount();
 
     const tabs = [];
-
-    // 全部
-    tabs.push(`
+    const createSpineTab = (target, index, label, count, id = "", auxiliary = false) => `
       <button
         type="button"
-        class="index-tab-item ${state.activeCategory === 'all' ? 'active' : ''}"
-        data-cat-target="all"
+        class="index-tab-item ${auxiliary ? 'spine-aux-item' : ''} ${state.activeCategory === target ? 'active' : ''}"
+        data-cat-target="${escapeHtml(target)}"
+        aria-current="${state.activeCategory === target ? 'page' : 'false'}"
+        style="--cat-index: ${index};"
       >
-        <span>全部藏目</span>
-        <span class="tab-badge-num">${allSites.length}</span>
+        <span class="tab-coordinate" aria-hidden="true">${String(index).padStart(2, "0")}°</span>
+        <span class="tab-label">${label}</span>
+        <span class="tab-spine-line" aria-hidden="true"></span>
+        <span class="tab-badge-num"${id ? ` id="${id}"` : ""}>${count}</span>
       </button>
-    `);
+    `;
 
-    // 典藏
-    tabs.push(`
-      <button
-        type="button"
-        class="index-tab-item ${state.activeCategory === 'favorites' ? 'active' : ''}"
-        data-cat-target="favorites"
-      >
-        <span>⭐ 私人典藏</span>
-        <span class="tab-badge-num" id="badge-fav-num">${favCount}</span>
-      </button>
-    `);
+    // 以 00°~ 的坐标刻度将分类组织成纵向书脊
+    tabs.push(createSpineTab("all", 0, "全部藏目", allSites.length));
+    tabs.push(createSpineTab("favorites", 1, "私人典藏", favCount, "badge-fav-num", true));
+    tabs.push(createSpineTab("frequent", 2, "常驻案头", freqCount, "badge-freq-num", true));
 
-    // 案头常用
-    tabs.push(`
-      <button
-        type="button"
-        class="index-tab-item ${state.activeCategory === 'frequent' ? 'active' : ''}"
-        data-cat-target="frequent"
-      >
-        <span>🔥 常驻案头</span>
-        <span class="tab-badge-num" id="badge-freq-num">${freqCount}</span>
-      </button>
-    `);
-
-    // 各分类
-    categories.forEach(cat => {
+    categories.forEach((cat, categoryIndex) => {
       const count = allSites.filter(s => s.category === cat.id).length;
-      tabs.push(`
-        <button
-          type="button"
-          class="index-tab-item ${state.activeCategory === cat.id ? 'active' : ''}"
-          data-cat-target="${escapeHtml(cat.id)}"
-        >
-          <span>${escapeHtml(cat.name)}</span>
-          <span class="tab-badge-num">${count}</span>
-        </button>
-      `);
+      tabs.push(createSpineTab(
+        cat.id,
+        categoryIndex + 3,
+        escapeHtml(cat.name),
+        count
+      ));
     });
 
     dom.tabsRail.innerHTML = tabs.join("");
+
+    // 驱动右栏观测星盘随当前栏目旋转
+    const activeIndex = Math.max(
+      0,
+      Array.from(dom.tabsRail.querySelectorAll(".index-tab-item"))
+        .findIndex(item => item.classList.contains("active"))
+    );
+    document.documentElement.style.setProperty("--active-cat-index", String(activeIndex));
   }
 
   function updateBadges() {
@@ -727,9 +791,7 @@
         dom.searchClearBtn.style.display = "none";
       }
 
-      document.querySelectorAll(".index-tab-item").forEach(t => {
-        t.classList.toggle("active", t.getAttribute("data-cat-target") === targetCat);
-      });
+      renderIndexTabs();
 
       if (typeof btn.scrollIntoView === "function") {
         btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
@@ -993,7 +1055,7 @@
                 dom.searchInput.value = "";
                 dom.searchClearBtn.style.display = "none";
               }
-              tabButtons.forEach(t => t.classList.toggle("active", t === targetBtn));
+              renderIndexTabs();
               renderContent();
               const catLabel = targetBtn.querySelector("span")?.textContent?.trim() || targetCat;
               window.NavShortcuts.showToast(`专栏：${catLabel}`, "按 h/l 或数字键 1~7 导航", "📑");

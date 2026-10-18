@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=1.8.0">
+  <link rel="stylesheet" href="styles.css?v=1.9.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <div id="particles-bg" class="particles-bg" aria-hidden="true"></div>
 
   <div class="archive-wrapper">
-    <!-- 顶部版记细栏 (Top Colophon Bar) -->
+    <!-- 顶部通栏：仅保留品牌与工具操作 -->
     <header class="top-colophon-bar" role="banner">
       <div class="colophon-left">
         <button type="button" id="btn-colophon-mark" class="btn-colophon-badge" title="查阅馆长手记与建馆理念 (按 c 键)" aria-label="查阅馆长手记">
@@ -84,116 +84,140 @@
       </div>
     </header>
 
-    <!-- 编辑式刊头 (Editorial Masthead) -->
-    <section class="editorial-masthead" aria-label="收藏馆刊头">
-      <div class="masthead-meta">
-        <div class="masthead-issue">
-          <span class="issue-dot" aria-hidden="true"></span>
-          <span>VOL. 2026 · PRIVATE DIGITAL COLLECTION</span>
-          <span id="masthead-milestone-slot" class="masthead-milestone-slot" style="display: none;"></span>
-        </div>
-        <div style="display: flex; gap: 16px;">
-          <span id="masthead-date-label">载入中...</span>
-          <span id="masthead-count-label">全馆典藏 -- 卷</span>
-        </div>
-      </div>
-      <h1 class="masthead-headline">个人数字收藏馆</h1>
-      <p class="masthead-epigraph">精心遴选的数字工具、知识航标与灵感索引。收录于此，静水流深。</p>
-    </section>
+    <!-- 古籍对开卷：左书脊目录，右检索与典藏画布 -->
+    <div class="folio-shell">
+      <aside class="folio-spine" aria-label="收藏馆扉页与目录">
+        <div class="folio-spine-inner">
+          <section class="ex-libris-plate editorial-masthead" aria-label="收藏馆刊头">
+            <div class="plate-frame">
+              <div class="masthead-meta">
+                <div class="masthead-issue">
+                  <span class="issue-dot" aria-hidden="true"></span>
+                  <span>VOL. 2026 · PRIVATE DIGITAL COLLECTION</span>
+                  <span id="masthead-milestone-slot" class="masthead-milestone-slot" style="display: none;"></span>
+                </div>
+                <div class="plate-meta-row">
+                  <span id="masthead-date-label">载入中...</span>
+                  <span id="masthead-count-label">全馆典藏 -- 卷</span>
+                </div>
+              </div>
+              <div class="plate-orbit" aria-hidden="true">
+                <span class="plate-orbit-ring"></span>
+                <span class="plate-orbit-rule"></span>
+              </div>
+              <h1 class="masthead-headline">个人数字收藏馆</h1>
+              <p class="masthead-epigraph">精心遴选的数字工具、知识航标与灵感索引。收录于此，静水流深。</p>
+              <div class="plate-imprint">
+                <span>PRIVATE INDEX</span>
+                <span>MMXXVI</span>
+              </div>
+            </div>
+          </section>
 
-    <!-- 醒目核心检索区 (Search Indexing) -->
-    <section class="archive-search-section" aria-label="馆藏检索">
-      <div class="search-box-frame">
-        <span class="search-glyph" aria-hidden="true">§</span>
-        <div id="search-engine-picker" class="search-engine-picker is-external" title="切换搜索引擎 (Tab 循环切换)">
-          <select id="search-engine-select" class="search-engine-select" aria-label="切换搜索引擎">
-            <option value="google" selected>Google</option>
-            <option value="site">站内</option>
-            <option value="github">GitHub</option>
-          </select>
-          <span class="engine-caret" aria-hidden="true">▾</span>
-        </div>
-        <input
-          type="search"
-          id="archive-search-input"
-          class="archive-search-input"
-          placeholder="用 Google 搜索全网，回车打开... (Tab 切换引擎)"
-          inputmode="search"
-          enterkeyhint="search"
-          autocomplete="off"
-          spellcheck="false"
-          aria-label="全馆实时检索"
-        >
-        <div class="search-tools">
-          <button
-            type="button"
-            id="btn-clear-search"
-            class="btn-clear-search"
-            title="清空检索 (Esc)"
-            aria-label="清空检索"
-            style="display: none;"
-          >
-            ✕
-          </button>
-          <kbd class="kbd-tag" title="按 / 键快速聚焦">/</kbd>
-        </div>
-      </div>
-    </section>
+          <nav class="category-index-nav spine-nav" aria-label="典藏分类导览">
+            <div class="index-tabs-rail" id="index-tabs-rail">
+              <!-- 由 JavaScript 动态根据 data.js 计算并生成 -->
+            </div>
+          </nav>
 
-    <!-- 栏目导航轨 (Category Index Tabs) -->
-    <nav class="category-index-nav" aria-label="典藏分类导览">
-      <div class="index-tabs-rail" id="index-tabs-rail">
-        <!-- 由 JavaScript 动态根据 data.js 计算并生成 -->
-      </div>
-    </nav>
-
-    <!-- 整理模式提示与恢复操作条 (仅在整理模式激活时展示) -->
-    <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
-      <div class="arrange-toolbar-content">
-        <span class="arrange-tip">
-          <strong class="arrange-badge">整理模式</strong>
-          <span>拖拽卡片调整排序，或按空格选中后用方向键移动，松手自动记住顺序</span>
-        </span>
-        <div class="arrange-actions">
-          <button type="button" id="btn-reset-order" class="btn-arrange-action" title="恢复为默认排列顺序">恢复默认顺序</button>
-          <button type="button" id="btn-finish-arrange" class="btn-arrange-action btn-arrange-primary" title="完成并退出整理模式 (Esc)">完成 (Esc)</button>
+          <div class="spine-colophon" aria-hidden="true">
+            <span class="spine-colophon-rule"></span>
+            <span>RA 18h 36m · DEC +38°47′</span>
+            <span>EX LIBRIS · FOLIO 01</span>
+          </div>
         </div>
-      </div>
+      </aside>
+
+      <section class="folio-main" aria-label="馆藏检索与典藏目录">
+        <header class="folio-search-bar" aria-label="馆藏检索">
+          <div class="archive-search-section">
+            <div class="search-box-frame">
+              <span class="search-glyph" aria-hidden="true">§</span>
+              <div id="search-engine-picker" class="search-engine-picker is-external" title="切换搜索引擎 (Tab 循环切换)">
+                <select id="search-engine-select" class="search-engine-select" aria-label="切换搜索引擎">
+                  <option value="google" selected>Google</option>
+                  <option value="site">站内</option>
+                  <option value="github">GitHub</option>
+                </select>
+                <span class="engine-caret" aria-hidden="true">▾</span>
+              </div>
+              <input
+                type="search"
+                id="archive-search-input"
+                class="archive-search-input"
+                placeholder="用 Google 搜索全网，回车打开... (Tab 切换引擎)"
+                inputmode="search"
+                enterkeyhint="search"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="全馆实时检索"
+              >
+              <div class="search-tools">
+                <button
+                  type="button"
+                  id="btn-clear-search"
+                  class="btn-clear-search"
+                  title="清空检索 (Esc)"
+                  aria-label="清空检索"
+                  style="display: none;"
+                >
+                  ✕
+                </button>
+                <kbd class="kbd-tag" title="按 / 键快速聚焦">/</kbd>
+              </div>
+            </div>
+          </div>
+          <div class="folio-search-meta" aria-hidden="true">
+            <span>寻书镜</span>
+            <span>INDEX / 001</span>
+          </div>
+        </header>
+
+        <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
+          <div class="arrange-toolbar-content">
+            <span class="arrange-tip">
+              <strong class="arrange-badge">整理模式</strong>
+              <span>拖拽卡片调整排序，或按空格选中后用方向键移动，松手自动记住顺序</span>
+            </span>
+            <div class="arrange-actions">
+              <button type="button" id="btn-reset-order" class="btn-arrange-action" title="恢复为默认排列顺序">恢复默认顺序</button>
+              <button type="button" id="btn-finish-arrange" class="btn-arrange-action btn-arrange-primary" title="完成并退出整理模式 (Esc)">完成 (Esc)</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="search-status-bar" class="search-status-bar" style="display: none;">
+          <span id="search-status-text"></span>
+          <button type="button" id="btn-reset-filter" class="btn-reset-filter">重置检索</button>
+        </div>
+
+        <main class="archive-main-area" id="archive-content-area" role="main">
+          <!-- 动态排版渲染区域 -->
+        </main>
+
+        <footer class="colophon-footer" role="contentinfo">
+          <div class="footer-inner-rail">
+            <p class="footer-quote">“博学之，审问之，慎思之，明辨之，笃行之。”</p>
+            <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
+            <div class="footer-shortcuts-line">
+              <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
+              <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
+              <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
+              <span><kbd class="kbd-tag">f</kbd> 典藏</span>
+              <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
+              <span><kbd class="kbd-tag">c</kbd> 馆长手记</span>
+              <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
+              <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
+              <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
+              <button type="button" id="btn-footer-export" class="footer-export-action-btn" title="导出与备份数据">💾 导出</button>
+            </div>
+            <div id="footer-overrides-note" class="footer-overrides-note" style="display: none;">
+              有 <strong id="overrides-count-num">0</strong> 处修改仅保存在本机，建议<button type="button" id="btn-note-export-data" class="btn-text-link">导出 data.js</button>
+            </div>
+          </div>
+        </footer>
+      </section>
     </div>
-
-    <!-- 检索状态条 (有筛选或搜索词时展示) -->
-    <div id="search-status-bar" class="search-status-bar" style="display: none;">
-      <span id="search-status-text"></span>
-      <button type="button" id="btn-reset-filter" class="btn-reset-filter">重置检索</button>
-    </div>
-
-    <!-- 主典藏展示区 (Main Archive Content) -->
-    <main class="archive-main-area" id="archive-content-area" role="main">
-      <!-- 动态排版渲染区域 -->
-    </main>
-
-    <!-- 刊末页脚 (Colophon Footer) -->
-    <footer class="colophon-footer" role="contentinfo">
-      <div class="footer-inner-rail">
-        <p class="footer-quote">“博学之，审问之，慎思之，明辨之，笃行之。”</p>
-        <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
-        <div class="footer-shortcuts-line">
-          <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
-          <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
-          <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
-          <span><kbd class="kbd-tag">f</kbd> 典藏</span>
-          <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
-          <span><kbd class="kbd-tag">c</kbd> 馆长手记</span>
-          <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
-          <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
-          <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
-          <button type="button" id="btn-footer-export" class="footer-export-action-btn" title="导出与备份数据">💾 导出</button>
-        </div>
-        <div id="footer-overrides-note" class="footer-overrides-note" style="display: none;">
-          有 <strong id="overrides-count-num">0</strong> 处修改仅保存在本机，建议<button type="button" id="btn-note-export-data" class="btn-text-link">导出 data.js</button>
-        </div>
-      </div>
-    </footer>
   </div>
 
   <!-- 藏书票印画模态展示层 (Ex Libris Modal) -->
@@ -406,6 +430,6 @@
   <script src="js/lore.js?v=1.7.0"></script>
   <script src="js/contextmenu.js?v=1.7.0"></script>
   <script src="js/cloud-sync.js?v=1.7.0"></script>
-  <script src="app.js?v=1.7.0"></script>
+  <script src="app.js?v=1.9.0"></script>
 </body>
 </html>

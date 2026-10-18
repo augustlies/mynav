@@ -41,9 +41,11 @@
   --color-bookmark: #B8621B;       /* 典藏书签赭石金 */
   --color-bookmark-soft: #FBF3EB;
 
-  --border-hairline: #E2DFD4;      /* 极细纸张纤维分隔线 */
+  --border-hairline: rgba(42, 36, 30, 0.13);      /* 极细纸张纤维分隔线 */
   --border-card: #E5E1D6;
   --border-focus: #3F523E;
+  --accent-brass: #8C5A32;
+  --accent-stamp: #A64030;
 
   --shadow-subtle: 0 1px 2px rgba(36, 37, 31, 0.03);
   --shadow-lift: 0 10px 24px -4px rgba(36, 37, 31, 0.08), 0 2px 6px -1px rgba(36, 37, 31, 0.04);
@@ -90,9 +92,11 @@
   --color-bookmark: #D8AD6A;
   --color-bookmark-soft: #2A241C;
 
-  --border-hairline: #263244;
+  --border-hairline: rgba(200, 169, 126, 0.16);
   --border-card: #303D4F;
   --border-focus: #A9BBB2;
+  --accent-brass: #C8A97E;
+  --accent-stamp: #A64030;
 
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.32);
   --shadow-lift: 0 14px 32px -5px rgba(0, 0, 0, 0.62), 0 3px 10px -1px rgba(0, 0, 0, 0.36);
@@ -134,6 +138,8 @@
   --border-hairline: #B5B09B;
   --border-card: #BAB49F;
   --border-focus: #374433;
+  --accent-brass: #74471F;
+  --accent-stamp: #943829;
 
   --shadow-subtle: 0 1px 2px rgba(36, 34, 30, 0.05);
   --shadow-lift: 0 10px 24px -4px rgba(36, 34, 30, 0.12), 0 2px 6px -1px rgba(36, 34, 30, 0.05);
@@ -359,6 +365,10 @@ body::before {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+html {
+  overflow-x: clip;
 }
 
 /* 容器布局 (内容置于粒子层之上) */
@@ -1833,6 +1843,16 @@ body::before {
    12. 响应式适配与媒体查询 (Responsive & A11y)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
+  .folio-main .entries-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
+  .folio-main .entries-grid > .entry-card {
+    grid-column: span 12 !important;
+    width: 100%;
+    min-width: 0;
+  }
+
   .search-box-frame::before,
   .search-box-frame::after {
     display: none;
@@ -3331,6 +3351,1432 @@ body.modal-open {
   .book-flyout-card {
     transition: none !important;
     transform: translateY(-50%) !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   古籍对开卷 · 经纬档案台 (Editorial Folio & Vernier Archive)
+   -------------------------------------------------------------------------- */
+:root {
+  --active-cat-index: 0;
+  --header-height: 56px;
+  --folio-spine-width: 290px;
+}
+
+.archive-wrapper {
+  max-width: 1440px;
+  min-height: 100vh;
+  padding: 0;
+}
+
+.top-colophon-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: 0 28px;
+  margin: 0;
+  border-top: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-page) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(112%);
+  backdrop-filter: blur(10px) saturate(112%);
+}
+
+.top-colophon-bar::after {
+  display: none;
+}
+
+.colophon-right {
+  gap: 0;
+}
+
+.colophon-right .theme-switch-btn {
+  position: relative;
+  min-height: 34px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-serif);
+  letter-spacing: 0.08em;
+}
+
+.colophon-right .theme-switch-btn::after {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 3px;
+  height: 1px;
+  background: var(--accent-brass);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--transition-normal);
+}
+
+.colophon-right .theme-switch-btn:hover {
+  color: var(--text-main);
+  border: 0;
+  background: transparent;
+  transform: none;
+}
+
+.colophon-right .theme-switch-btn:hover::after,
+.colophon-right .theme-switch-btn:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.colophon-right .theme-switch-btn + .theme-switch-btn::before {
+  content: "✦";
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--layout-rule-strong);
+  font-size: 0.5rem;
+  pointer-events: none;
+}
+
+[data-theme-mode="auto"] #btn-theme-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--accent-brass);
+}
+
+.folio-shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: var(--folio-spine-width) minmax(0, 1fr);
+  width: 100%;
+  max-width: 1440px;
+  min-height: calc(100vh - var(--header-height));
+  margin: 0 auto;
+}
+
+.folio-shell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--folio-spine-width);
+  z-index: 4;
+  width: 1px;
+  background: var(--border-hairline);
+  pointer-events: none;
+}
+
+.folio-shell::after {
+  content: "+";
+  position: absolute;
+  top: 18px;
+  left: calc(var(--folio-spine-width) - 5px);
+  z-index: 5;
+  width: 11px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.folio-spine {
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  min-width: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hairline) transparent;
+}
+
+.folio-spine-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 30px 24px 22px;
+}
+
+.folio-spine-inner::after {
+  content: "+";
+  position: absolute;
+  right: 23px;
+  bottom: 8px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  opacity: 0.7;
+}
+
+.ex-libris-plate.editorial-masthead {
+  position: relative;
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--border-hairline);
+  margin: 0 0 30px;
+}
+
+.ex-libris-plate.editorial-masthead::before,
+.ex-libris-plate.editorial-masthead::after {
+  display: none;
+}
+
+.plate-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 330px;
+  padding: 12px;
+  border: 1px solid var(--border-hairline);
+  margin: 3px;
+  overflow: hidden;
+}
+
+.plate-frame::before,
+.plate-frame::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.plate-frame::before {
+  top: 7px;
+  left: 7px;
+  border-top: 1px solid var(--accent-brass);
+  border-left: 1px solid var(--accent-brass);
+}
+
+.plate-frame::after {
+  right: 7px;
+  bottom: 7px;
+  border-right: 1px solid var(--accent-brass);
+  border-bottom: 1px solid var(--accent-brass);
+}
+
+.ex-libris-plate .masthead-meta {
+  display: block;
+  margin: 2px 0 30px;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  line-height: 1.55;
+}
+
+.ex-libris-plate .masthead-issue {
+  gap: 5px;
+  align-items: flex-start;
+  line-height: 1.55;
+}
+
+.plate-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 8px;
+  color: var(--text-faint);
+}
+
+.plate-orbit {
+  position: absolute;
+  top: 66px;
+  right: -22px;
+  width: 112px;
+  height: 112px;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.plate-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+}
+
+.plate-orbit-ring::before,
+.plate-orbit-ring::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--accent-brass);
+  opacity: 0.55;
+}
+
+.plate-orbit-ring::before {
+  width: 1px;
+  height: 100%;
+  transform: translate(-50%, -50%);
+}
+
+.plate-orbit-ring::after {
+  width: 100%;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.plate-orbit-rule {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 54px;
+  height: 1px;
+  background: var(--accent-brass);
+  opacity: 0.4;
+  transform-origin: left center;
+  transform: rotate(-34deg);
+}
+
+.ex-libris-plate .masthead-headline {
+  position: relative;
+  z-index: 1;
+  width: min-content;
+  max-width: 100%;
+  margin: auto 0 16px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+}
+
+.ex-libris-plate .masthead-epigraph {
+  position: relative;
+  z-index: 1;
+  max-width: 210px;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.75;
+}
+
+.ex-libris-plate .masthead-epigraph::before {
+  margin-right: 3px;
+}
+
+.plate-imprint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.13em;
+}
+
+.spine-nav.category-index-nav {
+  position: static;
+  z-index: auto;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.spine-nav .index-tabs-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  overflow: visible;
+}
+
+.spine-nav .index-tab-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, auto) minmax(8px, 1fr) 22px;
+  gap: 5px;
+  align-items: baseline;
+  width: 100%;
+  min-height: 35px;
+  padding: 6px 0 6px 12px;
+  border: 0;
+  border-bottom: 0;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  text-align: left;
+  white-space: normal;
+  transition: color var(--transition-fast), padding-left var(--transition-normal), background-color var(--transition-fast);
+}
+
+.spine-nav .index-tab-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent-brass);
+  transform: translateY(-50%);
+  transition: width var(--transition-normal);
+}
+
+.spine-nav .index-tab-item:hover {
+  padding-left: 18px;
+  color: var(--text-main);
+  background-color: color-mix(in srgb, var(--bg-subtle) 42%, transparent);
+}
+
+.spine-nav .index-tab-item.active {
+  padding-left: 18px;
+  color: var(--accent-brass);
+  font-weight: 600;
+  background: transparent;
+  border: 0;
+}
+
+.spine-nav .index-tab-item.active::before {
+  width: 14px;
+}
+
+.tab-coordinate {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.02em;
+}
+
+.spine-nav .index-tab-item.active .tab-coordinate {
+  color: var(--accent-brass);
+}
+
+.tab-spine-line {
+  align-self: end;
+  margin-bottom: 0.35em;
+  border-bottom: 1px dotted var(--border-hairline);
+}
+
+.spine-nav .tab-badge-num {
+  justify-self: end;
+  color: var(--text-faint);
+  background: transparent;
+  padding: 0;
+  font-size: 0.625rem;
+}
+
+.spine-nav .index-tab-item.active .tab-badge-num {
+  color: var(--accent-brass);
+}
+
+.spine-nav .spine-aux-item {
+  grid-template-columns: 30px minmax(0, auto) 22px;
+}
+
+.spine-nav .spine-aux-item .tab-spine-line {
+  display: none;
+}
+
+.spine-nav .spine-aux-item .tab-badge-num {
+  grid-column: 3;
+}
+
+.spine-nav .spine-aux-item + .index-tab-item:not(.spine-aux-item) {
+  margin-top: 12px;
+}
+
+.spine-nav .spine-aux-item + .index-tab-item:not(.spine-aux-item)::after {
+  content: "ARCHIVE SECTIONS";
+  position: absolute;
+  top: -14px;
+  left: 12px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.4375rem;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+.spine-colophon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+  padding: 22px 0 6px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  line-height: 1.55;
+}
+
+.spine-colophon-rule {
+  width: 32px;
+  height: 1px;
+  margin-bottom: 3px;
+  background: var(--accent-brass);
+  opacity: 0.7;
+}
+
+.folio-main {
+  position: relative;
+  min-width: 0;
+  padding: 0 32px;
+  background-image:
+    linear-gradient(90deg, transparent 0 calc(100% - 1px), var(--layout-rule) calc(100% - 1px)),
+    linear-gradient(0deg, transparent 0 calc(100% - 1px), var(--layout-rule) calc(100% - 1px));
+  background-size: 96px 96px;
+  background-position: 0 0;
+}
+
+.folio-main::before {
+  content: "";
+  position: absolute;
+  top: 56px;
+  right: 36px;
+  width: min(26vw, 390px);
+  aspect-ratio: 1;
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  opacity: 0.38;
+  pointer-events: none;
+  transform: rotate(calc(var(--active-cat-index) * 18deg));
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  background:
+    linear-gradient(28deg, transparent 49.86%, var(--border-hairline) 49.86% 50.02%, transparent 50.02%),
+    linear-gradient(152deg, transparent 49.88%, var(--border-hairline) 49.88% 50%, transparent 50%),
+    radial-gradient(circle, transparent 0 47%, var(--border-hairline) 47% 51%, transparent 51% 70%, var(--border-hairline) 70% 70.3%, transparent 70.3%);
+}
+
+.folio-main::after {
+  content: "";
+  position: absolute;
+  top: 56px;
+  right: 5%;
+  width: min(20vw, 290px);
+  aspect-ratio: 1;
+  border: 1px dotted var(--border-hairline);
+  border-radius: 50%;
+  opacity: 0.45;
+  pointer-events: none;
+  transform: rotate(calc(var(--active-cat-index) * -11deg));
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.folio-search-bar {
+  position: sticky;
+  top: calc(var(--header-height) + 1px);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-page) 91%, transparent);
+  -webkit-backdrop-filter: blur(8px) saturate(112%);
+  backdrop-filter: blur(8px) saturate(112%);
+}
+
+.folio-search-bar .archive-search-section {
+  z-index: auto;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 16px 0 0;
+}
+
+.folio-search-bar .search-box-frame {
+  min-height: 39px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.folio-search-bar .search-box-frame::before,
+.folio-search-bar .search-box-frame::after {
+  display: none;
+}
+
+.folio-search-bar .search-box-frame:focus-within {
+  box-shadow: none;
+}
+
+.folio-search-bar .search-glyph {
+  margin-right: 8px;
+  color: var(--accent-brass);
+}
+
+.folio-search-bar .search-engine-picker {
+  margin-right: 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.folio-search-bar .search-engine-picker.is-external {
+  background: transparent;
+}
+
+.folio-search-bar .search-engine-select {
+  padding: 2px 17px 2px 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.folio-search-bar .search-engine-picker .engine-caret {
+  right: 2px;
+}
+
+.folio-search-bar .archive-search-input {
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+}
+
+.folio-search-bar .archive-search-input::placeholder {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+}
+
+.folio-search-bar .search-tools {
+  gap: 7px;
+  margin-left: 8px;
+}
+
+.folio-search-bar .kbd-tag {
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+}
+
+.folio-search-meta {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 2px;
+  min-width: 82px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-align: right;
+}
+
+.folio-search-meta span:first-child {
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+}
+
+.folio-main > .archive-main-area,
+.folio-main > .search-status-bar,
+.folio-main > .arrange-toolbar {
+  position: relative;
+  z-index: 2;
+}
+
+.folio-main > .search-status-bar {
+  margin: 0;
+  border-top: 0;
+}
+
+.folio-main .archive-section {
+  position: relative;
+  padding: 38px 0 52px;
+  border-bottom: 1px solid var(--layout-rule);
+}
+
+.folio-main .archive-section::before {
+  top: 28px;
+  right: 0;
+  font-size: 0.5rem;
+}
+
+.folio-main .section-masthead-rule {
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+}
+
+.folio-main .section-heading-group {
+  flex-wrap: wrap;
+  gap: 5px 12px;
+}
+
+.folio-main .section-title-text {
+  font-size: clamp(1.35rem, 1.9vw, 1.75rem);
+}
+
+.folio-main .section-desc-text {
+  display: block;
+  width: 100%;
+  padding-left: 0;
+  font-size: 0.6875rem;
+}
+
+.folio-main .entries-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+}
+
+.folio-main .entries-grid > .entry-card.card--monograph {
+  grid-column: span 8;
+}
+
+.folio-main .entries-grid > .entry-card.card--archive:nth-child(2),
+.folio-main .entries-grid > .entry-card.card--archive:only-child {
+  grid-column: span 4;
+}
+
+.folio-main .entries-grid > .entry-card.card--archive:nth-child(3),
+.folio-main .entries-grid > .entry-card.card--archive:nth-child(4) {
+  grid-column: span 6;
+}
+
+.folio-main .entries-grid > .entry-card.card--slip {
+  grid-column: span 4;
+  align-self: start;
+}
+
+.folio-main .entries-grid > .entry-card.card--full {
+  grid-column: span 12;
+}
+
+@keyframes folioCardDrawIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.folio-main .entry-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--bg-surface) 86%, transparent);
+  box-shadow: none;
+  animation: folioCardDrawIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: min(calc(var(--stagger-idx, 0) * 20ms), 200ms);
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.folio-main .entry-card::before {
+  display: none;
+}
+
+.folio-main .entry-card::after {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  bottom: 9px;
+  left: 9px;
+  width: auto;
+  height: auto;
+  border: 0;
+  background:
+    linear-gradient(var(--border-hairline), var(--border-hairline)) left top / 7px 1px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) left top / 1px 7px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) right top / 7px 1px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) right top / 1px 7px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) left bottom / 7px 1px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) left bottom / 1px 7px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) right bottom / 7px 1px no-repeat,
+    linear-gradient(var(--border-hairline), var(--border-hairline)) right bottom / 1px 7px no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+  transform: none;
+}
+
+.folio-main .entry-card:hover {
+  border-color: var(--accent-brass);
+  background-color: color-mix(in srgb, var(--bg-surface) 95%, var(--accent-brass) 5%);
+  box-shadow: 0 5px 16px -14px color-mix(in srgb, var(--accent-brass) 42%, transparent);
+  transform: none;
+}
+
+.folio-main .card-emblem {
+  border-radius: 50%;
+}
+
+.folio-main .card-title-text {
+  letter-spacing: -0.025em;
+}
+
+.folio-main .card-masthead {
+  margin-bottom: 16px;
+}
+
+.folio-main .card-synopsis {
+  margin-bottom: 16px;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+.folio-main .card-bottom-rail {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.folio-main .card-tag-pill {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  background: transparent;
+  padding: 0;
+  border: 0;
+}
+
+.folio-main .btn-bookplate,
+.folio-main .card-jump-mark {
+  font-size: 0.6875rem;
+}
+
+.folio-main .card--monograph {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  grid-template-rows: auto auto 1fr;
+  padding: 24px 0 18px 24px;
+}
+
+.folio-main .card--monograph .card-masthead,
+.folio-main .card--monograph .card-synopsis,
+.folio-main .card--monograph .card-bottom-rail {
+  grid-column: 1;
+}
+
+.folio-main .card--monograph .card-masthead {
+  padding-right: 15px;
+  margin-bottom: 20px;
+}
+
+.folio-main .card--monograph .card-synopsis {
+  max-width: 43ch;
+  margin: 0 15px 20px 0;
+  font-size: 0.875rem;
+}
+
+.folio-main .card--monograph .card-bottom-rail {
+  align-self: end;
+  margin-right: 15px;
+}
+
+.folio-main .card--monograph .card-title-text {
+  font-size: 1.5rem;
+}
+
+.folio-main .card--monograph .card-emblem {
+  width: 42px;
+  height: 42px;
+}
+
+.folio-main .card-monograph-plate {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 16px 8px 2px;
+  border-left: 1px dashed var(--border-hairline);
+  text-align: center;
+}
+
+.folio-main .card--monograph > .card-monograph-plate {
+  display: flex;
+}
+
+.card-monograph-orbit {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  width: 78px;
+  height: 78px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  opacity: 0.8;
+}
+
+.card-monograph-orbit::before,
+.card-monograph-orbit::after {
+  content: "";
+  position: absolute;
+  background: var(--border-hairline);
+}
+
+.card-monograph-orbit::before {
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+}
+
+.card-monograph-orbit::after {
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 1px;
+}
+
+.card-monograph-number {
+  position: relative;
+  z-index: 1;
+  margin-top: 31px;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-style: italic;
+  line-height: 1;
+  opacity: 0.34;
+  white-space: nowrap;
+}
+
+.btn-monograph-plate {
+  position: relative;
+  z-index: 1;
+  padding: 5px 6px;
+  border: 1px solid color-mix(in srgb, var(--accent-stamp) 46%, transparent);
+  background: color-mix(in srgb, var(--accent-stamp) 6%, transparent);
+  font-family: var(--font-serif);
+  font-size: 0.625rem;
+  white-space: nowrap;
+}
+
+.btn-monograph-plate:hover {
+  border-color: var(--accent-stamp);
+  background: color-mix(in srgb, var(--accent-stamp) 14%, transparent);
+}
+
+.card--monograph > .card-bottom-rail .btn-bookplate {
+  display: none;
+}
+
+.folio-main .card--archive {
+  padding: 20px;
+}
+
+.folio-main .card--archive .card-title-text {
+  font-size: 1.125rem;
+}
+
+.folio-main .card--full {
+  padding: 24px;
+}
+
+.folio-main .card--full .card-masthead {
+  margin-bottom: 18px;
+}
+
+.folio-main .card--full .card-title-text {
+  font-size: 1.35rem;
+}
+
+.folio-main .card--full .card-synopsis {
+  max-width: 72ch;
+  font-size: 0.875rem;
+}
+
+.folio-main .card--full > .card-monograph-plate {
+  display: none;
+}
+
+.folio-main .card--slip {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 68px;
+  padding: 0;
+  background-image:
+    linear-gradient(90deg, transparent 0 40px, var(--border-hairline) 40px 41px, transparent 41px),
+    radial-gradient(circle at 20px 18px, var(--accent-brass) 0 1px, transparent 1.8px);
+  background-repeat: no-repeat;
+}
+
+.folio-main .card--slip .card-masthead,
+.folio-main .card--slip > .card-synopsis,
+.folio-main .card--slip > .card-bottom-rail {
+  display: none;
+}
+
+.card-slip-compact {
+  display: none;
+}
+
+.card-slip-link,
+.folio-main .card--slip .card-slip-bookmark {
+  display: none;
+}
+
+.folio-main .card--slip .card-slip-compact {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  align-self: stretch;
+  min-width: 0;
+  gap: 10px;
+  padding: 9px 7px 9px 13px;
+}
+
+.folio-main .card--slip .card-slip-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 2px;
+  padding: 7px 6px 7px 8px;
+  color: inherit;
+  line-height: normal;
+  text-decoration: none;
+}
+
+.folio-main .card--slip .card-slip-title,
+.folio-main .card--slip .card-slip-summary {
+  display: block;
+  width: 100%;
+}
+
+.folio-main .card--slip .card-slip-bookmark {
+  display: flex;
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 7px;
+}
+
+.folio-main .card--slip .card-slip-emblem {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.folio-main .card--slip .card-slip-emblem .emblem-img {
+  width: 18px;
+  height: 18px;
+}
+
+.card-slip-index {
+  order: -1;
+  margin-right: 1px;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.625rem;
+  font-style: italic;
+  line-height: 1;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.card-slip-title {
+  overflow: hidden;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-slip-summary {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.625rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-slip-domain {
+  overflow: hidden;
+  max-width: 64px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.card-slip-arrow {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  opacity: 0.72;
+  transition: transform var(--transition-fast);
+}
+
+.folio-main .card--slip:hover .card-slip-arrow {
+  transform: translate(2px, -2px);
+}
+
+.folio-main .card--slip .card-slip-link:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 -1px 0 var(--accent-brass);
+}
+
+.folio-main .card--slip .card-slip-link:focus-visible::after {
+  content: "开卷";
+  margin-top: 2px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.folio-main .card--slip:focus-within {
+  border-color: var(--accent-brass);
+}
+
+[data-theme="dark"] .folio-main .entry-card {
+  background: color-mix(in srgb, var(--bg-surface) 72%, transparent);
+}
+
+[data-theme="dark"] .folio-main .entry-card:hover {
+  background: color-mix(in srgb, var(--bg-surface) 88%, var(--accent-brass) 4%);
+}
+
+@media (max-width: 1050px) {
+  :root {
+    --folio-spine-width: 255px;
+  }
+
+  .folio-main {
+    padding: 0 24px;
+  }
+
+  .ex-libris-plate .masthead-headline {
+    font-size: 1.75rem;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--monograph {
+    grid-column: span 12;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(2),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(3),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(4) {
+    grid-column: span 6;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--slip {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 900px) {
+  .folio-shell {
+    display: block;
+    min-height: 0;
+  }
+
+  .folio-shell::before,
+  .folio-shell::after {
+    display: none;
+  }
+
+  .folio-spine {
+    position: relative;
+    top: auto;
+    height: auto;
+    overflow: visible;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+
+  .folio-spine-inner {
+    display: block;
+    min-height: 0;
+    padding: 20px 20px 0;
+  }
+
+  .ex-libris-plate.editorial-masthead {
+    margin-bottom: 18px;
+  }
+
+  .plate-frame {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .ex-libris-plate .masthead-meta {
+    margin-bottom: 18px;
+  }
+
+  .ex-libris-plate .masthead-headline {
+    max-width: none;
+    margin: 8px 0;
+    font-size: clamp(1.75rem, 5vw, 2.25rem);
+  }
+
+  .ex-libris-plate .masthead-epigraph {
+    max-width: 500px;
+  }
+
+  .plate-imprint {
+    margin-top: 12px;
+  }
+
+  .spine-nav.category-index-nav {
+    margin: 0 -20px;
+    padding: 0 20px;
+    overflow: hidden;
+  }
+
+  .spine-nav .index-tabs-rail {
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 11px;
+    scrollbar-width: none;
+  }
+
+  .spine-nav .index-tabs-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .spine-nav .index-tab-item {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 32px;
+    padding: 6px 8px;
+    border-bottom: 1px solid transparent;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .spine-nav .index-tab-item::before {
+    display: none;
+  }
+
+  .spine-nav .index-tab-item:hover,
+  .spine-nav .index-tab-item.active {
+    padding-left: 8px;
+    border-bottom-color: var(--accent-brass);
+    background: transparent;
+  }
+
+  .tab-coordinate {
+    font-size: 0.5rem;
+  }
+
+  .tab-spine-line {
+    display: none;
+  }
+
+  .spine-colophon {
+    display: none;
+  }
+
+  .folio-main {
+    padding: 0 20px;
+    background-size: 80px 80px;
+  }
+
+  .folio-search-bar {
+    top: calc(var(--header-height) + 1px);
+    height: 52px;
+    margin: 0 -20px;
+    padding: 0 20px;
+  }
+
+  .folio-search-meta {
+    display: none;
+  }
+
+  .folio-search-bar .archive-search-section {
+    padding-right: 0;
+  }
+
+  .folio-main::before,
+  .folio-main::after {
+    display: none;
+  }
+
+  .folio-main .archive-section {
+    scroll-margin-top: 116px;
+    padding: 30px 0 38px;
+  }
+
+  .folio-main .archive-section::before {
+    display: none;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--monograph,
+  .folio-main .entries-grid > .entry-card.card--full,
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(2),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(3),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(4) {
+    grid-column: span 12;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--slip {
+    grid-column: span 6;
+  }
+
+  .folio-main .card--monograph {
+    padding: 20px 0 18px 20px;
+  }
+
+  .folio-main .card--monograph .card-title-text {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-colophon-bar {
+    padding: 0 16px;
+  }
+
+  .colophon-right .theme-switch-btn {
+    padding: 5px 7px;
+    font-size: 0.6875rem;
+  }
+
+  .colophon-right .theme-switch-btn::after {
+    left: 7px;
+    right: 7px;
+  }
+
+  .colophon-right .theme-switch-btn + .theme-switch-btn::before {
+    left: -2px;
+  }
+
+  .folio-spine-inner {
+    padding: 15px 16px 0;
+  }
+
+  .spine-nav.category-index-nav {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .ex-libris-plate .masthead-issue > span:nth-child(2) {
+    max-width: 190px;
+  }
+
+  .plate-orbit {
+    top: 44px;
+    right: -24px;
+    width: 92px;
+    height: 92px;
+  }
+
+  .ex-libris-plate .masthead-headline {
+    font-size: 1.72rem;
+  }
+
+  .folio-main {
+    padding: 0 16px;
+    background-size: 64px 64px;
+  }
+
+  .folio-search-bar {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .folio-search-bar .search-box-frame {
+    padding: 4px 2px;
+  }
+
+  .folio-search-bar .archive-search-input::placeholder {
+    font-size: 0.6875rem;
+  }
+
+  .folio-main .entries-grid {
+    gap: 10px;
+  }
+
+  .folio-main .card--monograph {
+    display: block;
+    padding: 18px;
+    width: 100%;
+  }
+
+  .folio-main .card-monograph-plate {
+    display: none;
+  }
+
+  .folio-main .card--monograph .card-bottom-rail .btn-bookplate {
+    display: inline-flex;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--archive,
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(2),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(3),
+  .folio-main .entries-grid > .entry-card.card--archive:nth-child(4) {
+    grid-column: span 12;
+    padding: 18px;
+  }
+
+  .folio-main .entries-grid > .entry-card.card--slip {
+    grid-column: span 12;
+    min-height: 64px;
+  }
+
+  .folio-main .card--slip .card-slip-domain {
+    display: none;
+  }
+
+  .folio-main .section-heading-group {
+    gap: 4px 8px;
+  }
+
+  .folio-main .section-desc-text {
+    font-size: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-main::before,
+  .folio-main::after {
+    transition: none;
+  }
+
+  .colophon-right .theme-switch-btn::after,
+  .spine-nav .index-tab-item,
+  .spine-nav .index-tab-item::before {
+    transition: none;
+  }
+
+  .folio-main .entry-card {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 抵消旧版响应式规则中的单列 !important 冲突。 */
+  .folio-main .entries-grid > .entry-card {
+    grid-column: span 12 !important;
+    width: 100%;
+    min-width: 0;
   }
 }
 
