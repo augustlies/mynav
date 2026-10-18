@@ -57,6 +57,16 @@
   --observatory-starlight: rgba(177, 142, 82, 0.34);
   --card-paper-edge: rgba(255, 255, 255, 0.86);
   --card-inner-light: rgba(255, 255, 255, 0.5);
+  --bg-card: #FCFBF8;
+  --border-subtle: #E8E4D9;
+  --border-medium: #D8D3C5;
+  --shadow-modal: 0 28px 64px -24px rgba(36, 37, 31, 0.28);
+
+  /* 日晷版式：纸面测绘线、墨色刻度与投影 */
+  --layout-rule: rgba(84, 77, 59, 0.15);
+  --layout-rule-strong: rgba(84, 77, 59, 0.32);
+  --layout-glow: rgba(63, 82, 62, 0.08);
+  --card-index-ink: #9C6A2E;
 }
 
 /* 深色主题令牌 (观星台：深空蓝黑、冷银星图与香槟微光) */
@@ -65,6 +75,10 @@
   --bg-surface: #131C2A;
   --bg-subtle: #1A2433;
   --bg-hover: #202C3D;
+  --bg-card: #131C2A;
+  --border-subtle: #263244;
+  --border-medium: #303D4F;
+  --shadow-modal: 0 28px 72px -20px rgba(0, 0, 0, 0.82);
   
   --text-main: #F1EEE6;
   --text-muted: #B7BDC8;
@@ -91,6 +105,12 @@
   --observatory-starlight: rgba(244, 224, 184, 0.9);
   --card-paper-edge: rgba(195, 213, 234, 0.10);
   --card-inner-light: rgba(190, 214, 242, 0.055);
+
+  /* 观星台版式：观测坐标、星座线与黄道刻度 */
+  --layout-rule: rgba(201, 220, 241, 0.16);
+  --layout-rule-strong: rgba(201, 220, 241, 0.34);
+  --layout-glow: rgba(169, 187, 178, 0.14);
+  --card-index-ink: #D8AD6A;
 }
 
 /* 可选尼尔工程纸张底色方案 (NieR Automata Paper Base #CFCAB5 - 仅浅色生效) */
@@ -125,6 +145,14 @@
   --observatory-accent-line: rgba(55, 68, 51, 0.24);
   --card-paper-edge: rgba(255, 253, 245, 0.58);
   --card-inner-light: rgba(255, 253, 245, 0.35);
+  --bg-card: #DDD8C4;
+  --border-subtle: #C1BBA7;
+  --border-medium: #B5AF9A;
+  --shadow-modal: 0 28px 64px -24px rgba(36, 34, 30, 0.32);
+  --layout-rule: rgba(66, 59, 44, 0.17);
+  --layout-rule-strong: rgba(66, 59, 44, 0.34);
+  --layout-glow: rgba(55, 68, 51, 0.1);
+  --card-index-ink: #8A531F;
 }
 
 /* --------------------------------------------------------------------------
@@ -261,9 +289,9 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
-  opacity: 0.72;
+  opacity: 0.62;
   background-image:
     linear-gradient(32deg, transparent 0 49.82%, var(--observatory-accent-line) 49.82% 49.94%, transparent 49.94%),
     linear-gradient(147deg, transparent 0 49.84%, rgba(183, 204, 229, 0.1) 49.84% 49.95%, transparent 49.95%),
@@ -298,7 +326,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   opacity: 0.9;
   background-image:
@@ -335,10 +363,10 @@ body::before {
 
 /* 容器布局 (内容置于粒子层之上) */
 .archive-wrapper {
-  max-width: 1160px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 40px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -361,10 +389,10 @@ body::before {
 .editorial-masthead::after {
   content: "";
   position: absolute;
-  top: 26px;
-  right: 0;
-  width: 148px;
-  height: 148px;
+  top: 54px;
+  right: -18px;
+  width: 208px;
+  height: 208px;
   border: 1px solid var(--observatory-accent-line);
   border-radius: 50%;
   pointer-events: none;
@@ -379,27 +407,27 @@ body::before {
 .editorial-masthead::before {
   content: "";
   position: absolute;
-  top: 26px;
-  right: 0;
-  width: 148px;
-  height: 148px;
+  top: 54px;
+  right: -18px;
+  width: 208px;
+  height: 208px;
   border-radius: 50%;
   pointer-events: none;
   opacity: 0.8;
   background:
     linear-gradient(29deg, transparent 0 49.78%, var(--observatory-shadow) 49.78% 49.9%, transparent 49.9%),
     conic-gradient(from 205deg, transparent 0 5deg, var(--observatory-accent-line) 5deg 5.6deg, transparent 5.6deg 17deg, var(--observatory-accent-line) 17deg 17.6deg, transparent 17.6deg 29deg, var(--observatory-accent-line) 29deg 29.6deg, transparent 29.6deg);
-  -webkit-mask-image: radial-gradient(circle, transparent 0 58px, #000 58px 59px, transparent 59px);
-  mask-image: radial-gradient(circle, transparent 0 58px, #000 58px 59px, transparent 59px);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 78px, #000 78px 79px, transparent 79px);
+  mask-image: radial-gradient(circle, transparent 0 78px, #000 78px 79px, transparent 79px);
 }
 
 /* 浅色下星晷环像淡墨印痕，深色下只留极轻的星尘辉光 */
 [data-theme="light"] .editorial-masthead::after {
-  opacity: 0.48;
+  opacity: 0.28;
 }
 
 [data-theme="light"] .editorial-masthead::before {
-  opacity: 0.5;
+  opacity: 0.26;
 }
 
 [data-theme="dark"] .editorial-masthead::after {
@@ -414,15 +442,30 @@ body::before {
    3. 顶部细导航条 (Colophon Bar)
    -------------------------------------------------------------------------- */
 .top-colophon-bar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  min-height: 64px;
+  padding: 14px 0;
+  border-top: 1px solid var(--layout-rule);
   border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 3px;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.top-colophon-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 106px;
+  height: 1px;
+  background: var(--layout-rule-strong);
+  opacity: 0.75;
 }
 
 .colophon-left {
@@ -435,7 +478,7 @@ body::before {
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--text-main);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
 }
 
 .colophon-divider {
@@ -445,7 +488,7 @@ body::before {
 .colophon-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 /* 主题切换开关 */
@@ -453,9 +496,9 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-surface);
+  background: transparent;
   border: 1px solid var(--border-hairline);
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: var(--radius-xs);
   font-size: 0.75rem;
   font-family: var(--font-mono);
@@ -468,7 +511,7 @@ body::before {
 .theme-switch-btn:hover {
   color: var(--text-main);
   border-color: var(--border-focus);
-  background-color: var(--bg-subtle);
+  background-color: color-mix(in srgb, var(--bg-subtle) 74%, transparent);
   transform: translateY(-1px);
 }
 
@@ -496,10 +539,13 @@ body::before {
    4. 编辑式刊头 (Masthead Header)
    -------------------------------------------------------------------------- */
 .editorial-masthead {
-  padding: 42px 0 28px;
-  border-bottom: 2px solid var(--text-main);
-  margin-bottom: 24px;
-  padding-right: 176px;
+  min-height: 310px;
+  padding: 66px 330px 50px 0;
+  border-bottom: 1px solid var(--layout-rule-strong);
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .masthead-meta {
@@ -510,7 +556,7 @@ body::before {
   font-family: var(--font-serif);
   letter-spacing: 0.1em;
   color: var(--text-muted);
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 
 .masthead-issue {
@@ -541,45 +587,76 @@ body::before {
 
 .masthead-headline {
   font-family: var(--font-serif);
-  font-size: 2.375rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: clamp(3.2rem, 5.2vw, 5.4rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
   color: var(--text-main);
-  line-height: 1.2;
-  margin-bottom: 10px;
+  line-height: 0.96;
+  margin-bottom: 18px;
+  text-wrap: balance;
 }
 
 .masthead-epigraph {
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   color: var(--text-muted);
   font-style: italic;
-  max-width: 680px;
-  line-height: 1.6;
+  max-width: 610px;
+  line-height: 1.75;
+}
+
+.masthead-epigraph::before {
+  content: "——";
+  margin-right: 8px;
+  color: var(--observatory-accent-line);
+  font-style: normal;
 }
 
 /* 深色下用细银线代替纯黑粗线，像夜空中的子午线 */
 [data-theme="dark"] .editorial-masthead {
-  border-bottom-color: rgba(201, 220, 241, 0.46);
-  border-bottom-width: 1px;
+  border-bottom-color: var(--layout-rule-strong);
 }
 
 /* --------------------------------------------------------------------------
    5. 核心搜索区域 (Search Indexing)
    -------------------------------------------------------------------------- */
 .archive-search-section {
-  margin-bottom: 28px;
+  position: relative;
+  z-index: 2;
+  margin: -27px 0 16px;
+  padding: 0 76px;
 }
 
 .search-box-frame {
+  position: relative;
   display: flex;
   align-items: center;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xs);
-  padding: 10px 16px;
-  box-shadow: var(--shadow-subtle);
+  min-height: 54px;
+  padding: 11px 16px;
+  box-shadow: 0 8px 24px -18px var(--layout-rule-strong);
   transition: border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.search-box-frame::before,
+.search-box-frame::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 34px;
+  height: 1px;
+  background: var(--layout-rule);
+  pointer-events: none;
+}
+
+.search-box-frame::before {
+  right: calc(100% + 12px);
+}
+
+.search-box-frame::after {
+  left: calc(100% + 12px);
 }
 
 /* 检索框是一张摊开在观象台上的星图/日影纸 */
@@ -746,27 +823,28 @@ body::before {
   top: 0;
   z-index: 20;
   background-color: var(--bg-page);
-  padding: 10px 0 12px;
-  border-bottom: 1px solid var(--border-hairline);
-  margin-bottom: 28px;
+  padding: 14px 0 12px;
+  border-top: 1px solid var(--layout-rule);
+  border-bottom: 1px solid var(--layout-rule);
+  margin-bottom: 0;
 }
 
 [data-theme="dark"] .category-index-nav {
-  background-color: rgba(14, 21, 32, 0.94);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background-color: rgba(14, 21, 32, 0.96);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
 }
 
 [data-theme="light"] .category-index-nav {
-  background-color: rgba(246, 244, 238, 0.94);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background-color: rgba(246, 244, 238, 0.96);
+  -webkit-backdrop-filter: blur(16px) saturate(105%);
+  backdrop-filter: blur(16px) saturate(105%);
 }
 
 .index-tabs-rail {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -780,10 +858,11 @@ body::before {
   align-items: center;
   gap: 6px;
   background-color: transparent;
-  border: 1px solid transparent;
-  padding: 6px 14px;
-  border-radius: var(--radius-xs);
-  font-family: var(--font-sans);
+  border: 0;
+  border-bottom: 1px solid transparent;
+  padding: 7px 13px 8px;
+  border-radius: 0;
+  font-family: var(--font-serif);
   font-size: 0.8125rem;
   color: var(--text-muted);
   cursor: pointer;
@@ -795,7 +874,7 @@ body::before {
 
 .index-tab-item:hover {
   color: var(--text-main);
-  background-color: var(--bg-subtle);
+  background-color: color-mix(in srgb, var(--bg-subtle) 58%, transparent);
 }
 
 .index-tab-item:active {
@@ -804,10 +883,10 @@ body::before {
 
 .index-tab-item.active {
   color: var(--text-main);
-  background-color: var(--bg-surface);
-  border-color: var(--border-card);
+  background-color: transparent;
+  border-bottom-color: var(--text-main);
   font-weight: 600;
-  box-shadow: var(--shadow-subtle);
+  box-shadow: none;
 }
 
 .tab-badge-num {
@@ -831,16 +910,16 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background-color: var(--bg-surface);
-  border-left: 3px solid var(--color-accent);
-  border-top: 1px solid var(--border-hairline);
-  border-right: 1px solid var(--border-hairline);
-  border-bottom: 1px solid var(--border-hairline);
+  padding: 13px 16px;
+  background-color: transparent;
+  border-left: 0;
+  border-top: 1px solid var(--layout-rule);
+  border-right: 0;
+  border-bottom: 1px solid var(--layout-rule);
   font-size: 0.8125rem;
   color: var(--text-muted);
-  margin-bottom: 24px;
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  margin: 0 0 8px;
+  border-radius: 0;
   animation: barSlideIn 0.28s var(--transition-normal);
 }
 
@@ -879,10 +958,10 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border-hairline);
-  padding: 1px 7px;
-  border-radius: var(--radius-xs);
+  background-color: transparent;
+  border: 1px solid var(--layout-rule);
+  padding: 2px 8px;
+  border-radius: 0;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   color: var(--text-muted);
@@ -892,10 +971,9 @@ body::before {
 }
 
 .search-cat-pill:hover {
-  background-color: var(--color-accent-soft);
   border-color: var(--color-accent);
   color: var(--color-accent);
-  transform: translateY(-1px);
+  background-color: transparent;
 }
 
 .search-cat-pill .pill-count {
@@ -942,29 +1020,69 @@ body::before {
    8. 典藏专栏板块 (Archive Sections)
    -------------------------------------------------------------------------- */
 .archive-section {
-  margin-bottom: 40px;
+  position: relative;
+  margin-bottom: 0;
+  padding: 48px 0 56px;
+  border-bottom: 1px solid var(--layout-rule);
+}
+
+.archive-section::before {
+  content: attr(data-section-category);
+  position: absolute;
+  top: 34px;
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.archive-section:last-child {
+  border-bottom: 0;
 }
 
 .section-masthead-rule {
   display: flex;
-  align-items: baseline;
+  align-items: end;
   justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-hairline);
-  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--layout-rule);
+  margin-bottom: 26px;
+  gap: 20px;
 }
 
 .section-masthead-rule {
   position: relative;
 }
 
+/* 栏目序号落在留白中，形成一个不占布局的页边注 */
+.archive-section .section-masthead-rule::before {
+  content: "◌";
+  position: absolute;
+  top: -32px;
+  right: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--layout-rule-strong);
+  pointer-events: none;
+}
+
+[data-theme="light"] .archive-section .section-masthead-rule::before {
+  content: "☼";
+  font-size: 0.85rem;
+  color: var(--observatory-accent-line);
+}
+
 /* 栏目线的右端保留一枚细小的天文刻度，避免分区看起来像普通列表 */
 [data-theme="dark"] .section-masthead-rule::after {
   content: "";
   position: absolute;
-  right: 0;
+  left: 0;
   bottom: -3px;
-  width: 44px;
+  width: 96px;
   height: 5px;
   pointer-events: none;
   background-image: repeating-linear-gradient(90deg, var(--observatory-accent-line) 0 1px, transparent 1px 11px);
@@ -974,9 +1092,9 @@ body::before {
 [data-theme="light"] .section-masthead-rule::after {
   content: "";
   position: absolute;
-  right: 0;
+  left: 0;
   bottom: -2px;
-  width: 44px;
+  width: 96px;
   height: 3px;
   pointer-events: none;
   background-image: repeating-linear-gradient(90deg, var(--observatory-accent-line) 0 1px, transparent 1px 11px);
@@ -986,35 +1104,38 @@ body::before {
 .section-heading-group {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .section-code {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   color: var(--color-accent);
   font-weight: 700;
 }
 
 .section-title-text {
   font-family: var(--font-serif);
-  font-size: 1.1875rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.25rem, 1.8vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
   color: var(--text-main);
 }
 
 .section-desc-text {
   font-size: 0.8125rem;
   color: var(--text-faint);
-  margin-left: 4px;
+  margin-left: 6px;
 }
 
 .section-count-tag {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  white-space: nowrap;
 }
 
 .btn-clear-visits {
@@ -1040,8 +1161,9 @@ body::before {
    -------------------------------------------------------------------------- */
 .entries-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
 }
 
 /* 卡片按顺序错峰渐入动画 */
@@ -1060,13 +1182,15 @@ body::before {
   position: relative;
   display: flex;
   flex-direction: column;
+  grid-column: span 4;
+  min-height: 204px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-xs);
-  padding: 16px 18px;
+  padding: 22px 22px 18px;
   text-decoration: none;
   color: inherit;
-  box-shadow: var(--shadow-subtle);
+  box-shadow: none;
   overflow: hidden;
 
   /* 初始错峰进场动画 */
@@ -1076,18 +1200,40 @@ body::before {
   /* 悬停微位移与平滑弥散阴影 */
   transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1),
               border-color 0.2s ease,
-              box-shadow 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+              box-shadow 0.24s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.32s ease;
   will-change: transform, box-shadow;
+}
+
+/* 十二栏书目：首件略宽，其余保持三栏，像一页有主次的馆藏目录 */
+.entries-grid > .entry-card:nth-child(12n + 1) {
+  grid-column: span 6;
+}
+
+.entries-grid > .entry-card:nth-child(12n + 2),
+.entries-grid > .entry-card:nth-child(12n + 3) {
+  grid-column: span 3;
+}
+
+.entries-grid > .entry-card:nth-child(12n + 1) .card-title-text {
+  font-size: 1.25rem;
+}
+
+.entries-grid > .entry-card:nth-child(12n + 1) .card-synopsis {
+  max-width: 42ch;
+  font-size: 0.875rem;
 }
 
 /* 卡片材质：白昼是压在日影中的纸页，夜晚是薄薄一层星图硫酸纸 */
 [data-theme="light"] .entry-card {
+  background-color: var(--bg-surface);
   background-image:
     linear-gradient(180deg, var(--card-paper-edge), transparent 36%),
     linear-gradient(118deg, transparent 0 72%, rgba(84, 77, 59, 0.018) 72% 72.4%, transparent 72.4%);
 }
 
 [data-theme="dark"] .entry-card {
+  background-color: var(--bg-surface);
   background-image:
     linear-gradient(180deg, var(--card-inner-light), transparent 42%),
     radial-gradient(circle at 92% 12%, rgba(244, 224, 184, 0.09) 0 1px, transparent 2px);
@@ -1111,9 +1257,10 @@ body::before {
 
 /* 悬停卡片纸张微抬升与弥散阴影 */
 .entry-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--border-focus);
   box-shadow: var(--shadow-lift);
+  background-color: var(--bg-surface);
 }
 
 .entry-card:hover::after {
@@ -1123,25 +1270,25 @@ body::before {
 /* 卡片顶部印记与书签 */
 .card-masthead {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 26px;
 }
 
 .card-identity {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
   min-width: 0;
 }
 
 .card-emblem {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--border-hairline);
-  background-color: var(--bg-subtle);
-  border-radius: var(--radius-xs);
+  background-color: transparent;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1152,11 +1299,11 @@ body::before {
 }
 
 .emblem-img {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   display: block;
-  border-radius: 2px;
+  border-radius: 50%;
 }
 
 /* 有图片时隐藏文本字母徽标 */
@@ -1178,8 +1325,8 @@ body::before {
 /* 深色主题下给图标底色用浅色（#F6F4EE），避免 GitHub、Vercel、Hark 等暗黑图标无法辨识 */
 [data-theme="dark"] .card-emblem {
   background-color: #E9E7DF;
-  border-color: #C9D2DA;
-  box-shadow: 0 0 0 1px rgba(201, 220, 241, 0.08), 0 3px 10px rgba(0, 0, 0, 0.22);
+  border-color: rgba(201, 220, 241, 0.72);
+  box-shadow: 0 0 0 3px rgba(201, 220, 241, 0.045);
 }
 
 /* 深色星图下，卡片底栏的小字也要保持可读 */
@@ -1192,8 +1339,20 @@ body::before {
 
 [data-theme="dark"] .card-tag-pill,
 [data-theme="dark"] .btn-bookplate {
-  background-color: rgba(190, 214, 242, 0.055);
-  border-color: rgba(190, 214, 242, 0.1);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+[data-theme="dark"] .btn-bookplate {
+  color: #BEC8D4;
+}
+
+[data-theme="dark"] .btn-bookplate:hover {
+  color: var(--color-accent-hover);
+}
+
+[data-theme="dark"] .card-jump-mark {
+  color: var(--card-index-ink);
 }
 
 [data-theme="dark"] .entry-card:hover .card-tag-pill {
@@ -1214,10 +1373,10 @@ body::before {
 
 .card-title-text {
   font-family: var(--font-serif);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--text-main);
-  line-height: 1.25;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1238,6 +1397,30 @@ body::before {
   z-index: 1;
 }
 
+/* 每张书目卡片右上角的短横，像馆藏页角的铅字索引线 */
+.entry-card::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 22px;
+  height: 1px;
+  background: var(--layout-rule-strong);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* 第一张卡以更大的题名建立主次，但不改变信息与点击行为 */
+.entries-grid > .entry-card:nth-child(12n + 1) .card-emblem {
+  width: 40px;
+  height: 40px;
+}
+
+.entries-grid > .entry-card:nth-child(12n + 1) .emblem-img {
+  width: 26px;
+  height: 26px;
+}
+
 .card-title-link:focus-visible::after {
   outline: 2px solid var(--border-focus);
   outline-offset: -2px;
@@ -1249,10 +1432,11 @@ body::before {
 
 .card-domain-slug {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-faint);
-  letter-spacing: 0.03em;
-  margin-top: 2px;
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-top: 6px;
+  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1282,12 +1466,12 @@ body::before {
   z-index: 3;
   background: none;
   border: none;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-faint);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-xs);
   transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
@@ -1314,22 +1498,22 @@ body::before {
 }
 
 .btn-bookmark svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   fill: currentColor;
 }
 
 /* 卡片简述摘要 */
 .card-synopsis {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.72;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 14px;
-  min-height: 2.45em;
+  margin-bottom: 22px;
+  min-height: 3.3em;
 }
 
 /* 卡片底部底栏与外链微冲刺 */
@@ -1338,18 +1522,19 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px dotted var(--border-hairline);
+  padding-top: 12px;
+  border-top: 1px solid var(--layout-rule);
   font-size: 0.6875rem;
   gap: 8px;
 }
 
 .card-tag-pill {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   color: var(--text-faint);
-  background-color: var(--bg-subtle);
-  padding: 1px 6px;
-  border-radius: var(--radius-xs);
+  background-color: transparent;
+  padding: 0;
+  letter-spacing: 0.04em;
+  border-radius: 0;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
@@ -1360,7 +1545,7 @@ body::before {
 .card-bottom-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   position: relative;
   z-index: 2;
 }
@@ -1370,14 +1555,14 @@ body::before {
   position: relative;
   z-index: 2;
   background: none;
-  border: 1px solid var(--border-hairline);
-  background-color: var(--bg-subtle);
+  border: 0;
+  background-color: transparent;
   color: var(--text-faint);
-  padding: 1px 7px;
+  padding: 2px 0;
   font-size: 0.6875rem;
   font-family: var(--font-serif);
   letter-spacing: 0.02em;
-  border-radius: var(--radius-xs);
+  border-radius: 0;
   cursor: pointer;
   line-height: 1.4;
   transition: all var(--transition-fast);
@@ -1385,9 +1570,9 @@ body::before {
 
 .btn-bookplate:hover {
   color: var(--color-accent);
-  border-color: var(--color-accent);
-  background-color: var(--bg-surface);
-  transform: translateY(-1px);
+  border-color: transparent;
+  background-color: transparent;
+  transform: translateX(2px);
 }
 
 .btn-bookplate:active {
@@ -1399,7 +1584,7 @@ body::before {
   position: relative;
   z-index: 2;
   font-family: var(--font-mono);
-  color: var(--text-faint);
+  color: var(--card-index-ink);
   text-decoration: none;
   display: inline-block;
   transition: transform 0.22s var(--ease-spring), color 0.2s ease;
@@ -1407,7 +1592,6 @@ body::before {
 }
 
 .entry-card:hover .card-jump-mark {
-  color: var(--color-accent);
   transform: translate(3px, -3px);
 }
 
@@ -1606,11 +1790,21 @@ body::before {
    -------------------------------------------------------------------------- */
 .colophon-footer {
   margin-top: auto;
-  padding: 36px 0 48px;
-  border-top: 1px solid var(--border-hairline);
+  padding: 44px 0 52px;
+  border-top: 1px solid var(--layout-rule-strong);
   font-size: 0.75rem;
   color: var(--text-faint);
   line-height: 1.8;
+}
+
+.footer-inner-rail::before {
+  content: "FINIS";
+  order: -1;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.32em;
+  color: var(--text-faint);
+  margin-bottom: 4px;
 }
 
 .footer-inner-rail {
@@ -1639,8 +1833,13 @@ body::before {
    12. 响应式适配与媒体查询 (Responsive & A11y)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
+  .search-box-frame::before,
+  .search-box-frame::after {
+    display: none;
+  }
+
   .archive-wrapper {
-    padding: 0 16px;
+    padding: 0 20px;
     overflow-x: clip;
   }
 
@@ -1655,16 +1854,17 @@ body::before {
   }
 
   .editorial-masthead {
-    padding-right: 0;
+    min-height: 0;
+    padding: 42px 0 30px;
   }
 
   .editorial-masthead::before,
   .editorial-masthead::after {
-    width: 104px;
-    height: 104px;
-    top: 24px;
-    right: -14px;
-    opacity: 0.34;
+    width: 112px;
+    height: 112px;
+    top: 18px;
+    right: -22px;
+    opacity: 0.26;
   }
 
   .editorial-masthead::before {
@@ -1674,8 +1874,13 @@ body::before {
 
   /* 顶部细栏移动端优化：防止多余文字挤压导致竖排变形 */
   .top-colophon-bar {
-    padding: 12px 0;
+    min-height: 56px;
+    padding: 9px 0;
     gap: 8px;
+  }
+
+  .top-colophon-bar::after {
+    width: 72px;
   }
 
   .colophon-left {
@@ -1690,7 +1895,7 @@ body::before {
   }
 
   .theme-switch-btn {
-    padding: 6px 9px;
+    padding: 5px 8px;
     min-height: 38px;
     min-width: 38px;
     justify-content: center;
@@ -1699,26 +1904,59 @@ body::before {
   }
 
   .editorial-masthead {
-    padding: 24px 0 18px;
+    padding: 34px 0 26px;
   }
 
   .masthead-headline {
-    font-size: 1.75rem;
+    font-size: clamp(2.125rem, 9vw, 3rem);
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+
+  .masthead-epigraph {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+
+  .archive-search-section {
+    margin-top: 18px;
+    margin-bottom: 12px;
+    padding: 0;
   }
 
   .masthead-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 7px;
+    margin-bottom: 22px;
+    font-size: 0.75rem;
   }
 
   .entries-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .entry-card {
-    padding: 16px;
+    grid-column: span 1 !important;
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .entries-grid > .entry-card:nth-child(12n + 1) {
+    grid-column: span 2 !important;
+  }
+
+  .entries-grid > .entry-card:nth-child(12n + 1) .card-title-text {
+    font-size: 1.125rem;
+  }
+
+  .card-masthead {
+    margin-bottom: 20px;
+  }
+
+  .card-synopsis {
+    margin-bottom: 18px;
   }
 
   /* 扩充书签收藏热区，满足 WCAG 2.5.8 44x44px 触控标准 */
@@ -1761,6 +1999,15 @@ body::before {
 
   .section-desc-text {
     display: none;
+  }
+
+  .archive-section {
+    padding: 34px 0 42px;
+  }
+
+  .section-masthead-rule {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
   }
 
   /* 搜索框移动端视口与触控优化 */
@@ -1806,6 +2053,19 @@ body::before {
     display: none;
   }
 
+  .search-status-bar {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 2px;
+    margin-bottom: 4px;
+  }
+
+  .btn-reset-filter {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
+
   .btn-clear-search {
     min-width: 36px;
     min-height: 36px;
@@ -1818,12 +2078,9 @@ body::before {
 
   /* 分类导览栏移动端横向平滑滚动与窥探指示 */
   .category-index-nav {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    padding: 8px 0 10px;
-    margin-bottom: 20px;
     position: relative;
+    padding: 8px 0 10px;
+    margin-bottom: 0;
     overflow: hidden;
   }
 
@@ -1852,9 +2109,14 @@ body::before {
 
   .index-tab-item {
     min-height: 38px;
-    padding: 8px 12px;
+    padding: 8px 11px;
     scroll-snap-align: start;
     font-size: 0.8125rem;
+  }
+
+  .archive-section::before {
+    top: 30px;
+    font-size: 0.5rem;
   }
 
   .footer-shortcuts-line {
@@ -1873,6 +2135,15 @@ body::before {
 
 /* 窄屏手机专属精炼断点 (<= 540px) */
 @media (max-width: 540px) {
+  .entries-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-card,
+  .entries-grid > .entry-card:nth-child(12n + 1) {
+    grid-column: 1 / -1 !important;
+  }
+
   .colophon-divider,
   .colophon-sub-title {
     display: none;
@@ -1884,7 +2155,8 @@ body::before {
   .theme-switch-btn .view-label,
   .theme-switch-btn .arrange-label,
   .theme-switch-btn .theme-label,
-  .theme-switch-btn .shortcuts-label {
+  .theme-switch-btn .shortcuts-label,
+  #btn-cloud-sync .cloud-label {
     display: none;
   }
 
@@ -1895,9 +2167,33 @@ body::before {
   .theme-switch-btn .view-icon,
   .theme-switch-btn .arrange-icon,
   .theme-switch-btn .theme-icon,
-  .theme-switch-btn .shortcuts-icon {
+  .theme-switch-btn .shortcuts-icon,
+  #btn-cloud-sync .cloud-icon {
     font-size: 1rem;
     margin: 0;
+  }
+}
+
+/* 极窄屏把版记与工具条分成两行，保证五个入口都完整可点 */
+@media (max-width: 370px) {
+  .top-colophon-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 0 10px;
+  }
+
+  .colophon-left {
+    width: 100%;
+  }
+
+  .colophon-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid var(--layout-rule);
   }
 }
 
@@ -2185,6 +2481,14 @@ body::before {
   .entry-placeholder,
   .entry-card {
     transition: none !important;
+  }
+
+  .issue-dot {
+    animation: none !important;
+  }
+
+  .entry-card::after {
+    display: none !important;
   }
 }
 
