@@ -672,6 +672,7 @@
     if (errorTip) errorTip.style.display = "none";
 
     editModalEl.style.display = "flex";
+    document.body.classList.add("modal-open");
     setTimeout(() => {
       document.getElementById("edit-card-name").focus();
     }, 60);
@@ -695,6 +696,7 @@
     if (errorTip) errorTip.style.display = "none";
 
     editModalEl.style.display = "flex";
+    document.body.classList.add("modal-open");
     setTimeout(() => {
       document.getElementById("edit-card-name").focus();
     }, 60);
@@ -702,6 +704,7 @@
 
   function closeEditModal() {
     if (editModalEl) editModalEl.style.display = "none";
+    document.body.classList.remove("modal-open");
     currentEditingSiteId = null;
   }
 
@@ -864,10 +867,12 @@
     ensureDOMElements();
     renderHiddenCardsList();
     hiddenModalEl.style.display = "flex";
+    document.body.classList.add("modal-open");
   }
 
   function closeHiddenModal() {
     if (hiddenModalEl) hiddenModalEl.style.display = "none";
+    document.body.classList.remove("modal-open");
   }
 
   // ==========================================================================
@@ -922,8 +927,9 @@
         const item = e.target.closest(".ctx-item");
         if (!item) return;
 
-        // 若点击的是具有二级子菜单的父级条目，不触发默认执行
+        // 若点击的是具有二级子菜单的父级条目，在移动端切换展开折叠
         if (item.classList.contains("has-submenu") && !e.target.closest(".ctx-subitem")) {
+          item.classList.toggle("is-expanded");
           return;
         }
 

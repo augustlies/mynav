@@ -2,10 +2,10 @@
 <html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=1.7.0">
+  <link rel="stylesheet" href="styles.css?v=1.7.1">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -20,7 +20,7 @@
           <span class="colophon-mark">EX LIBRIS</span>
         </button>
         <span class="colophon-divider" aria-hidden="true">/</span>
-        <span>个人数字收藏馆</span>
+        <span class="colophon-sub-title">个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
         <!-- 视图切换按钮：网格 ⟷ 书架 -->
@@ -107,6 +107,8 @@
           id="archive-search-input"
           class="archive-search-input"
           placeholder="用 Google 搜索全网，回车打开... (Tab 切换引擎)"
+          inputmode="search"
+          enterkeyhint="search"
           autocomplete="off"
           spellcheck="false"
           aria-label="全馆实时检索"

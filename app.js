@@ -731,6 +731,10 @@
         t.classList.toggle("active", t.getAttribute("data-cat-target") === targetCat);
       });
 
+      if (typeof btn.scrollIntoView === "function") {
+        btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+
       renderContent();
     });
 

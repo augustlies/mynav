@@ -16,3 +16,9 @@ yarn-debug.log*
 yarn-error.log*
 .tmp/
 temp/
+
+# 本地视觉验证产物
+.playwright-mcp/
+baseline-*.png
+after-*.png
+final-*.png
