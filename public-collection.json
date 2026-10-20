@@ -1,0 +1,615 @@
+{
+  "schema": "mynav.public-collection",
+  "version": "2.0",
+  "library": {
+    "name": "EX LIBRIS · 个人数字收藏馆",
+    "volume": "VOL. 2026",
+    "curator": "馆主 · The Archivist",
+    "motto": "EX LIBRIS · 以星图为目录，以拓片为备份"
+  },
+  "printedAt": "2026-10-20T12:59:14.698Z",
+  "siderealSignature": "LST 08h 40m 36s",
+  "signatureHash": "63900200",
+  "visibilityPolicy": "public-only",
+  "total": 36,
+  "shadowExcluded": 0,
+  "entries": [
+    {
+      "id": "ai-hark",
+      "callNumber": "01",
+      "title": "Hark",
+      "url": "https://hark.com",
+      "category": "ai",
+      "description": "生活操作系统式 AI 助手，能替你订餐、管邮件、做网页与定时任务",
+      "tags": [
+        "ai",
+        "hark",
+        "助理",
+        "效率",
+        "任务"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-muse",
+      "callNumber": "02",
+      "title": "Muse",
+      "url": "https://muse.ai",
+      "category": "ai",
+      "description": "主动式 AI 个人助手，记住你的偏好并替你处理日常事务",
+      "tags": [
+        "ai",
+        "muse",
+        "助手",
+        "智能",
+        "日常"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-chatgpt",
+      "callNumber": "03",
+      "title": "ChatGPT",
+      "url": "https://chatgpt.com",
+      "category": "ai",
+      "description": "OpenAI 旗下通用智能对话与深度推理助手，支持多模态创作与分析",
+      "tags": [
+        "ai",
+        "openai",
+        "chatgpt",
+        "大模型",
+        "写作",
+        "推理",
+        "gpt"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-deepseek-platform",
+      "callNumber": "04",
+      "title": "DeepSeek 开放平台",
+      "url": "https://platform.deepseek.com",
+      "category": "ai",
+      "description": "DeepSeek 官方 API 平台，管理 API Key、充值与用量",
+      "tags": [
+        "ai",
+        "deepseek",
+        "api",
+        "开放平台",
+        "密钥",
+        "用量"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-deepseek",
+      "callNumber": "05",
+      "title": "DeepSeek",
+      "url": "https://www.deepseek.com",
+      "category": "ai",
+      "description": "深度求索开源与高性价比大模型平台，专注高阶推理与严谨代码生成",
+      "tags": [
+        "ai",
+        "deepseek",
+        "深度求索",
+        "开源",
+        "代码",
+        "推理"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-gemini",
+      "callNumber": "06",
+      "title": "Gemini",
+      "url": "https://gemini.google.com",
+      "category": "ai",
+      "description": "Google 多模态大模型助手，深度整合搜索与云端文档",
+      "tags": [
+        "ai",
+        "gemini",
+        "谷歌",
+        "大模型",
+        "多模态"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "ai-claude",
+      "callNumber": "07",
+      "title": "Claude",
+      "url": "https://claude.ai",
+      "category": "ai",
+      "description": "Anthropic 推出的高质量语言模型，擅长长文深度研读与编程代码实现",
+      "tags": [
+        "ai",
+        "claude",
+        "anthropic",
+        "代码",
+        "长文",
+        "分析",
+        "克劳德"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-qinglong",
+      "callNumber": "08",
+      "title": "青龙面板",
+      "url": "https://ql.sueexin.dev/dashboard",
+      "category": "dev",
+      "description": "支持 Python、JS、Shell 的定时任务管理面板，可视化管理脚本、环境变量与任务日志",
+      "tags": [
+        "青龙",
+        "定时任务",
+        "qinglong",
+        "面板",
+        "脚本"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-gcp-console",
+      "callNumber": "09",
+      "title": "Google Cloud Console",
+      "url": "https://console.cloud.google.com/home/dashboard?project=project-f423a41b-e415-4102-adc",
+      "category": "dev",
+      "description": "谷歌云控制台，管理 GCP 项目、计算实例与账单",
+      "tags": [
+        "云服务",
+        "gcp",
+        "谷歌云",
+        "控制台",
+        "服务器"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-dujing",
+      "callNumber": "10",
+      "title": "独角鲸",
+      "url": "https://dash.fuckip.me/",
+      "category": "dev",
+      "description": "VPS 云服务器商家，价格实惠，适合个人建站与轻量应用",
+      "tags": [
+        "vps",
+        "服务器",
+        "云服务",
+        "建站",
+        "独角鲸"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-termius",
+      "callNumber": "11",
+      "title": "Termius",
+      "url": "https://termius.com/",
+      "category": "dev",
+      "description": "现代 SSH 终端客户端，多设备同步，管理服务器的得力助手",
+      "tags": [
+        "开发",
+        "ssh",
+        "终端",
+        "服务器",
+        "termius"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-vercel",
+      "callNumber": "12",
+      "title": "Vercel",
+      "url": "https://vercel.com",
+      "category": "dev",
+      "description": "现代前端自动化部署与静态托管基础设施，支持一键上线生产级 Web 项目",
+      "tags": [
+        "部署",
+        "托管",
+        "前端",
+        "静态网站",
+        "云服务"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-caniuse",
+      "callNumber": "13",
+      "title": "Can I use",
+      "url": "https://caniuse.com",
+      "category": "dev",
+      "description": "权威的前端 Web 标准与主流浏览器特性兼容性一览与即时检索平台",
+      "tags": [
+        "前端",
+        "兼容性",
+        "浏览器",
+        "css",
+        "html5",
+        "标准"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-github",
+      "callNumber": "14",
+      "title": "GitHub",
+      "url": "https://github.com",
+      "category": "dev",
+      "description": "全球领先的代码托管平台与开源协作网络，汇聚全球优秀工程师与开源典范",
+      "tags": [
+        "开发",
+        "代码",
+        "开源",
+        "git",
+        "github",
+        "版本控制"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-mdn",
+      "callNumber": "15",
+      "title": "MDN Web Docs",
+      "url": "https://developer.mozilla.org/zh-CN/",
+      "category": "dev",
+      "description": "Mozilla 维护的权威 Web 技术标准参考，全面涵盖 HTML、CSS 与 JavaScript",
+      "tags": [
+        "前端",
+        "文档",
+        "html",
+        "css",
+        "javascript",
+        "mdn",
+        "标准"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-cloudflare",
+      "callNumber": "16",
+      "title": "Cloudflare",
+      "url": "https://dash.cloudflare.com",
+      "category": "dev",
+      "description": "域名解析、CDN 加速与 Pages / Workers 静态部署控制台",
+      "tags": [
+        "cloudflare",
+        "dns",
+        "域名",
+        "cdn",
+        "pages",
+        "workers",
+        "部署"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "dev-stackoverflow",
+      "callNumber": "17",
+      "title": "Stack Overflow",
+      "url": "https://stackoverflow.com",
+      "category": "dev",
+      "description": "全球著名的软件开发技术问答社区，解决代码报错、系统架构与疑难杂症",
+      "tags": [
+        "开发",
+        "问答",
+        "报错",
+        "社区",
+        "代码",
+        "调试"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-youtube",
+      "callNumber": "18",
+      "title": "YouTube",
+      "url": "https://www.youtube.com/",
+      "category": "knowledge",
+      "description": "全球最大视频平台，教程、公开课与技术分享的宝库",
+      "tags": [
+        "视频",
+        "youtube",
+        "学习",
+        "教程",
+        "公开课"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-scholar",
+      "callNumber": "19",
+      "title": "谷歌学术",
+      "url": "https://scholar.google.com/",
+      "category": "knowledge",
+      "description": "Google 学术文献搜索引擎，查论文、看引用、找学术资源",
+      "tags": [
+        "学术",
+        "谷歌学术",
+        "论文",
+        "文献",
+        "scholar"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-ecut-ehall",
+      "callNumber": "20",
+      "title": "网上办事服务大厅",
+      "url": "https://ehall.ecut.edu.cn/new/index.html",
+      "category": "knowledge",
+      "description": "东华理工大学教务、成绩、课表与各类校园事务办理",
+      "tags": [
+        "ecut",
+        "ehall",
+        "办事大厅",
+        "教务",
+        "成绩",
+        "课表"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-bilibili",
+      "callNumber": "21",
+      "title": "哔哩哔哩",
+      "url": "https://www.bilibili.com",
+      "category": "knowledge",
+      "description": "优质长视频研习与弹幕社区，涵盖计算机科学、工业设计与通识学术讲座",
+      "tags": [
+        "视频",
+        "课程",
+        "教程",
+        "b站",
+        "公开课",
+        "学习"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-sspai",
+      "callNumber": "22",
+      "title": "少数派",
+      "url": "https://sspai.com",
+      "category": "knowledge",
+      "description": "高效数字生活指南，专注于优质软件测评、个人生产力与工作流思考",
+      "tags": [
+        "效率",
+        "数字生活",
+        "工具",
+        "文章",
+        "生产力",
+        "工作流"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-cnki",
+      "callNumber": "23",
+      "title": "中国知网",
+      "url": "https://www.cnki.net/",
+      "category": "knowledge",
+      "description": "中文学术期刊、学位论文与会议文献检索",
+      "tags": [
+        "cnki",
+        "知网",
+        "论文",
+        "文献",
+        "学术",
+        "期刊"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-ecut-atrust",
+      "callNumber": "24",
+      "title": "aTrust 校园 VPN",
+      "url": "https://atrust1.ecut.edu.cn/portal/#/app_center",
+      "category": "knowledge",
+      "description": "东华理工大学校外访问门户，在校外登录后使用校内系统与数据库",
+      "tags": [
+        "ecut",
+        "atrust",
+        "vpn",
+        "校外访问",
+        "校园网",
+        "应用中心"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "learn-ecut",
+      "callNumber": "25",
+      "title": "东华理工大学",
+      "url": "https://www.ecut.edu.cn/main.htm",
+      "category": "knowledge",
+      "description": "东华理工大学官网，学校新闻、通知公告与各类入口",
+      "tags": [
+        "ecut",
+        "东华理工",
+        "学校",
+        "官网",
+        "通知"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-cobalt",
+      "callNumber": "26",
+      "title": "cobalt",
+      "url": "https://cobalt.tools/",
+      "category": "tools",
+      "description": "无广告、无追踪的在线视频与音频下载工具，粘贴链接即可",
+      "tags": [
+        "cobalt",
+        "视频下载",
+        "音频",
+        "解析",
+        "去水印"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-yuque",
+      "callNumber": "27",
+      "title": "语雀",
+      "url": "https://www.yuque.com",
+      "category": "tools",
+      "description": "优雅结构化知识库系统，适合个人体系化文献笔记管理与深度内容创作",
+      "tags": [
+        "笔记",
+        "文档",
+        "知识库",
+        "写作",
+        "归档"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-icon-icons",
+      "callNumber": "28",
+      "title": "icon-icons",
+      "url": "https://icon-icons.com/zh/",
+      "category": "tools",
+      "description": "免费 SVG、PNG、ICO 图标素材库，支持中文搜索",
+      "tags": [
+        "图标",
+        "icon",
+        "svg",
+        "png",
+        "素材",
+        "设计"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-notion",
+      "callNumber": "29",
+      "title": "Notion",
+      "url": "https://www.notion.so",
+      "category": "tools",
+      "description": "集文档写作、表格知识库与项目排期于一体的模块化全能数字工作台",
+      "tags": [
+        "笔记",
+        "知识库",
+        "任务",
+        "文档",
+        "效率",
+        "协同"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-tinypng",
+      "callNumber": "30",
+      "title": "TinyPNG",
+      "url": "https://tinypng.com",
+      "category": "tools",
+      "description": "优秀的 WebP、PNG 及 JPEG 图片智能在线无损压缩与视觉保真优化工具",
+      "tags": [
+        "图片",
+        "压缩",
+        "优化",
+        "轻量化",
+        "格式",
+        "工具"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "tool-processon",
+      "callNumber": "31",
+      "title": "ProcessOn",
+      "url": "https://www.processon.com",
+      "category": "tools",
+      "description": "专业在线图形协作平台，支持架构流程图、思维导图与原型蓝图绘制",
+      "tags": [
+        "流程图",
+        "思维导图",
+        "画图",
+        "架构",
+        "设计"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "social-telegram",
+      "callNumber": "32",
+      "title": "Telegram",
+      "url": "https://web.telegram.org/",
+      "category": "social",
+      "description": "简洁快速的即时通讯应用，群组与频道生态活跃",
+      "tags": [
+        "社交",
+        "telegram",
+        "即时通讯",
+        "聊天",
+        "电报"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "mail-gmail",
+      "callNumber": "33",
+      "title": "Gmail",
+      "url": "https://mail.google.com/",
+      "category": "social",
+      "description": "Google 免费邮箱，全球通用，垃圾邮件过滤出色",
+      "tags": [
+        "邮箱",
+        "gmail",
+        "谷歌",
+        "邮件",
+        "通讯"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "mail-163",
+      "callNumber": "34",
+      "title": "163邮箱",
+      "url": "https://mail.163.com/",
+      "category": "social",
+      "description": "网易旗下免费邮箱，国内常用的个人邮件服务，收发稳定",
+      "tags": [
+        "邮箱",
+        "163",
+        "网易",
+        "邮件",
+        "通讯"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "social-discord",
+      "callNumber": "35",
+      "title": "Discord",
+      "url": "https://discord.com/",
+      "category": "social",
+      "description": "游戏社群起家的聊天平台，支持文字、语音与直播互动",
+      "tags": [
+        "社交",
+        "discord",
+        "社群",
+        "聊天",
+        "语音"
+      ],
+      "whySaved": ""
+    },
+    {
+      "id": "social-x",
+      "callNumber": "36",
+      "title": "X",
+      "url": "https://x.com/",
+      "category": "social",
+      "description": "全球实时动态社交平台，前沿资讯与公开讨论的集散地",
+      "tags": [
+        "社交",
+        "x",
+        "推特",
+        "资讯",
+        "动态"
+      ],
+      "whySaved": ""
+    }
+  ]
+}

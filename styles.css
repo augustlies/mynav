@@ -9682,6 +9682,2769 @@ body.modal-open {
   }
 }
 
+/* ==========================================================================
+   Phase 4A · D1 守馆人 AI（司天监终端）· A5 星轨探针 · C4 遥测机关台
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Phase 4A · D1 司天监羊皮纸批注浮层（双线边框古典批注纸）
+   -------------------------------------------------------------------------- */
+.librarian-parchment-folio {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 16px;
+  left: 0;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 100%;
+  max-height: min(62vh, 560px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--border-medium);
+  border-top: 2px solid var(--accent-brass);
+  /* The sheet overlays live cards, so the paper base must be fully opaque;
+     only the wash and ruling layers carry transparency. */
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 56%, transparent), transparent 42%),
+    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in srgb, var(--border-hairline) 62%, transparent) 25px 26px),
+    var(--bg-surface);
+  box-shadow: 0 22px 48px -20px rgba(0, 0, 0, 0.62), var(--shadow-lift);
+  animation: librarianFolioUnfurl 0.26s var(--transition-normal);
+}
+
+/* When the search bar sits low in the viewport (or the sheet is tall), flip the
+   sheet above the bar so the badge and the action rail stay reachable. */
+.librarian-parchment-folio.is-flip-up {
+  top: auto;
+  bottom: calc(100% + 5px);
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 2px solid var(--accent-brass);
+}
+
+.librarian-parchment-folio[hidden] {
+  display: none;
+}
+
+/* 内层双线：古籍批注纸的实心细线内框 */
+.librarian-parchment-folio::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 22%, transparent);
+  pointer-events: none;
+}
+
+@keyframes librarianFolioUnfurl {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.librarian-folio-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 11px 13px 9px;
+  border-bottom: 1px dashed var(--border-hairline);
+}
+
+.librarian-mode-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--accent-brass);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+}
+
+.librarian-mode-badge[data-librarian-mode="!"] {
+  border-color: var(--accent-stamp);
+  color: var(--accent-stamp);
+}
+
+.librarian-folio-kicker {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-folio-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.librarian-head-btn {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.librarian-head-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.librarian-head-btn--close {
+  width: 24px;
+  padding: 3px 0;
+  text-align: center;
+}
+
+.librarian-folio-output {
+  position: relative;
+  z-index: 1;
+  /* min-height: 0 lets the scroll area give way inside the flex column so the
+     max-height cap actually binds and the action rail stays visible. */
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 14px 4px;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  /* The annotation scrolls on its own instead of being squeezed under the
+     recommendation strip: long answers stay readable, the rail stays reachable. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.librarian-para {
+  margin-bottom: 9px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.librarian-para:last-child {
+  margin-bottom: 0;
+}
+
+.librarian-para--hint {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* 代码块：内部可横向滚动，但绝不撑开浮层与页面 */
+.librarian-code {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 8px 0;
+  padding: 9px 11px;
+  overflow-x: auto;
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--bg-page) 88%, transparent);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+}
+
+.librarian-code code {
+  font-family: inherit;
+}
+
+/* 微缩藏书票推荐条 */
+.librarian-folio-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  flex-shrink: 0;
+  gap: 7px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 10px 14px 4px;
+  border-top: 1px dashed var(--border-hairline);
+  margin-top: 8px;
+}
+
+.librarian-folio-cards[hidden] {
+  display: none;
+}
+
+/* The folio is a flex column capped by max-height, so the recommendation strip
+   must yield space to the annotation above it. Without this the grid keeps its
+   intrinsic row height and the (scrollable) output box gets squeezed until the
+   annotation appears to overlap the slips. */
+.librarian-folio-cards {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 46%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.librarian-card-slip {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px 10px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 34%, transparent);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.librarian-card-slip:hover {
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--bg-subtle) 52%, transparent);
+}
+
+.librarian-card-stamp {
+  justify-self: start;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 42%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+}
+
+.librarian-card-slip[data-librarian-status="uncatalogued"] .librarian-card-stamp {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent-stamp) 52%, transparent);
+  color: var(--accent-stamp);
+}
+
+.librarian-card-open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.librarian-card-number {
+  color: var(--card-index-ink);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+}
+
+.librarian-card-title {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-card-open:hover .librarian-card-title {
+  color: var(--accent-brass);
+}
+
+.librarian-card-host {
+  grid-column: 2 / 3;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.librarian-card-arrow {
+  grid-row: 1 / 3;
+  grid-column: 3 / 4;
+  align-self: center;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  opacity: 0.72;
+}
+
+.librarian-card-reason {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  font-style: italic;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.librarian-card-crown {
+  justify-self: start;
+  padding: 2px 7px;
+  border: 1px dashed color-mix(in srgb, var(--accent-stamp) 52%, transparent);
+  background: transparent;
+  color: var(--accent-stamp);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  cursor: pointer;
+}
+
+.librarian-card-crown:hover {
+  border-style: solid;
+  color: var(--text-main);
+}
+
+.librarian-folio-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 9px 13px 11px;
+  border-top: 1px dashed var(--border-hairline);
+  margin-top: 6px;
+}
+
+.librarian-folio-status {
+  min-width: 0;
+  flex: 1 1 120px;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-folio-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.librarian-action-btn {
+  padding: 4px 9px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.librarian-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.librarian-action-btn--codex {
+  border-color: color-mix(in srgb, var(--accent-brass) 46%, transparent);
+  color: var(--accent-brass);
+}
+
+.librarian-action-btn--ghost {
+  border-color: transparent;
+  color: var(--text-faint);
+}
+
+/* 司天监密钥浮层开启时，检索框聚焦态改为黄铜色，明确模式切换 */
+html[data-librarian="open"] .search-box-frame {
+  border-color: var(--accent-brass);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-brass) 14%, transparent);
+}
+
+html[data-librarian="open"] .search-glyph {
+  color: var(--accent-brass);
+}
+
+/* --------------------------------------------------------------------------
+   Phase 4A · D1「司天监密钥」本地安全配置弹窗
+   -------------------------------------------------------------------------- */
+.librarian-config-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 20px;
+  background: rgba(8, 7, 11, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.librarian-config-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(560px, 100%);
+  max-width: 100%;
+  max-height: min(84dvh, 680px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--border-card);
+  border-top: 2px solid var(--accent-brass);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.librarian-config-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 13px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.librarian-config-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.librarian-config-head h2 {
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+}
+
+.librarian-config-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.librarian-config-body {
+  display: grid;
+  gap: 10px;
+  padding: 15px 20px 6px;
+}
+
+.librarian-config-note {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.librarian-config-note code {
+  padding: 1px 4px;
+  background: color-mix(in srgb, var(--bg-subtle) 68%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.librarian-config-field {
+  display: grid;
+  gap: 4px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+}
+
+.librarian-config-field em {
+  color: var(--accent-stamp);
+  font-style: italic;
+}
+
+.librarian-config-field input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-page);
+  color: var(--text-main);
+  font: 0.75rem/1.45 var(--font-mono);
+}
+
+.librarian-config-field input:focus {
+  outline: 0;
+  border-color: var(--accent-brass);
+}
+
+.librarian-config-status {
+  min-height: 1.2em;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.librarian-config-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px 16px;
+}
+
+.librarian-config-btn {
+  padding: 6px 13px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.librarian-config-btn--primary {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+/* --------------------------------------------------------------------------
+   Phase 4A · A5 卡片微光星轨联通探针（.card-star-probe）
+   -------------------------------------------------------------------------- */
+
+/* 域名改为内联级元素，让 5px 星点与其同处一行而非另起一行 */
+.card-titles .card-domain-slug {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.card-star-probe {
+  display: inline-block;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 5px;
+  height: 5px;
+  margin-left: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+  transition: background-color var(--transition-smooth),
+              box-shadow var(--transition-smooth),
+              opacity var(--transition-smooth);
+}
+
+/* 未巡检：静默黄铜微点 */
+.card-star-probe.is-idle {
+  background-color: var(--accent-brass);
+  opacity: 0.35;
+  box-shadow: none;
+}
+
+/* 巡检中：微弱抖动待定 */
+.card-star-probe.is-probing {
+  background-color: var(--accent-brass);
+  opacity: 0.62;
+  animation: starProbeScan 1.1s ease-in-out infinite;
+}
+
+/* 在线：恒星暖白微光呼吸灯（#F4E7C5） */
+.card-star-probe.is-online {
+  background-color: #F4E7C5;
+  opacity: 1;
+  box-shadow: 0 0 5px rgba(244, 231, 197, 0.92), 0 0 11px rgba(244, 231, 197, 0.42);
+  animation: starProbeBreath 2.8s ease-in-out infinite;
+}
+
+/* 离线 / 受阻：暗红残星（#A64030） */
+.card-star-probe.is-offline {
+  background-color: #A64030;
+  opacity: 0.78;
+  box-shadow: 0 0 4px rgba(166, 64, 48, 0.5);
+  animation: none;
+}
+
+@keyframes starProbeBreath {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 5px rgba(244, 231, 197, 0.92), 0 0 11px rgba(244, 231, 197, 0.42);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 3px rgba(244, 231, 197, 0.55), 0 0 6px rgba(244, 231, 197, 0.2);
+  }
+}
+
+@keyframes starProbeScan {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 0.78; }
+}
+
+/* 浅色日晷模式下暖白星点对比不足，改用青铜暖金以保可读性 */
+[data-theme="light"] .card-star-probe.is-online {
+  background-color: #B98A3C;
+  box-shadow: 0 0 4px rgba(185, 138, 60, 0.6), 0 0 9px rgba(185, 138, 60, 0.26);
+}
+
+[data-theme="light"] .card-star-probe.is-offline {
+  background-color: #A64030;
+  box-shadow: none;
+}
+
+/* 窄幅索书签（.card--slip）：星点作为 flex 项排在域名之后 */
+.folio-main .card--slip .card-star-probe {
+  margin-left: 5px;
+  align-self: center;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 4A · C4 司天监遥测机关台（.telemetry-deck）
+   -------------------------------------------------------------------------- */
+.telemetry-deck {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 2px 0 10px;
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent-brass);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 44%, transparent), transparent 68%),
+    var(--bg-page);
+  overflow-x: hidden;
+}
+
+.telemetry-deck-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px 11px;
+}
+
+.telemetry-deck-kicker {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetry-deck-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.telemetry-bar-btn {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.telemetry-bar-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.telemetry-bar-btn--toggle[aria-expanded="true"] {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.telemetry-deck-body {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 11px 11px;
+  border-top: 1px dashed var(--border-hairline);
+  overflow-x: hidden;
+}
+
+.telemetry-deck-body[hidden] {
+  display: none;
+}
+
+.telemetry-deck-instruments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding-top: 10px;
+}
+
+/* 古典仪器表盘：外圈细线 + 内嵌刻度 */
+.telemetry-instrument {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 10px 11px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 28%, var(--border-hairline));
+  background:
+    radial-gradient(circle at 90% 14%, color-mix(in srgb, var(--accent-brass) 9%, transparent), transparent 42%),
+    color-mix(in srgb, var(--bg-page) 74%, transparent);
+}
+
+.telemetry-instrument::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dotted color-mix(in srgb, var(--accent-brass) 26%, transparent);
+  pointer-events: none;
+}
+
+.telemetry-instrument-label {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.telemetry-instrument-value {
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-instrument-note {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-instrument-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.telemetry-instrument-btn {
+  padding: 2px 7px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  cursor: pointer;
+}
+
+.telemetry-instrument-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+/* 「黄铜扳手」机关拨片：机械拨动动画 */
+.telemetry-brass-lever {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transform-origin: 18% 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.telemetry-brass-lever:hover {
+  background: color-mix(in srgb, var(--accent-brass) 16%, transparent);
+}
+
+.telemetry-lever-glyph {
+  display: inline-block;
+  font-size: 0.6875rem;
+  transform-origin: 50% 60%;
+}
+
+/* 拨动中：快速左右扳动 */
+.telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
+  animation: brassLeverPull 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* 已触发：落位并留一枚黄铜压痕 */
+.telemetry-brass-lever.is-pulled {
+  background: color-mix(in srgb, var(--accent-brass) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-brass) 44%, transparent);
+}
+
+@keyframes brassLeverPull {
+  0% { transform: rotate(0deg); }
+  28% { transform: rotate(-38deg); }
+  62% { transform: rotate(22deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.telemetry-deck-summary {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dotted var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 4A 响应式：390px / 375px 铁律 —— 零横向溢出
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* Below 900px the search section shares its grid row with the mobile action
+     buttons and collapses to ~221px at 390px. Promote the sticky search bar to
+     the positioning anchor so the sheet spans the full viewport width. */
+  .folio-search-bar .archive-search-section {
+    position: static;
+  }
+
+  .librarian-parchment-folio {
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    max-height: min(62vh, 460px);
+  }
+
+  .librarian-folio-cards {
+    grid-template-columns: 1fr;
+    max-height: 52%;
+  }
+
+  /* Slips stack from the top and scroll inside a capped strip, so the
+     annotation above keeps a usable height on short phones. */
+  .librarian-folio-cards {
+    align-content: start;
+    flex: 0 1 auto;
+    max-height: 118px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Keep the annotation the dominant pane; the slip strip scrolls beneath it. */
+  .librarian-folio-output {
+    flex: 1 1 auto;
+    min-height: 96px;
+  }
+
+  /* Keep the inline metadata on one line so three slips need one row. */
+  .librarian-card-slip {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 7px;
+    padding: 7px 9px;
+  }
+
+  .librarian-card-stamp {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .librarian-card-open {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+
+  .librarian-card-reason {
+    grid-column: 1 / -1;
+  }
+
+  .librarian-card-crown {
+    grid-column: 1 / -1;
+  }
+
+  .telemetry-deck {
+    margin: 2px 0 8px;
+  }
+
+  .telemetry-deck-instruments {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The sheet hangs below the sticky search bar, so its cap is the room left
+     *under* that bar (roughly 200px down at 390px), not the whole viewport.
+     --librarian-folio-top is published by js/librarian.js positionFolio(). */
+  .librarian-parchment-folio {
+    max-height: max(240px, calc(100vh - var(--librarian-folio-top, 210px) - 16px));
+  }
+
+  .librarian-parchment-folio.is-flip-up {
+    max-height: max(240px, calc(var(--librarian-folio-top, 210px) - 16px));
+  }
+
+  .librarian-folio-head,
+  .librarian-folio-output,
+  .librarian-folio-cards,
+  .librarian-folio-foot {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .librarian-config-backdrop {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+  .librarian-config-card {
+    width: 100%;
+    max-height: 90dvh;
+  }
+
+  .librarian-config-head,
+  .librarian-config-body,
+  .librarian-config-foot {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .telemetry-deck-bar,
+  .telemetry-deck-body {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .telemetry-deck-kicker {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 390px) {
+  .librarian-folio-head-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .librarian-folio-status {
+    flex: 1 1 100%;
+  }
+
+  .librarian-folio-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .librarian-action-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .telemetry-deck-bar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .telemetry-bar-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-star-probe,
+  .card-star-probe.is-online,
+  .card-star-probe.is-probing,
+  .librarian-parchment-folio,
+  .telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
+    animation: none;
+  }
+}
 
 
 
+
+
+
+
+/* ==========================================================================
+   Phase 4B · C2 观星台晨报 / D5 网页琥珀 / A6·C5 飞鸽传书 / D7 联邦寻星镜
+   全部新增选择器均带 ephemeris- / amber- / courier- / federation- 前缀，
+   与 Phase 0–4A 既有样式零冲突；仅复用设计令牌，不覆盖任何旧规则。
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   4B.1 顶栏入口与移动端入口
+   -------------------------------------------------------------------------- */
+.ephemeris-switch-btn .ephemeris-icon,
+.courier-switch-btn .courier-icon,
+.federation-switch-btn .federation-icon {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.mobile-phase4b-actions {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-phase4b-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    margin-left: 7px;
+  }
+}
+
+/* 顶栏在 901-1180px 之间最拥挤：三个新增入口先收敛为图标，避免把
+   .colophon-right 撑出视口（实测 899px 会溢出 28px）。 */
+@media (max-width: 1180px) {
+  .ephemeris-switch-btn .ephemeris-label,
+  .courier-switch-btn .courier-label,
+  .federation-switch-btn .federation-label {
+    display: none;
+  }
+
+  .ephemeris-switch-btn,
+  .courier-switch-btn,
+  .federation-switch-btn {
+    min-width: 32px;
+    justify-content: center;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}
+
+/* <= 900px 由 .mobile-phase4b-actions 接管，顶栏入口整体让位。 */
+@media (max-width: 900px) {
+  .colophon-right .ephemeris-switch-btn,
+  .colophon-right .courier-switch-btn,
+  .colophon-right .federation-switch-btn {
+    display: none;
+  }
+}
+
+/* 待编目匣内的飞鸽入口 */
+.uncatalogued-courier-rail {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.uncatalogued-courier-btn {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent-brass) 46%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.uncatalogued-courier-btn:hover {
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
+}
+
+body.ephemeris-open,
+body.amber-open,
+body.courier-open,
+body.federation-open {
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   4B.2 C2 · 观星台晨报（古典双栏铅字）
+   -------------------------------------------------------------------------- */
+.ephemeris-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(10, 9, 7, 0.6);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.ephemeris-backdrop[hidden],
+.ephemeris-modal[hidden] {
+  display: none;
+}
+
+.ephemeris-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 330;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+.ephemeris-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 100%);
+  max-height: min(90dvh, 900px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 30%, transparent), transparent 220px),
+    var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ephemeris-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 20%, transparent);
+  pointer-events: none;
+}
+
+.ephemeris-masthead {
+  flex: 0 0 auto;
+  padding: 20px 26px 12px;
+  text-align: center;
+}
+
+.ephemeris-masthead-rule {
+  height: 3px;
+  border-top: 1px solid var(--text-main);
+  border-bottom: 1px solid var(--text-main);
+  opacity: 0.55;
+}
+
+.ephemeris-masthead-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0 4px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ephemeris-flag {
+  flex: 1 1 auto;
+  text-align: center;
+  color: var(--accent-brass);
+}
+
+.ephemeris-title {
+  margin: 4px 0 2px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  color: var(--text-main);
+}
+
+.ephemeris-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.ephemeris-divider {
+  color: var(--accent-brass);
+  opacity: 0.7;
+}
+
+.ephemeris-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0 2px;
+}
+
+.ephemeris-column-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ephemeris-column-switch button {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.ephemeris-column-switch button:hover {
+  color: var(--text-main);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-column-switch button.is-active {
+  color: var(--bg-page);
+  border-color: var(--accent-brass);
+  background: var(--accent-brass);
+}
+
+.ephemeris-toolbar-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.ephemeris-source-status {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.05em;
+}
+
+.ephemeris-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.ephemeris-close:hover {
+  color: var(--text-main);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.ephemeris-column {
+  min-width: 0;
+  padding: 16px 22px 20px;
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.ephemeris-column:nth-child(2n) {
+  border-right: 0;
+}
+
+.ephemeris-column:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.ephemeris-column-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-bottom: 8px;
+}
+
+.ephemeris-column-code {
+  grid-column: 1 / -1;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.ephemeris-column-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+}
+
+.ephemeris-column-count {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+}
+
+.ephemeris-column-rule {
+  height: 2px;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--text-main);
+  border-bottom: 1px solid var(--text-main);
+  opacity: 0.32;
+}
+
+.ephemeris-bulletin {
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px dotted var(--border-hairline);
+}
+
+.ephemeris-bulletin:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ephemeris-bulletin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.ephemeris-kicker {
+  color: var(--accent-stamp);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ephemeris-source {
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.ephemeris-bulletin-title {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.ephemeris-bulletin-summary {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  line-height: 1.72;
+  text-align: justify;
+}
+
+.ephemeris-bulletin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.ephemeris-bulletin-tags span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+}
+
+.ephemeris-bulletin-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ephemeris-source-link {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.ephemeris-source-link:hover {
+  border-bottom-color: var(--accent-brass);
+}
+
+.ephemeris-source-link.is-muted {
+  color: var(--text-faint);
+}
+
+.ephemeris-capture {
+  min-height: 26px;
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 52%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.ephemeris-capture:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-brass) 12%, transparent);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-capture.is-captured,
+.ephemeris-capture:disabled {
+  border-color: var(--border-hairline);
+  color: var(--text-faint);
+  cursor: default;
+  opacity: 0.85;
+}
+
+.ephemeris-bulletin.is-captured .ephemeris-bulletin-title {
+  color: var(--text-muted);
+}
+
+.ephemeris-column-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.ephemeris-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 26px 14px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.ephemeris-action-btn {
+  min-height: 30px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.ephemeris-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   4B.3 D5 · 卡片琥珀徽章与碑拓阅览室
+   -------------------------------------------------------------------------- */
+.card-amber-badge {
+  /* 徽章以「底部封条」形式占满卡片下缘：绝对定位的浮动角标会压住
+     .card-bottom-actions 的 № 号与 ↗ 跳转符（实测重叠 16px）。 */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-surface) 94%, var(--accent-brass));
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.45);
+  transition: opacity var(--transition-normal), transform var(--transition-normal), background-color var(--transition-fast);
+}
+
+.card-amber-badge.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  animation: amberBadgePulse 3.4s ease-in-out infinite;
+}
+
+.card-amber-badge.is-visible.is-sealed {
+  animation: none;
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 18%, var(--bg-surface));
+}
+
+.card-amber-badge:hover {
+  background: var(--accent-brass);
+  color: var(--bg-page);
+}
+
+/* 离线卡为封条预留高度，动作栏自然上移，绝不发生碰撞。 */
+.entry-card.card--amber-offline {
+  padding-bottom: 34px;
+}
+
+.folio-main .card--slip.card--amber-offline {
+  padding-bottom: 0;
+  min-height: 92px;
+}
+
+.folio-main .card--slip .card-amber-badge {
+  padding: 3px 5px;
+  font-size: 0.54rem;
+}
+
+@keyframes amberBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-brass) 34%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-brass) 0%, transparent); }
+}
+
+.marginalia-amber-block {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px dotted var(--border-hairline);
+}
+
+.marginalia-amber-btn {
+  margin-top: 5px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 50%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  cursor: pointer;
+}
+
+.marginalia-amber-btn:hover {
+  background: color-mix(in srgb, var(--accent-brass) 12%, transparent);
+}
+
+.amber-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 340;
+  background: rgba(12, 10, 8, 0.66);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.amber-backdrop[hidden],
+.amber-modal[hidden] {
+  display: none;
+}
+
+.amber-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.amber-stone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: min(88dvh, 820px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 62%, transparent);
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent-brass) 12%, transparent), transparent 70%),
+    repeating-linear-gradient(96deg, color-mix(in srgb, var(--text-main) 4%, transparent) 0 2px, transparent 2px 7px),
+    var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.amber-stone::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 34%, transparent);
+  pointer-events: none;
+}
+
+.amber-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.amber-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.amber-head h2 {
+  margin: 5px 0 3px;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+}
+
+.amber-meta {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+}
+
+.amber-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.amber-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.amber-body {
+  /* 碑拓正文自行滚动，批注与时光机入口始终可见：
+     整块滚动会把 Wayback 按钮推到折线以下（实测 900px 视口不可见）。 */
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px 24px;
+  overflow: hidden;
+}
+
+.amber-note-block {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  margin-bottom: 0;
+  border-left: 2px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 7%, transparent);
+}
+
+.amber-note-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+}
+
+.amber-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.amber-snapshot {
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 40%, transparent);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.amber-wayback {
+  display: inline-block;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-top: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--accent-brass);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.amber-wayback:hover {
+  background: color-mix(in srgb, var(--accent-brass) 14%, transparent);
+}
+
+.amber-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-hairline);
+}
+
+.amber-status {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+}
+
+.amber-foot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.amber-action-btn {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.66rem;
+  cursor: pointer;
+}
+
+.amber-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.amber-action-btn--ghost {
+  border-style: dashed;
+}
+
+/* --------------------------------------------------------------------------
+   4B.4 A6·C5 · 飞鸽传书与 Notion 同步桥
+   -------------------------------------------------------------------------- */
+.courier-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 360;
+  background: rgba(10, 9, 7, 0.58);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.courier-backdrop[hidden],
+.courier-modal[hidden] {
+  display: none;
+}
+
+.courier-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 370;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.courier-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(90dvh, 880px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background: var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.courier-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.courier-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.courier-head h2 {
+  margin: 5px 0 6px;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+}
+
+.courier-lede {
+  max-width: 54ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  line-height: 1.72;
+}
+
+.courier-lede code {
+  padding: 1px 4px;
+  background: var(--bg-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.courier-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.courier-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.courier-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 24px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.courier-section {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px dotted var(--border-hairline);
+}
+
+.courier-section:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.courier-section-title {
+  margin: 0 0 10px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.courier-bookmarklet-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.courier-bookmarklet-slot {
+  display: flex;
+}
+
+.courier-bookmarklet {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid var(--accent-brass);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-brass) 16%, transparent), transparent),
+    var(--bg-surface);
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: grab;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-brass) 16%, transparent);
+}
+
+.courier-bookmarklet:active {
+  cursor: grabbing;
+  transform: translateY(1px);
+}
+
+.courier-hint {
+  margin: 8px 0 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+.courier-btn {
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.courier-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.courier-btn--primary {
+  border-color: var(--accent-brass);
+  background: var(--accent-brass);
+  color: var(--bg-page);
+}
+
+.courier-btn--ghost {
+  border-style: dashed;
+}
+
+.courier-confirm {
+  min-height: 40px;
+}
+
+.courier-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.courier-letter {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 34%, transparent);
+  background: color-mix(in srgb, var(--accent-brass) 5%, transparent);
+}
+
+.courier-letter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.courier-letter-time {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+}
+
+.courier-letter-title {
+  margin: 0 0 3px;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+}
+
+.courier-letter-url {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  word-break: break-all;
+}
+
+.courier-letter-why {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
+.courier-letter-why span {
+  margin-right: 6px;
+  color: var(--accent-stamp);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.courier-letter-quote {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--accent-brass);
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.courier-letter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.courier-stats {
+  margin: 0 0 8px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.05em;
+}
+
+.courier-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.courier-endpoint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.courier-field {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.courier-field span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.courier-field input,
+.courier-field textarea {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.courier-field textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.courier-field input:focus-visible,
+.courier-field textarea:focus-visible {
+  outline: 2px solid var(--accent-brass);
+  outline-offset: 1px;
+}
+
+.courier-import {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.courier-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dotted var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+}
+
+.courier-status-item strong {
+  color: var(--accent-brass);
+  font-weight: 500;
+}
+
+.courier-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+/* --------------------------------------------------------------------------
+   4B.5 D7 · 邻近星系寻星镜
+   -------------------------------------------------------------------------- */
+.federation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 380;
+  background: rgba(8, 10, 14, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.federation-backdrop[hidden],
+.federation-modal[hidden] {
+  display: none;
+}
+
+.federation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.federation-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(900px, 100%);
+  max-height: min(90dvh, 900px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background: var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.federation-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.federation-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.federation-head h2 {
+  margin: 5px 0 6px;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+}
+
+.federation-lede {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  line-height: 1.72;
+}
+
+.federation-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.federation-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-rail {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 10px 24px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-bottom: 1px solid var(--border-hairline);
+  scrollbar-width: thin;
+}
+
+.federation-node-btn {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 168px;
+  padding: 8px 11px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.federation-node-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-node-btn.is-active {
+  border-color: var(--accent-brass);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--accent-brass) 9%, transparent);
+  color: var(--text-main);
+}
+
+.federation-node-code {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.12em;
+}
+
+.federation-node-name {
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.federation-node-count {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.federation-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 24px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.federation-node-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.federation-head-main h3 {
+  margin: 3px 0 2px;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+}
+
+.federation-motto {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+
+.federation-head-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  text-align: right;
+}
+
+.federation-endpoint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.federation-field {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.federation-field span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.federation-field input {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.federation-field input:focus-visible {
+  outline: 2px solid var(--accent-brass);
+  outline-offset: 1px;
+}
+
+.federation-btn {
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.federation-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-btn--ghost {
+  border-style: dashed;
+}
+
+.federation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.federation-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-surface);
+  transition: border-color var(--transition-fast), transform var(--transition-normal);
+}
+
+.federation-card:hover {
+  border-color: var(--accent-brass);
+  transform: translateY(-1px);
+}
+
+.federation-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.federation-callsign {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+}
+
+.federation-category {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.federation-card-title {
+  margin: 0 0 5px;
+  font-family: var(--font-serif);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.federation-card-title a {
+  color: var(--text-main);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.federation-card-title a:hover {
+  color: var(--accent-brass);
+  border-bottom-color: var(--accent-brass);
+}
+
+.federation-card-desc {
+  flex: 1 1 auto;
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  line-height: 1.66;
+}
+
+.federation-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.federation-card-tags span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+}
+
+.federation-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.federation-borrow {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 55%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.federation-borrow:hover {
+  background: var(--accent-brass);
+  color: var(--bg-page);
+}
+
+.federation-borrow.is-borrowed {
+  border-color: var(--border-hairline);
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.federation-local-mark {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+}
+
+.federation-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  font-style: italic;
+}
+
+.federation-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-hairline);
+}
+
+.federation-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.federation-stat strong {
+  color: var(--accent-brass);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   4B.6 窄屏适配（<= 900 / <= 640 / <= 420）
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .ephemeris-modal,
+  .amber-modal,
+  .courier-modal,
+  .federation-modal {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .ephemeris-sheet,
+  .amber-stone,
+  .courier-sheet,
+  .federation-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+
+  .ephemeris-masthead {
+    padding: 16px 16px 10px;
+  }
+
+  .ephemeris-title {
+    font-size: 1.55rem;
+    letter-spacing: 0.16em;
+    text-indent: 0.16em;
+  }
+
+  .ephemeris-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ephemeris-column,
+  .ephemeris-column:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .ephemeris-column {
+    padding: 14px 16px 16px;
+  }
+
+  .ephemeris-foot,
+  .amber-foot,
+  .courier-foot,
+  .federation-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .amber-head,
+  .amber-body,
+  .amber-foot,
+  .courier-head,
+  .courier-body,
+  .courier-foot,
+  .federation-head,
+  .federation-rail,
+  .federation-body,
+  .federation-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .amber-foot-actions,
+  .courier-foot,
+  .federation-foot {
+    justify-content: flex-start;
+  }
+
+  .amber-status {
+    flex: 1 1 100%;
+  }
+
+  .federation-head-meta {
+    flex-direction: row;
+    gap: 10px;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .ephemeris-masthead-meta {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 10px;
+  }
+
+  .ephemeris-flag {
+    order: -1;
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+  .ephemeris-toolbar {
+    justify-content: flex-start;
+  }
+
+  .ephemeris-toolbar-end {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .ephemeris-column-switch {
+    gap: 3px;
+  }
+
+  .ephemeris-column-switch button {
+    padding: 3px 7px;
+    font-size: 0.64rem;
+  }
+
+  .federation-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .courier-bookmarklet-rail {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .courier-bookmarklet {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .courier-sync-actions .courier-btn,
+  .federation-endpoint-row .federation-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .amber-foot-actions {
+    width: 100%;
+  }
+
+  .amber-action-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .ephemeris-sheet::before,
+  .amber-stone::before {
+    inset: 6px;
+  }
+
+  .ephemeris-subtitle {
+    font-size: 0.64rem;
+  }
+
+  .ephemeris-body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-amber-badge.is-visible {
+    animation: none;
+  }
+
+  .ephemeris-sheet,
+  .amber-stone,
+  .courier-sheet,
+  .federation-sheet {
+    animation: none;
+  }
+}

@@ -59,6 +59,18 @@
       .replace(/'/g, "&#39;");
   }
 
+  // 附加模块初始化隔离开关：捕获并记录单个模块的异常，绝不让它中断主流程。
+  function safeInit(moduleName, fn) {
+    try {
+      return fn();
+    } catch (error) {
+      if (window.console && typeof window.console.warn === "function") {
+        window.console.warn("[mynav] " + moduleName + " 初始化失败，已隔离：", error);
+      }
+      return null;
+    }
+  }
+
   function extractDomain(urlStr) {
     try {
       const u = new URL(urlStr);
@@ -433,7 +445,10 @@
 
   function isCommandQuery(query) {
     const raw = String(query || "").trimStart();
-    return raw.startsWith("/") || raw.startsWith(">");
+    // Phase 4A: `?`（D1 荐书顾问）与 `!`（D1 就地处决）同样是前缀路由，
+    // 它们不属于馆内模糊检索，因此必须一并挡在画布过滤之外。
+    return raw.startsWith("/") || raw.startsWith(">") ||
+      raw.startsWith("?") || raw.startsWith("!");
   }
 
   function isSecretCode(query) {
@@ -492,6 +507,12 @@
     if (isSecretCode(value)) {
       openAgentProbe(event);
       return true;
+    }
+    // Phase 4A · D1：`?` / `!` 只在焦点位于索书框且以该前缀开头时触发司天监，
+    // 非输入态按 `?` 依旧由 shortcuts.js 打开「快捷键漫游指南」。
+    if (window.NavLibrarian && typeof window.NavLibrarian.handleEnter === "function" &&
+      window.NavLibrarian.isLibrarianQuery(value)) {
+      return window.NavLibrarian.handleEnter(event) ? true : false;
     }
     if (window.NavSanctum && typeof window.NavSanctum.handleCommand === "function" &&
       window.NavSanctum.handleCommand(value)) {
@@ -1267,6 +1288,10 @@
         window.NavLore.open("about");
       }
       if (window.NavCommands) window.NavCommands.render(raw);
+      // Phase 4A · D1：`?` / `!` 前缀实时展开司天监羊皮纸浮层（其余输入自动收卷）。
+      if (window.NavLibrarian && typeof window.NavLibrarian.handleInput === "function") {
+        window.NavLibrarian.handleInput(raw);
+      }
       renderContent();
     });
 
@@ -1286,6 +1311,12 @@
     if (dom.searchInput) {
       dom.searchInput.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
+          // Phase 4A · D1：司天监浮层开启时，Esc 优先收卷并清空索书框。
+          if (window.NavLibrarian && window.NavLibrarian.isOpen()) {
+            window.NavLibrarian.close();
+            resetSearch({ render: true, focus: false });
+            return;
+          }
           if (window.NavSanctum && window.NavSanctum.isShadow && window.NavSanctum.isShadow()) {
             // Allow Esc to leave the shadow reading mode without touching
             // the hidden ***REMOVED*** probe route.
@@ -1870,6 +1901,17 @@
     if (window.NavAlmanac) {
       window.NavAlmanac.init();
     }
+    // Phase 4A：D1 守馆人 AI（司天监终端）与 A5/C4 星轨探针与遥测机关台。
+    // 附加模块的初始化必须与主画布渲染隔离：任何单个模块抛异常都不得中断
+    // 卡片渲染与事件绑定，否则整座藏书馆会退化为「载入中… · 0 卷」。
+    safeInit("NavLibrarian", function () { window.NavLibrarian.init(); });
+    safeInit("NavTelemetry", function () { window.NavTelemetry.init(); });
+    // Phase 4B：C2 观星晨报、D5 网页琥珀、A6/C5 飞鸽传书、D7 联邦寻星镜。
+    // 同样经 safeInit 隔离：任一模块初始化失败都不得影响 36 张卡片的渲染。
+    safeInit("NavEphemeris", function () { window.NavEphemeris.init(); });
+    safeInit("NavAmber", function () { window.NavAmber.init(); });
+    safeInit("NavCourier", function () { window.NavCourier.init(); });
+    safeInit("NavFederation", function () { window.NavFederation.init(); });
 
     // 3. 装配刊头信息
     if (dom.mastheadDate) dom.mastheadDate.textContent = formatEditorialDate();
@@ -1918,6 +1960,12 @@
       BrassTools: window.NavBrassTools || null,
       Almanac: window.NavAlmanac || null,
       StarMap: window.NavStarMap || null,
+      Librarian: window.NavLibrarian || null,
+      Telemetry: window.NavTelemetry || null,
+      Ephemeris: window.NavEphemeris || null,
+      Amber: window.NavAmber || null,
+      Courier: window.NavCourier || null,
+      Federation: window.NavFederation || null,
       setArchiveView: setArchiveView,
       openSubLink: openSubLink,
       switchCategory: switchCategory,

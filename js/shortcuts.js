@@ -248,6 +248,12 @@
     const snippetsModal = document.getElementById("snippets-modal");
     const uncataloguedDrawer = document.getElementById("uncatalogued-drawer");
     const brassWorkbench = document.getElementById("brass-workbench");
+    // Phase 4B：晨报 / 琥珀拓片 / 飞鸽传书 / 寻星镜 同属模态浮层，
+    // 打开时必须让出全局按键（j/k/h/l 等）给浮层自身的交互。
+    const ephemerisModal = document.getElementById("ephemeris-modal");
+    const amberModal = document.getElementById("amber-modal");
+    const courierModal = document.getElementById("courier-modal");
+    const federationModal = document.getElementById("federation-modal");
     return (
       (shortcutsModal && shortcutsModal.style.display !== "none") ||
       (bookplateModal && bookplateModal.style.display !== "none") ||
@@ -256,7 +262,11 @@
       (hiddenCardsModal && hiddenCardsModal.style.display !== "none") ||
       (snippetsModal && snippetsModal.style.display !== "none") ||
       (uncataloguedDrawer && !uncataloguedDrawer.hidden) ||
-      (brassWorkbench && !brassWorkbench.hidden)
+      (brassWorkbench && !brassWorkbench.hidden) ||
+      (ephemerisModal && !ephemerisModal.hidden) ||
+      (amberModal && !amberModal.hidden) ||
+      (courierModal && !courierModal.hidden) ||
+      (federationModal && !federationModal.hidden)
     );
   }
 

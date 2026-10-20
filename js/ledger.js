@@ -31,6 +31,20 @@
         focusLock: false,
         ambientSound: false
       },
+      // Phase 4A: D1 司天监密钥配置与 C4 遥测机关台配置。二者都属本机私有状态，
+      // 统一收口在 MYNAV_LEDGER_V2，绝不散落零碎 key，也绝不上传第三方。
+      aiConfig: {
+        baseUrl: "https://api.deepseek.com/v1",
+        apiKey: "",
+        model: "deepseek-chat"
+      },
+      telemetryConfig: {
+        autoProbe: true,
+        instruments: {}
+      },
+      // Phase 4B: D5 网页琥珀封存库（siteId → 拓片对象）。与 aiConfig 一样，
+      // 全部留存在本机，绝不随 public-collection.json 或 Notion 导出外泄。
+      amberVault: {},
       dustResetAt: 0,
       migratedLegacyVisitsAt: 0,
       firstSeenAt: {}
@@ -148,6 +162,23 @@
       ? raw.migratedLegacyVisitsAt
       : 0;
     base.modeState = Object.assign({}, base.modeState, isObject(raw.modeState) ? raw.modeState : {});
+
+    // Phase 4A 兼容：旧账本没有这两个字段，缺省时回落到默认值；
+    // 已写入的部分字段逐项合并，保证升级不丢用户已填的 Base URL / Model。
+    base.aiConfig = Object.assign({}, base.aiConfig, isObject(raw.aiConfig) ? raw.aiConfig : {});
+    base.aiConfig.baseUrl = String(base.aiConfig.baseUrl || "https://api.deepseek.com/v1");
+    base.aiConfig.apiKey = String(base.aiConfig.apiKey || "");
+    base.aiConfig.model = String(base.aiConfig.model || "deepseek-chat");
+    base.telemetryConfig = Object.assign({}, base.telemetryConfig,
+      isObject(raw.telemetryConfig) ? raw.telemetryConfig : {});
+    base.telemetryConfig.autoProbe = base.telemetryConfig.autoProbe !== false;
+    base.telemetryConfig.instruments = isObject(base.telemetryConfig.instruments)
+      ? base.telemetryConfig.instruments
+      : {};
+
+    // Phase 4B 兼容：旧账本没有 amberVault，缺省为空对象；已写入的拓片
+    // 逐条合并，保证升级不丢用户已封存的碑拓。
+    base.amberVault = isObject(raw.amberVault) ? Object.assign({}, raw.amberVault) : {};
 
     if (isObject(raw.accessLog)) {
       Object.keys(raw.accessLog).forEach(function (siteId) {
@@ -493,11 +524,78 @@
     return getAll();
   }
 
+  // Phase 4A · D1「司天监密钥」：API Base URL / Key / Model 只存本机。
+  function getAiConfig() {
+    ensureLoaded();
+    return {
+      baseUrl: String(ledger.aiConfig.baseUrl || "https://api.deepseek.com/v1"),
+      apiKey: String(ledger.aiConfig.apiKey || ""),
+      model: String(ledger.aiConfig.model || "deepseek-chat")
+    };
+  }
+
+  function setAiConfig(patch) {
+    ensureLoaded();
+    const next = Object.assign({}, ledger.aiConfig, isObject(patch) ? patch : {});
+    ledger.aiConfig = {
+      baseUrl: String(next.baseUrl || "https://api.deepseek.com/v1"),
+      apiKey: String(next.apiKey || ""),
+      model: String(next.model || "deepseek-chat")
+    };
+    persist(true);
+    return getAiConfig();
+  }
+
+  // Phase 4A · C4「遥测机关台」：3 枚仪器表盘的自定义配置。
+  function getTelemetryConfig() {
+    ensureLoaded();
+    return {
+      autoProbe: ledger.telemetryConfig.autoProbe !== false,
+      instruments: Object.assign({}, ledger.telemetryConfig.instruments)
+    };
+  }
+
+  function setTelemetryConfig(patch) {
+    ensureLoaded();
+    const next = Object.assign({}, ledger.telemetryConfig, isObject(patch) ? patch : {});
+    ledger.telemetryConfig = {
+      autoProbe: next.autoProbe !== false,
+      instruments: isObject(next.instruments) ? next.instruments : {}
+    };
+    persist(true);
+    return getTelemetryConfig();
+  }
+
+  // Phase 4B · D5「网页琥珀」：拓片封存库的读写。所有内容仅存本机。
+  function getAmberVault() {
+    ensureLoaded();
+    return JSON.parse(JSON.stringify(ledger.amberVault || {}));
+  }
+
+  function setAmberRubbing(siteId, rubbing) {
+    ensureLoaded();
+    if (!siteId || !isObject(rubbing)) return null;
+    ledger.amberVault = isObject(ledger.amberVault) ? ledger.amberVault : {};
+    ledger.amberVault[siteId] = Object.assign({}, rubbing, {
+      siteId: String(siteId),
+      updatedAt: Number(rubbing.updatedAt) || Date.now()
+    });
+    persist(true);
+    return JSON.parse(JSON.stringify(ledger.amberVault[siteId]));
+  }
+
+  function removeAmberRubbing(siteId) {
+    ensureLoaded();
+    if (!ledger.amberVault || !ledger.amberVault[siteId]) return false;
+    delete ledger.amberVault[siteId];
+    persist(true);
+    return true;
+  }
+
   function getModeState() {
     ensureLoaded();
     return Object.assign({}, ledger.modeState);
   }
-
   function setModeState(patch) {
     ensureLoaded();
     ledger.modeState = Object.assign({}, ledger.modeState, isObject(patch) ? patch : {});
@@ -569,6 +667,13 @@
     },
     getModeState,
     setModeState,
+    getAiConfig,
+    setAiConfig,
+    getTelemetryConfig,
+    setTelemetryConfig,
+    getAmberVault,
+    setAmberRubbing,
+    removeAmberRubbing,
     getAll,
     importData,
     localDateKey,

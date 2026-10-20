@@ -206,6 +206,149 @@
             notify("已展开穹顶星图", "拖拽星体 · 双击调阅 · G 返回目录", "🌌");
           }
         }
+      },
+      {
+        id: "ask",
+        command: "/ask",
+        label: "司天监荐书顾问 · 懂全馆藏书的 RAG",
+        hint: "Librarian RAG",
+        run: function () {
+          const inputEl = document.getElementById("archive-search-input");
+          if (!inputEl) return;
+          inputEl.focus();
+          inputEl.value = "? ";
+          inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+          notify("司天监已就位", "在 ? 之后写下所问，回车由馆长批阅全馆目录", "🔭");
+        }
+      },
+      {
+        id: "exec",
+        command: "/exec",
+        label: "司天监就地处决 · 原地羊皮纸执行",
+        hint: "In-Place Execution",
+        run: function () {
+          const inputEl = document.getElementById("archive-search-input");
+          if (!inputEl) return;
+          inputEl.focus();
+          inputEl.value = "! ";
+          inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+          notify("司天监已就位", "在 ! 之后写下轻任务，回车就地作答，不跳转外部网页", "⚡");
+        }
+      },
+      {
+        id: "ai-config",
+        command: "/ai-config",
+        label: "配置司天监密钥（Base URL / Key / Model）",
+        hint: "Librarian Secret",
+        run: function () {
+          if (window.NavLibrarian && typeof window.NavLibrarian.openConfig === "function") {
+            window.NavLibrarian.openConfig();
+            notify("司天监密钥", "密钥仅保存在本机，绝不上传第三方", "⚙️");
+          }
+        }
+      },
+      {
+        id: "ping",
+        command: "/ping",
+        label: "巡检星轨 · 探测全馆连通性与延迟",
+        hint: "Star Probe",
+        run: function (options) {
+          if (window.NavTelemetry && typeof window.NavTelemetry.probeAll === "function") {
+            // `/ping sandbox` exercises the deterministic drill so automated
+            // runs never fan out into 36 cross-origin requests.
+            const mock = Boolean(options && options.mock);
+            window.NavTelemetry.probeAll({ mock: mock });
+            if (typeof window.NavTelemetry.openDeck === "function") window.NavTelemetry.openDeck();
+          }
+        }
+      },
+      // Phase 4B · C2 观星台晨报
+      {
+        id: "morning",
+        code: "C2",
+        command: "/morning",
+        label: "展开《观星台晨报》· 古典双栏铅字",
+        hint: "Daily Ephemeris",
+        run: function () {
+          if (window.NavEphemeris && typeof window.NavEphemeris.open === "function") {
+            window.NavEphemeris.open();
+          }
+        }
+      },
+      {
+        id: "ephemeris",
+        code: "C2",
+        command: "/ephemeris",
+        label: "展开《观星台晨报》· 古典双栏铅字",
+        hint: "Daily Ephemeris",
+        run: function () {
+          if (window.NavEphemeris && typeof window.NavEphemeris.open === "function") {
+            window.NavEphemeris.open();
+          }
+        }
+      },
+      // Phase 4B · D5 网页琥珀
+      {
+        id: "amber",
+        code: "D5",
+        command: "/amber",
+        label: "调阅网页琥珀拓片 · 防失联保险箱",
+        hint: "Amber Rubbing",
+        run: function () {
+          if (window.NavAmber && typeof window.NavAmber.open === "function") {
+            window.NavAmber.open();
+          }
+        }
+      },
+      // Phase 4B · A6 & C5 飞鸽传书
+      {
+        id: "ingest",
+        code: "C5",
+        command: "/ingest",
+        label: "飞鸽传书 · 盖章入馆小书签",
+        hint: "Bookmarklet",
+        run: function () {
+          if (window.NavCourier && typeof window.NavCourier.open === "function") {
+            window.NavCourier.open();
+          }
+        }
+      },
+      {
+        id: "notion",
+        code: "A6",
+        command: "/notion",
+        label: "Notion 典藏同步桥 · CSV / JSON 双向",
+        hint: "Notion Bridge",
+        run: function () {
+          if (window.NavCourier && typeof window.NavCourier.open === "function") {
+            window.NavCourier.open();
+          }
+        }
+      },
+      // Phase 4B · D7 联邦星图
+      {
+        id: "telescope",
+        code: "D7",
+        command: "/telescope",
+        label: "邻近星系 · 寻星镜馆际互借",
+        hint: "Federation",
+        run: function () {
+          if (window.NavFederation && typeof window.NavFederation.open === "function") {
+            window.NavFederation.open();
+          }
+        }
+      },
+      {
+        id: "federation",
+        code: "D7",
+        command: "/federation",
+        label: "邻近星系 · 寻星镜馆际互借",
+        hint: "Federation",
+        run: function () {
+          if (window.NavFederation && typeof window.NavFederation.open === "function") {
+            window.NavFederation.open();
+          }
+        }
       }
     ];
   }
@@ -218,14 +361,22 @@
       close();
       return;
     }
-    // These two are execution aliases rather than deck entries. Enter must
+    // These are execution aliases rather than deck entries. Enter must
     // reach app.js's central router, which checks the secret probe first.
     if (window.NavSanctum && typeof window.NavSanctum.matchesCommand === "function" &&
       window.NavSanctum.matchesCommand(raw)) {
       close();
       return;
     }
-    const query = raw.slice(1).trim().toLowerCase();
+    // Phase 4A · D1：`?` / `!` 前缀由司天监接管，命令面板保持收卷。
+    if (window.NavLibrarian && typeof window.NavLibrarian.isLibrarianQuery === "function" &&
+      window.NavLibrarian.isLibrarianQuery(raw)) {
+      close();
+      return;
+    }
+    // Filter on the command token only, so trailing arguments
+    // (`/ping sandbox`) still resolve to their command.
+    const query = raw.slice(1).trim().toLowerCase().split(/\s+/)[0] || "";
     filtered = commands.filter(function (item) {
       return item.command.slice(1).toLowerCase().startsWith(query);
     });
@@ -262,14 +413,27 @@
     filtered = [];
   }
 
-  function runIndex(index) {
+  function runIndex(index, options) {
     const item = filtered[index];
     if (!item) {
       notify("未寻得此命令", "输入 / 查看全部馆内命令", "ℹ");
       return;
     }
     resetInput();
-    item.run();
+    item.run(options);
+  }
+
+  // `/ping sandbox` is the only command that accepts a trailing argument.
+  // It lets automated runs use the deterministic drill instead of fanning out
+  // into dozens of cross-origin probes.
+  function parseCommandArgs(value) {
+    const raw = String(value || "").trimStart().replace(/^[/>]/, "").trim();
+    const parts = raw.split(/\s+/).filter(Boolean);
+    const command = (parts[0] || "").toLowerCase();
+    if (command === "ping" && parts.slice(1).includes("sandbox")) {
+      return { mock: true };
+    }
+    return {};
   }
 
   function handleKeydown(event) {
@@ -311,7 +475,7 @@
         }
         return;
       }
-      runIndex(activeIndex);
+      runIndex(activeIndex, parseCommandArgs(input.value));
       return;
     }
     if (event.key === "Escape") {
@@ -336,7 +500,7 @@
     panel.addEventListener("click", function (event) {
       const button = event.target.closest("[data-command-index]");
       if (!button) return;
-      runIndex(Number(button.getAttribute("data-command-index")));
+      runIndex(Number(button.getAttribute("data-command-index")), parseCommandArgs(input.value));
     });
   }
 

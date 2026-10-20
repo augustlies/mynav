@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=2.0.0">
+  <link rel="stylesheet" href="styles.css?v=4.1.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -125,6 +125,39 @@
           <span class="random-icon" aria-hidden="true">✦</span>
           <span class="random-label">随机开卷</span>
           <kbd class="header-key">R</kbd>
+        </button>
+        <!-- Phase 4B · C2：观星台晨报 -->
+        <button
+          type="button"
+          id="btn-ephemeris-entry"
+          class="theme-switch-btn ephemeris-switch-btn"
+          aria-label="展开观星台晨报 (M)"
+          title="观星台晨报 (M · /morning)"
+        >
+          <span class="ephemeris-icon" aria-hidden="true">🗞️</span>
+          <span class="ephemeris-label">观星晨报</span>
+        </button>
+        <!-- Phase 4B · A6/C5：飞鸽传书与 Notion 同步桥 -->
+        <button
+          type="button"
+          id="btn-courier-entry"
+          class="theme-switch-btn courier-switch-btn"
+          aria-label="打开飞鸽传书与 Notion 同步台 (/ingest)"
+          title="飞鸽传书 · 盖章入馆 (/ingest · /notion)"
+        >
+          <span class="courier-icon" aria-hidden="true">🕊️</span>
+          <span class="courier-label">飞鸽</span>
+        </button>
+        <!-- Phase 4B · D7：联邦星图寻星镜 -->
+        <button
+          type="button"
+          id="btn-federation-entry"
+          class="theme-switch-btn federation-switch-btn"
+          aria-label="打开邻近星系寻星镜 (/telescope)"
+          title="寻星镜 · 馆际互借 (/telescope · /federation)"
+        >
+          <span class="federation-icon" aria-hidden="true">🔭</span>
+          <span class="federation-label">寻星镜</span>
         </button>
         <!-- 云同步登录按钮 -->
         <button
@@ -282,6 +315,51 @@
               aria-label="馆内命令"
               hidden
             ></div>
+
+            <!-- Phase 4A · D1 守馆人 AI · 司天监羊皮纸批注浮层 -->
+            <section
+              id="librarian-folio"
+              class="librarian-parchment-folio"
+              role="region"
+              aria-label="司天监批注浮层"
+              hidden
+            >
+              <header class="librarian-folio-head">
+                <span id="librarian-mode-badge" class="librarian-mode-badge" data-librarian-mode="?">? 荐书顾问</span>
+                <span class="librarian-folio-kicker">THE LIBRARIAN · 司天监</span>
+                <div class="librarian-folio-head-actions">
+                  <button
+                    type="button"
+                    id="btn-librarian-config"
+                    class="librarian-head-btn"
+                    title="配置 API Base URL / Key / Model"
+                  >⚙️ 司天监密钥</button>
+                  <button
+                    type="button"
+                    id="btn-close-librarian-folio"
+                    class="librarian-head-btn librarian-head-btn--close"
+                    aria-label="收卷 (Esc)"
+                    title="收卷 (Esc)"
+                  >✕</button>
+                </div>
+              </header>
+              <div id="librarian-folio-output" class="librarian-folio-output" aria-live="polite"></div>
+              <div id="librarian-folio-cards" class="librarian-folio-cards" aria-label="司天监荐书藏书票" hidden></div>
+              <footer class="librarian-folio-foot">
+                <span id="librarian-folio-status" class="librarian-folio-status" aria-live="polite"></span>
+                <div class="librarian-folio-actions">
+                  <button type="button" id="btn-librarian-copy" class="librarian-action-btn" title="复制司天监结果 (Enter)">
+                    📋 复制结果 (Enter)
+                  </button>
+                  <button type="button" id="btn-librarian-snippet" class="librarian-action-btn librarian-action-btn--codex" title="存入活字秘卷匣">
+                    📜 存入活字秘卷匣
+                  </button>
+                  <button type="button" id="btn-librarian-dismiss" class="librarian-action-btn librarian-action-btn--ghost" title="收卷 (Esc)">
+                    ✕ 收卷 (Esc)
+                  </button>
+                </div>
+              </footer>
+            </section>
           </div>
           <div class="folio-search-meta">
             <span>寻书镜</span>
@@ -320,9 +398,44 @@
               <span aria-hidden="true">📐</span> 工具尺
             </button>
           </div>
+          <div class="mobile-phase4b-actions" role="group" aria-label="移动端 Phase 4B 快捷入口">
+            <button type="button" id="btn-ephemeris-mobile" class="mobile-phase3-btn">
+              <span aria-hidden="true">🗞️</span> 晨报
+            </button>
+            <button type="button" id="btn-courier-mobile" class="mobile-phase3-btn">
+              <span aria-hidden="true">🕊️</span> 飞鸽
+            </button>
+            <button type="button" id="btn-federation-mobile" class="mobile-phase3-btn">
+              <span aria-hidden="true">🔭</span> 寻星镜
+            </button>
+          </div>
         </header>
 
         <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
+
+        <!-- Phase 4A · A5/C4 司天监遥测机关台 -->
+        <section id="telemetry-deck" class="telemetry-deck" aria-label="司天监遥测机关台">
+          <div class="telemetry-deck-bar">
+            <span class="telemetry-deck-kicker">OBSERVATORY TELEMETRY · 司天监遥测机关台</span>
+            <div class="telemetry-deck-bar-actions">
+              <button
+                type="button"
+                id="btn-telemetry-probe"
+                class="telemetry-bar-btn"
+                title="巡检星轨：探测全部馆藏卡片连通性与 Δt 延迟"
+              >📡 巡检星轨</button>
+              <button
+                type="button"
+                id="btn-telemetry-toggle"
+                class="telemetry-bar-btn telemetry-bar-btn--toggle"
+                aria-expanded="false"
+                aria-controls="telemetry-deck-body"
+                title="展开 / 收起遥测机关台"
+              >⚙ 机关台</button>
+            </div>
+          </div>
+          <div id="telemetry-deck-body" class="telemetry-deck-body" hidden></div>
+        </section>
 
         <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
           <div class="arrange-toolbar-content">
@@ -362,6 +475,9 @@
               <span><kbd class="kbd-tag">U</kbd> 待编目匣</span>
               <span><kbd class="kbd-tag">S</kbd> 活字秘卷</span>
               <span><kbd class="kbd-tag">T</kbd> 黄铜工具尺</span>
+              <span><kbd class="kbd-tag">M</kbd> 观星晨报</span>
+              <span><kbd class="kbd-tag">/ingest</kbd> 飞鸽传书</span>
+              <span><kbd class="kbd-tag">/telescope</kbd> 寻星镜</span>
               <span><kbd class="kbd-tag">/sound</kbd> 白噪音天文台</span>
               <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
               <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
@@ -381,6 +497,217 @@
       </section>
     </div>
   </div>
+
+  <!-- Phase 4B · C2 观星简报台 · Daily Ephemeris -->
+  <div id="ephemeris-backdrop" class="ephemeris-backdrop" hidden></div>
+  <section
+    id="ephemeris-modal"
+    class="ephemeris-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ephemeris-title"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="ephemeris-sheet">
+      <header class="ephemeris-masthead">
+        <div class="ephemeris-masthead-rule" aria-hidden="true"></div>
+        <div class="ephemeris-masthead-meta">
+          <span id="ephemeris-volume" class="ephemeris-volume">VOL. 2026 · 第 001 期</span>
+          <span class="ephemeris-flag">THE OBSERVATORY MORNING POST</span>
+          <span id="ephemeris-stamp" class="ephemeris-stamp"></span>
+        </div>
+        <h2 id="ephemeris-title" class="ephemeris-title">观星台晨报</h2>
+        <div class="ephemeris-subtitle">
+          <span id="ephemeris-date">—</span>
+          <span class="ephemeris-divider">·</span>
+          <span>司天监 · 晨间星历简报</span>
+          <span class="ephemeris-divider">·</span>
+          <span>第 <b id="ephemeris-total">00</b> 则 · <span id="ephemeris-range">0–0</span></span>
+        </div>
+        <div class="ephemeris-masthead-rule" aria-hidden="true"></div>
+        <div class="ephemeris-toolbar">
+          <div class="ephemeris-column-switch" role="group" aria-label="晨报分栏">
+            <button type="button" data-ephemeris-column-btn="all" class="is-active" aria-pressed="true">全版</button>
+            <button type="button" data-ephemeris-column-btn="ai" aria-pressed="false">AI 思考</button>
+            <button type="button" data-ephemeris-column-btn="workshop" aria-pressed="false">工程工坊</button>
+            <button type="button" data-ephemeris-column-btn="study" aria-pressed="false">深度研习</button>
+          </div>
+          <div class="ephemeris-toolbar-end">
+            <span id="ephemeris-source-status" class="ephemeris-source-status" aria-live="polite">内置确定性星历 · 离线可读</span>
+            <button type="button" id="btn-close-ephemeris" class="ephemeris-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
+          </div>
+        </div>
+      </header>
+      <div id="ephemeris-body" class="ephemeris-body" aria-live="polite"></div>
+      <footer class="ephemeris-foot">
+        <span>EX LIBRIS · DAILY EPHEMERIS · 铅字双栏 · 离线可读</span>
+        <button type="button" id="btn-dismiss-ephemeris" class="ephemeris-action-btn">收卷归馆 (Esc)</button>
+      </footer>
+    </div>
+  </section>
+
+  <!-- Phase 4B · D5 网页琥珀 · 碑拓阅览室 -->
+  <div id="amber-backdrop" class="amber-backdrop" hidden></div>
+  <section
+    id="amber-modal"
+    class="amber-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="amber-title"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="amber-stone">
+      <header class="amber-head">
+        <div class="amber-head-main">
+          <span class="amber-kicker">AMBER RUBBING · 网页琥珀拓片</span>
+          <h2 id="amber-title">尚无拓片</h2>
+          <span id="amber-meta" class="amber-meta">此卷尚未封存</span>
+        </div>
+        <button type="button" id="btn-close-amber" class="amber-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
+      </header>
+      <div id="amber-body" class="amber-body">
+        <div class="amber-note-block">
+          <span class="amber-note-label">馆主批注 · MARGINALIA</span>
+          <p id="amber-note" class="amber-note">—</p>
+        </div>
+        <pre id="amber-snapshot" class="amber-snapshot" aria-label="拓片正文"></pre>
+        <a id="amber-wayback" class="amber-wayback" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          互联网档案馆 · 时光机 ↗
+        </a>
+      </div>
+      <footer class="amber-foot">
+        <span id="amber-status" class="amber-status" aria-live="polite">未封存</span>
+        <div class="amber-foot-actions">
+          <button type="button" id="btn-amber-reseal" class="amber-action-btn">📜 就地封存 / 重封</button>
+          <button type="button" id="btn-amber-copy" class="amber-action-btn">📋 复制拓片</button>
+          <button type="button" id="btn-dismiss-amber" class="amber-action-btn amber-action-btn--ghost">收卷 (Esc)</button>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- Phase 4B · A6/C5 飞鸽传书与 Notion 同步桥 -->
+  <div id="courier-backdrop" class="courier-backdrop" hidden></div>
+  <section
+    id="courier-modal"
+    class="courier-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="courier-title"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="courier-sheet">
+      <header class="courier-head">
+        <div class="courier-head-main">
+          <span class="courier-kicker">CARRIER PIGEON · EX LIBRIS</span>
+          <h2 id="courier-title">飞鸽传书 · 盖章入馆</h2>
+          <p class="courier-lede">
+            从任意网页一键把书卷送回本馆。小书签会把
+            <code>location.href</code> / <code>document.title</code> / 选中文本
+            打包成 <code>?ingest=1</code> 回传，落地即唤醒确认匣。
+          </p>
+        </div>
+        <button type="button" id="btn-close-courier" class="courier-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
+      </header>
+
+      <div class="courier-body">
+        <section class="courier-section" aria-labelledby="courier-bookmarklet-title">
+          <h3 id="courier-bookmarklet-title" class="courier-section-title">C5 · 加盖藏书票 · Bookmarklet</h3>
+          <div class="courier-bookmarklet-rail">
+            <div id="courier-bookmarklet-slot" class="courier-bookmarklet-slot"></div>
+            <button type="button" id="btn-courier-copy-bookmarklet" class="courier-btn">📋 复制小书签代码</button>
+          </div>
+          <p class="courier-hint">
+            把黄铜印章拖到浏览器书签栏，或复制代码后新建书签、粘贴到网址栏。
+          </p>
+        </section>
+
+        <section class="courier-section" aria-labelledby="courier-confirm-title">
+          <h3 id="courier-confirm-title" class="courier-section-title">飞鸽来信 · 盖章确认匣</h3>
+          <div id="courier-confirm" class="courier-confirm" aria-live="polite"></div>
+        </section>
+
+        <section class="courier-section" aria-labelledby="courier-notion-title">
+          <h3 id="courier-notion-title" class="courier-section-title">A6 · Notion 典藏同步桥</h3>
+          <p id="courier-stats" class="courier-stats"></p>
+          <div class="courier-sync-actions">
+            <button type="button" id="btn-courier-export-csv" class="courier-btn">📤 导出 CSV</button>
+            <button type="button" id="btn-courier-export-json" class="courier-btn">📤 导出 JSON</button>
+            <button type="button" id="btn-courier-push" class="courier-btn">☁ 推送至 Worker</button>
+          </div>
+          <div class="courier-endpoint-row">
+            <label class="courier-field">
+              <span>Cloudflare Worker 同步端点（可选）</span>
+              <input type="url" id="courier-endpoint" placeholder="https://notion-bridge.example.workers.dev/sync">
+            </label>
+            <button type="button" id="btn-courier-save-endpoint" class="courier-btn courier-btn--ghost">保存端点</button>
+          </div>
+          <div class="courier-import">
+            <label class="courier-field">
+              <span>导入 Notion CSV / JSON 备份</span>
+              <textarea id="courier-import-text" rows="4" spellcheck="false" placeholder="粘贴 CSV 表头 Title,URL,Category,Description,CallNumber,Status,WhySaved,Tags,Notes 或 JSON 数组..."></textarea>
+            </label>
+            <button type="button" id="btn-courier-import" class="courier-btn">📥 导入并入馆</button>
+          </div>
+          <div id="courier-status" class="courier-status" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <footer class="courier-foot">
+        <span>EX LIBRIS · COURIER &amp; NOTION BRIDGE · 离线零损耗</span>
+        <button type="button" id="btn-dismiss-courier" class="courier-btn courier-btn--ghost">收卷 (Esc)</button>
+      </footer>
+    </div>
+  </section>
+
+  <!-- Phase 4B · D7 邻近星系 · 寻星镜 -->
+  <div id="federation-backdrop" class="federation-backdrop" hidden></div>
+  <section
+    id="federation-modal"
+    class="federation-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="federation-title"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="federation-sheet">
+      <header class="federation-head">
+        <div class="federation-head-main">
+          <span class="federation-kicker">INTERLIBRARY LOAN · TELESCOPE</span>
+          <h2 id="federation-title">邻近星系 · 寻星镜</h2>
+          <p class="federation-lede">
+            浏览友馆公开馆藏，点 [ ✦ 拓印入馆 ] 即可抄入本馆待编目匣。
+            本馆清单仅含 <strong>public</strong> 卷，暗月私密卡永不外泄。
+          </p>
+        </div>
+        <button type="button" id="btn-close-federation" class="federation-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
+      </header>
+
+      <div id="federation-rail" class="federation-rail" role="group" aria-label="联邦星系节点"></div>
+
+      <div class="federation-body">
+        <div id="federation-node-head" class="federation-node-head"></div>
+        <div class="federation-endpoint-row">
+          <label class="federation-field">
+            <span>外部 /public-collection.json 地址</span>
+            <input type="url" id="federation-endpoint" placeholder="public-collection.json">
+          </label>
+          <button type="button" id="btn-federation-fetch" class="federation-btn">🔭 接入</button>
+          <button type="button" id="btn-federation-export" class="federation-btn federation-btn--ghost">💾 导出本馆清单</button>
+        </div>
+        <div id="federation-list" class="federation-list" aria-live="polite"></div>
+      </div>
+
+      <footer class="federation-foot">
+        <div id="federation-footer" class="federation-status" aria-live="polite"></div>
+        <button type="button" id="btn-dismiss-federation" class="federation-btn federation-btn--ghost">收卷 (Esc)</button>
+      </footer>
+    </div>
+  </section>
 
   <!-- 藏书票印画模态展示层 (Ex Libris Modal) -->
   <div id="bookplate-modal" class="bookplate-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="bookplate-modal-title">
@@ -670,6 +997,49 @@
     </article>
   </div>
 
+  <!-- Phase 4A · D1「司天监密钥」本地安全配置弹窗（仅存本机 MYNAV_LEDGER_V2.aiConfig） -->
+  <div
+    id="librarian-config-modal"
+    class="librarian-config-backdrop"
+    style="display: none;"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="librarian-config-title"
+  >
+    <section class="librarian-config-card">
+      <header class="librarian-config-head">
+        <div>
+          <span class="librarian-config-kicker">OBSERVATORY SECRET · LOCAL ONLY</span>
+          <h2 id="librarian-config-title">司天监密钥</h2>
+        </div>
+        <button type="button" id="btn-close-librarian-config" class="librarian-config-close" aria-label="关闭配置 (Esc)" title="关闭 (Esc)">✕</button>
+      </header>
+      <div class="librarian-config-body">
+        <p class="librarian-config-note">
+          密钥仅保存在本机 <code>MYNAV_LEDGER_V2.aiConfig</code>，绝不上传任何第三方。
+          未填写密钥时，司天监自动使用内置本地确定性引擎与预设沙盒作答，功能完整可用。
+        </p>
+        <label class="librarian-config-field">
+          <span>API Base URL</span>
+          <input type="text" id="librarian-config-base-url" placeholder="https://api.deepseek.com/v1" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="librarian-config-field">
+          <span>API Key <em>（留空则使用本地兜底）</em></span>
+          <input type="password" id="librarian-config-api-key" placeholder="sk-..." autocomplete="off" spellcheck="false">
+        </label>
+        <label class="librarian-config-field">
+          <span>Model Name</span>
+          <input type="text" id="librarian-config-model" placeholder="deepseek-chat" autocomplete="off" spellcheck="false">
+        </label>
+        <p id="librarian-config-status" class="librarian-config-status" aria-live="polite"></p>
+      </div>
+      <footer class="librarian-config-foot">
+        <button type="button" id="btn-dismiss-librarian-config" class="librarian-config-btn">取消</button>
+        <button type="button" id="btn-save-librarian-config" class="librarian-config-btn librarian-config-btn--primary">保存密钥</button>
+      </footer>
+    </section>
+  </div>
+
   <!-- 典雅微印记 Toast 提示浮层 (Editorial Toast Container) -->
   <div id="editorial-toast-container" class="editorial-toast-container" aria-live="polite" aria-atomic="true"></div>
 
@@ -690,6 +1060,12 @@
       </div>
       <button type="button" id="btn-close-uncatalogued" class="uncatalogued-close" aria-label="关闭待编目匣">✕</button>
     </header>
+    <!-- Phase 4B · C5：飞鸽传书入口（跨端盖章入馆 / Notion 同步台） -->
+    <div class="uncatalogued-courier-rail">
+      <button type="button" id="btn-courier-entry-drawer" class="uncatalogued-courier-btn" title="飞鸽传书 · 盖章小书签与 Notion 同步 (/ingest · /notion)">
+        <span aria-hidden="true">🕊️</span> 飞鸽传书 / 盖章小书签
+      </button>
+    </div>
     <form id="uncatalogued-form" class="uncatalogued-form">
       <label>网址 URL <input type="url" id="uncatalogued-url" placeholder="https://..." required></label>
       <label>网站名称 <input type="text" id="uncatalogued-name" placeholder="待查书卷题名" required></label>
@@ -858,7 +1234,7 @@
   <script src="data.js?v=1.8.0"></script>
   <script src="js/storage.js?v=2.0.0"></script>
   <script src="js/schema.js?v=2.0.0"></script>
-  <script src="js/ledger.js?v=2.0.0"></script>
+  <script src="js/ledger.js?v=4.1.0"></script>
   <script src="js/overrides.js?v=1.7.0"></script>
   <script src="js/theme.js?v=1.7.0"></script>
   <script src="js/particles-bg.js?v=1.7.0"></script>
@@ -873,8 +1249,8 @@
   <script src="js/sortable.js?v=1.7.0"></script>
   <script src="js/exlibris.js?v=1.7.0"></script>
   <script src="js/bookshelf.js?v=1.7.0"></script>
-  <script src="js/shortcuts.js?v=2.0.0"></script>
-  <script src="js/commands.js?v=2.0.0"></script>
+  <script src="js/shortcuts.js?v=4.1.0"></script>
+  <script src="js/commands.js?v=4.1.0"></script>
   <script src="js/folio-keys.js?v=2.0.0"></script>
   <script src="js/serendipity.js?v=2.0.0"></script>
   <script src="js/marginalia.js?v=2.0.0"></script>
@@ -884,9 +1260,15 @@
   <script src="js/sanctum.js?v=2.0.0"></script>
   <script src="js/almanac.js?v=3.1.0"></script>
   <script src="js/star-map.js?v=3.1.0"></script>
+  <script src="js/librarian.js?v=4.1.0"></script>
+  <script src="js/telemetry.js?v=4.1.0"></script>
+  <script src="js/ephemeris.js?v=4.1.0"></script>
+  <script src="js/amber.js?v=4.1.0"></script>
+  <script src="js/courier.js?v=4.1.0"></script>
+  <script src="js/federation.js?v=4.1.0"></script>
   <script src="js/lore.js?v=1.7.0"></script>
   <script src="js/contextmenu.js?v=1.7.0"></script>
   <script src="js/cloud-sync.js?v=1.7.0"></script>
-  <script src="app.js?v=2.0.0"></script>
+  <script src="app.js?v=4.1.0"></script>
 </body>
 </html>
