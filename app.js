@@ -10,7 +10,8 @@
   const state = {
     activeCategory: "all", // 'all' | 'favorites' | 'frequent' | categoryId
     searchQuery: "",
-    viewMode: window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid"
+    viewMode: window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid",
+    archiveView: "grid"
   };
 
   // DOM 节点引用
@@ -24,9 +25,25 @@
     statusText: document.getElementById("search-status-text"),
     statusResetBtn: document.getElementById("btn-reset-filter"),
     contentArea: document.getElementById("archive-content-area"),
+    almanacPanel: document.getElementById("almanac-chronicle"),
     mastheadDate: document.getElementById("masthead-date-label"),
-    mastheadCount: document.getElementById("masthead-count-label")
+    mastheadCount: document.getElementById("masthead-count-label"),
+    randomBtn: document.getElementById("btn-random-open")
   };
+
+  const AGENT_SECRET_CODE = "***REMOVED***";
+  const AGENT_PROBE_URL = "http://***REMOVED***:8008/#/";
+  const RECENT_DESK_DAYS = 7;
+  const RECENT_DESK_LIMIT = 6;
+  const LOCAL_ICON_IDS = new Set([
+    "ai-chatgpt", "ai-claude", "ai-deepseek-platform", "ai-deepseek", "ai-gemini",
+    "ai-hark", "ai-muse", "dev-caniuse", "dev-cloudflare", "dev-github", "dev-mdn",
+    "dev-stackoverflow", "dev-vercel", "learn-bilibili", "learn-cnki",
+    "learn-ecut-ehall", "learn-ecut", "learn-juejin", "learn-runoob", "learn-sspai",
+    "tool-cobalt", "tool-icon-icons", "tool-notion", "tool-processon", "tool-tinypng",
+    "tool-yuque"
+  ]);
+  let archiveViewBeforeShelf = "grid";
 
   // ==========================================================================
   // 工具函数 (Utilities)
@@ -51,15 +68,6 @@
     }
   }
 
-  function getHostname(urlStr) {
-    try {
-      const u = new URL(urlStr);
-      return u.hostname.replace(/^www\./, "").toLowerCase();
-    } catch (e) {
-      return "";
-    }
-  }
-
   // 切换视图模式按钮状态更新
   function updateViewButton() {
     if (!dom.viewBtn) dom.viewBtn = document.getElementById("btn-view-toggle");
@@ -73,6 +81,46 @@
     dom.viewBtn.setAttribute("aria-label", isShelf ? "切换为期刊网格视图" : "切换为 3D 藏书馆书架视图");
   }
 
+  function updateArchiveViewSwitcher() {
+    const inStarMap = state.archiveView === "star-map";
+    document.querySelectorAll("[data-archive-view]").forEach(function (button) {
+      const active = (button.getAttribute("data-archive-view") === "star-map") === inStarMap;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    document.documentElement.setAttribute("data-archive-view", state.archiveView);
+    const almanac = document.getElementById("almanac-chronicle");
+    if (almanac) almanac.classList.toggle("is-star-map", inStarMap);
+  }
+
+  function setArchiveView(view) {
+    const next = view === "star-map" ? "star-map" : "grid";
+    if (next === state.archiveView) {
+      if (next === "star-map" && window.NavStarMap && !window.NavStarMap.isRunning()) {
+        renderStarMapView();
+      }
+      return state.archiveView;
+    }
+    if (state.archiveView === "star-map") {
+      window.NavStarMap && window.NavStarMap.close && window.NavStarMap.close();
+    }
+    if (next === "grid") {
+      if (state.viewMode === "shelf") {
+        state.viewMode = archiveViewBeforeShelf || "grid";
+        updateViewButton();
+      }
+      state.archiveView = "grid";
+      updateArchiveViewSwitcher();
+      renderContent();
+      return state.archiveView;
+    }
+    archiveViewBeforeShelf = state.viewMode;
+    state.archiveView = "star-map";
+    updateArchiveViewSwitcher();
+    renderStarMapView();
+    return state.archiveView;
+  }
+
   // 计算当前仍有效存在的收藏数与常用数（自动忽略已在 data.js 中被删除的失效历史记录）
   function getValidFavCount() {
     const allSites = getRawSites();
@@ -81,10 +129,7 @@
 
   function getValidFreqCount() {
     const allSites = getRawSites();
-    return allSites.filter(site => {
-      const st = window.NavVisits ? window.NavVisits.getStat(site.id) : null;
-      return st && st.count > 0;
-    }).length;
+    return getDeskSites(allSites).length;
   }
 
   // 格式化本地中文编辑日期
@@ -104,14 +149,392 @@
 
   // 数据源安全获取（优先采用用户本地修改合并层）
   function getRawSites() {
-    if (window.NavOverrides && typeof window.NavOverrides.getSites === "function") {
-      return window.NavOverrides.getSites();
+    const raw = window.NavOverrides && typeof window.NavOverrides.getSites === "function"
+      ? window.NavOverrides.getSites()
+      : (window.NAV_DATA && Array.isArray(window.NAV_DATA.sites) ? window.NAV_DATA.sites : []);
+    const sites = raw.filter(function (site) {
+      if (!site) return false;
+      const status = site.status === undefined ? "catalogued" : site.status;
+      return status === "catalogued" && site.visibility !== "shadow";
+    });
+    if (window.NavLedger && typeof window.NavLedger.initializeFirstSeenForSites === "function") {
+      window.NavLedger.initializeFirstSeenForSites(sites.map(function (site) { return site.id; }));
     }
-    return window.NAV_DATA && Array.isArray(window.NAV_DATA.sites) ? window.NAV_DATA.sites : [];
+    return window.NavSchema && typeof window.NavSchema.normalizeItems === "function"
+      ? window.NavSchema.normalizeItems(sites)
+      : sites;
+  }
+
+  function getUncataloguedSites() {
+    const sites = window.NavOverrides && typeof window.NavOverrides.getAllIncludingUncatalogued === "function"
+      ? window.NavOverrides.getAllIncludingUncatalogued(true)
+      : [];
+    return window.NavSchema && typeof window.NavSchema.normalizeItems === "function"
+      ? window.NavSchema.normalizeItems(sites).filter(function (site) {
+        return site.status === "uncatalogued";
+      })
+      : [];
+  }
+
+  function getShadowSites() {
+    const defaults = window.NavSanctum && typeof window.NavSanctum.getDefaultSites === "function"
+      ? window.NavSanctum.getDefaultSites()
+      : [];
+    const stored = window.NavOverrides && typeof window.NavOverrides.getAllIncludingUncatalogued === "function"
+      ? window.NavOverrides.getAllIncludingUncatalogued(true)
+      : [];
+    const normalized = window.NavSchema && typeof window.NavSchema.normalizeItems === "function"
+      ? window.NavSchema.normalizeItems(defaults.concat(stored))
+      : defaults.concat(stored);
+    const seen = new Set();
+    return normalized.filter(function (site) {
+      if (!site || seen.has(site.id)) return false;
+      if (site.status !== "catalogued" || site.visibility !== "shadow") return false;
+      seen.add(site.id);
+      return true;
+    });
   }
 
   function getRawCategories() {
     return window.NAV_DATA && Array.isArray(window.NAV_DATA.categories) ? window.NAV_DATA.categories : [];
+  }
+
+  function siteName(site) {
+    return site && (site.name || site.title || site.id) || "未命名馆藏";
+  }
+
+  function siteDescription(site) {
+    return site && (site.description || site.desc || "") || "暂无描述";
+  }
+
+  function getCallNumber(site, index) {
+    // The explicit index is the authoritative position in the current view.
+    // Persisted call numbers are only a fallback for synthetic entries.
+    if (Number.isInteger(index) && index >= 0) {
+      return window.NavSchema && typeof window.NavSchema.formatCallNumber === "function"
+        ? window.NavSchema.formatCallNumber(index)
+        : String(index + 1).padStart(2, "0");
+    }
+    if (site && site.callNumber) return String(site.callNumber);
+    if (window.NavSchema && typeof window.NavSchema.formatCallNumber === "function") {
+      return window.NavSchema.formatCallNumber(index);
+    }
+    return String((Number(index) || 0) + 1).padStart(2, "0");
+  }
+
+  // "All" renders sectioned cards, so a section-local index would restart at
+  // 01 in every shelf. Resolve the stable archive position instead.
+  function getArchiveCallNumber(site) {
+    const rawSites = getRawSites();
+    const rawIndex = rawSites.findIndex(function (item) {
+      return item.id === site.id;
+    });
+    if (rawIndex >= 0) return getCallNumber(site, rawIndex);
+
+    const shadowSites = getShadowSites();
+    const shadowIndex = shadowSites.findIndex(function (item) {
+      return item.id === site.id;
+    });
+    if (shadowIndex >= 0) return getCallNumber(site, rawSites.length + shadowIndex);
+
+    return String(site.callNumber || "").trim() || getCallNumber(site, 0);
+  }
+
+  function formatLedgerMonthDay(timestamp) {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return String(date.getMonth() + 1).padStart(2, "0") + "." +
+      String(date.getDate()).padStart(2, "0");
+  }
+
+  function getActiveCategoryLabel() {
+    if (state.activeCategory === "favorites") return "私人典藏";
+    if (state.activeCategory === "frequent") return "常驻案头";
+    if (state.activeCategory === "all") return "全部藏目";
+    const category = getRawCategories().find(function (item) {
+      return item.id === state.activeCategory;
+    });
+    return category ? category.name : "馆藏";
+  }
+
+  // 当前视图的稳定索书号。All 视图按分类分组编号，使编号与视觉顺序一致。
+  function getCurrentViewSites() {
+    const allSites = getRawSites();
+    if (state.activeCategory === "all") {
+      return allSites;
+    }
+    if (state.searchQuery.trim()) {
+      return window.NavSearch ? window.NavSearch.filter(allSites, state.searchQuery) : allSites;
+    }
+    if (state.activeCategory === "favorites") {
+      const favs = allSites.filter(function (site) {
+        return window.NavFavorites && window.NavFavorites.has(site.id);
+      });
+      return window.NavSortable ? window.NavSortable.sortSites("favorites", favs) : favs;
+    }
+    if (state.activeCategory === "frequent") {
+      return getDeskSites(allSites);
+    }
+    const inCategory = allSites.filter(function (site) {
+      return site.category === state.activeCategory;
+    });
+    return window.NavSortable
+      ? window.NavSortable.sortSites(state.activeCategory, inCategory)
+      : inCategory;
+  }
+
+  function buildCallNumberMap(sites) {
+    const map = new Map();
+    (Array.isArray(sites) ? sites : []).forEach(function (site, index) {
+      map.set(site.id, getCallNumber(site, index));
+    });
+    return map;
+  }
+
+  // 常驻案头 = 手动典藏 + 近 7 天借阅频次 Top 6，去重后保持案头优先。
+  function getDeskSites(allSites) {
+    const sites = Array.isArray(allSites) ? allSites : getRawSites();
+    const seen = new Set();
+    const result = [];
+
+    sites.forEach(function (site) {
+      if (window.NavFavorites && window.NavFavorites.has(site.id) && !seen.has(site.id)) {
+        seen.add(site.id);
+        result.push(site);
+      }
+    });
+
+    const recent = window.NavLedger
+      ? window.NavLedger.getRecentTopSites(sites, RECENT_DESK_LIMIT, RECENT_DESK_DAYS)
+      : (window.NavVisits ? window.NavVisits.getTopSites(sites, RECENT_DESK_LIMIT) : []);
+    recent.forEach(function (site) {
+      if (!seen.has(site.id)) {
+        seen.add(site.id);
+        result.push(site);
+      }
+    });
+
+    if (window.NavSortable && result.length > 1) {
+      return window.NavSortable.sortSites("frequent", result);
+    }
+    return result;
+  }
+
+  function getSiteById(siteId) {
+    const all = window.NavOverrides && typeof window.NavOverrides.getAllIncludingUncatalogued === "function"
+      ? window.NavOverrides.getAllIncludingUncatalogued(true)
+      : getRawSites();
+    const normalized = window.NavSchema && typeof window.NavSchema.normalizeItems === "function"
+      ? window.NavSchema.normalizeItems(all)
+      : all;
+    const found = normalized.find(function (site) { return site.id === siteId; });
+    if (found) return found;
+    const shadowDefaults = window.NavSanctum && typeof window.NavSanctum.getDefaultSites === "function"
+      ? window.NavSanctum.getDefaultSites()
+      : [];
+    return shadowDefaults.find(function (site) { return site.id === siteId; }) || null;
+  }
+
+  function openSubLink(siteId, subLinkUrl) {
+    const site = getSiteById(siteId);
+    if (!site || !subLinkUrl || !/^https?:\/\//i.test(subLinkUrl)) return false;
+    return openSite(site.id, subLinkUrl, "sublink");
+  }
+
+  function recordSiteAccess(siteId, source) {
+    if (!siteId) return;
+    if (source === "card-click") {
+      const target = document.querySelector('[data-site-id="' + siteId.replace(/"/g, '\\"') + '"]');
+      if (target) target.dataset.accessRecorded = "1";
+    }
+    if (window.NavLedger) {
+      window.NavLedger.recordAccess(siteId);
+    } else if (window.NavVisits) {
+      window.NavVisits.record(siteId);
+    }
+    updateBadges();
+  }
+
+  function openSite(siteId, targetUrl, source) {
+    const site = getSiteById(siteId);
+    if (!site || !site.url) return false;
+    const url = targetUrl && /^https?:\/\//i.test(targetUrl) ? targetUrl : site.url;
+    recordSiteAccess(site.id, source);
+    window.open(url, "_blank", "noopener,noreferrer");
+    return true;
+  }
+
+  function openSearchResult(siteId) {
+    return openSite(siteId);
+  }
+
+  function openRandom(options) {
+    const skipSealed = Boolean(options && options.skipSealed);
+    if (!skipSealed && window.NavUncatalogued &&
+      typeof window.NavUncatalogued.pickSealedCandidate === "function") {
+      const sealed = window.NavUncatalogued.pickSealedCandidate();
+      if (sealed) {
+        window.NavUncatalogued.openSealedPrompt(sealed);
+        return {
+          site: sealed,
+          callNumber: window.NavUncatalogued.getTmpNumber(sealed)
+        };
+      }
+    }
+    const allSites = getRawSites();
+    const deskSites = getDeskSites(allSites);
+    const topSites = (window.NavLedger
+      ? window.NavLedger.getRecentTopSites(allSites, RECENT_DESK_LIMIT, RECENT_DESK_DAYS)
+      : [])
+      .concat(deskSites.filter(function (site) {
+        return window.NavFavorites && window.NavFavorites.has(site.id);
+      }));
+    const pinnedIds = new Set(topSites.map(function (site) { return site.id; }));
+    const deepSites = allSites.filter(function (site) {
+      return site && site.url && !pinnedIds.has(site.id);
+    });
+    const pool = deepSites.length > 0 ? deepSites : allSites;
+    if (pool.length === 0) return null;
+
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    const orderedSites = getCurrentViewSites();
+    const index = orderedSites.findIndex(function (site) { return site.id === selected.id; });
+    const callNumber = getCallNumber(selected, index >= 0 ? index : 0);
+
+    if (window.NavSerendipity) {
+      if (typeof window.NavSerendipity.spinAndOpen === "function") {
+        window.NavSerendipity.spinAndOpen(selected, callNumber);
+      } else {
+        window.NavSerendipity.open(selected, callNumber);
+      }
+    }
+    return { site: selected, callNumber: callNumber };
+  }
+
+  function getSearchMatches(query) {
+    const raw = String(query === undefined ? state.searchQuery : query || "").trim();
+    if (!raw || isCommandQuery(raw)) return [];
+    const sites = getRawSites();
+    const shadowSites = window.NavSanctum && typeof window.NavSanctum.isShadow === "function" &&
+      window.NavSanctum.isShadow()
+      ? getShadowSites()
+      : [];
+    const searchable = shadowSites.length ? sites.concat(shadowSites) : sites;
+    return window.NavSearch ? window.NavSearch.filter(searchable, raw) : searchable;
+  }
+
+  function getUncataloguedMatches(query) {
+    const raw = String(query || "").trim();
+    if (!raw || isCommandQuery(raw)) return [];
+    return window.NavSearch
+      ? window.NavSearch.filter(getUncataloguedSites(), raw)
+      : getUncataloguedSites();
+  }
+
+  function isCommandQuery(query) {
+    const raw = String(query || "").trimStart();
+    return raw.startsWith("/") || raw.startsWith(">");
+  }
+
+  function isSecretCode(query) {
+    return String(query || "").trim() === AGENT_SECRET_CODE;
+  }
+
+  function setSearchValue(value) {
+    if (!dom.searchInput) return;
+    dom.searchInput.value = value;
+    if (dom.searchClearBtn) {
+      dom.searchClearBtn.style.display = value.trim() ? "block" : "none";
+    }
+  }
+
+  function resetSearch(options = {}) {
+    setSearchValue("");
+    state.searchQuery = "";
+    if (window.NavCommands) window.NavCommands.close();
+    if (options.focus && dom.searchInput) dom.searchInput.focus();
+    if (options.render !== false) renderContent();
+  }
+
+  function switchCategory(targetCat, options = {}) {
+    if (!targetCat) return;
+    state.activeCategory = targetCat;
+    if (state.searchQuery || (dom.searchInput && dom.searchInput.value)) {
+      setSearchValue("");
+      state.searchQuery = "";
+      if (window.NavCommands) window.NavCommands.close();
+    }
+    renderIndexTabs();
+    renderContent();
+    if (options.focusTab !== false) {
+      const activeTab = dom.tabsRail.querySelector(".index-tab-item.active");
+      if (activeTab && typeof activeTab.scrollIntoView === "function") {
+        activeTab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
+    }
+  }
+
+  function openAgentProbe(event) {
+    if (event) {
+      event.preventDefault();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      if (event.stopPropagation) event.stopPropagation();
+    }
+    resetSearch({ render: true, focus: false });
+    window.open(AGENT_PROBE_URL, "_blank");
+  }
+
+  // Central Enter route. The hidden probe code is checked before any
+  // command/search routing; input-method composition is never intercepted.
+  function routeSearchEnter(event) {
+    if (!dom.searchInput || event.isComposing || event.keyCode === 229) return false;
+    const value = dom.searchInput.value;
+    if (isSecretCode(value)) {
+      openAgentProbe(event);
+      return true;
+    }
+    if (window.NavSanctum && typeof window.NavSanctum.handleCommand === "function" &&
+      window.NavSanctum.handleCommand(value)) {
+      resetSearch({ render: true, focus: false });
+      return true;
+    }
+    if (isCommandQuery(value)) return false;
+
+    event.preventDefault();
+    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+
+    const query = value.trim();
+    if (!query) return true;
+
+    // Cmd/Ctrl+Shift+Enter is a dedicated multi-cast gesture. It must not
+    // pass through the ordinary single-engine Shift+Enter branch below.
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
+      if (window.NavEngine && typeof window.NavEngine.multicast === "function") {
+        window.NavEngine.multicast(query);
+      } else if (window.NavConstellations &&
+        typeof window.NavConstellations.multicast === "function") {
+        window.NavConstellations.multicast(query);
+      }
+      return true;
+    }
+
+    if (event.shiftKey) {
+      if (window.NavEngine && typeof window.NavEngine.searchExternal === "function") {
+        window.NavEngine.searchExternal(query);
+      }
+      return true;
+    }
+
+    const matches = getSearchMatches(query);
+    if (matches.length === 1) {
+      openSearchResult(matches[0].id);
+      return true;
+    }
+
+    if (window.NavEngine && typeof window.NavEngine.searchExternal === "function") {
+      window.NavEngine.searchExternal(query);
+    }
+    return true;
   }
 
   // ==========================================================================
@@ -131,46 +554,87 @@
   function createEntryCardHtml(site, index, query = "", total = 1, isSearch = false) {
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const domain = extractDomain(site.url);
-    const host = getHostname(site.url);
-    const emblemText = escapeHtml(site.icon || site.name.slice(0, 2));
+    const name = siteName(site);
+    const description = siteDescription(site);
+    const notes = window.NavLedger && typeof window.NavLedger.getMarginalia === "function"
+      ? window.NavLedger.getMarginalia(site.id)
+      : (site.notes || "");
+    const subLinks = Array.isArray(site.subLinks) ? site.subLinks.slice(0, 4) : [];
+    const emblemText = escapeHtml(site.icon || name.slice(0, 2));
     const rawTag = Array.isArray(site.tags) && site.tags[0] ? site.tags[0] : "典藏";
     const firstTag = (query && window.NavSearch)
       ? window.NavSearch.highlight(rawTag, query)
       : escapeHtml(rawTag);
-    const indexStr = String(index + 1).padStart(2, "0");
+    // Section-local indexes still drive card density; call numbers stay stable
+    // across the global archive so every card has exactly one physical stamp.
+    const indexStr = state.activeCategory === "all" && !query
+      ? getArchiveCallNumber(site)
+      : getCallNumber(site, index);
 
     const displayName = (query && window.NavSearch)
-      ? window.NavSearch.highlight(site.name, query)
-      : escapeHtml(site.name);
+      ? window.NavSearch.highlight(name, query)
+      : escapeHtml(name);
     const displayDesc = (query && window.NavSearch)
-      ? window.NavSearch.highlight(site.description || '暂无描述', query)
-      : escapeHtml(site.description || '暂无描述');
+      ? window.NavSearch.highlight(description, query)
+      : escapeHtml(description);
     const tier = getCardTier(index, total, isSearch);
     const tierClass = `card--${tier}`;
-    // 图标三级加载策略：1. site.favicon 或 icons/<id>.png -> 2. DuckDuckGo 外链 -> 3. 移除 img 显示文本兜底
-    const primaryIcon = site.favicon ? site.favicon : `icons/${encodeURIComponent(site.id)}.png`;
-    const ddgFallback = host ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico` : "";
-
-    return `
-      <article
-        class="entry-card ${tierClass}"
-        data-site-id="${escapeHtml(site.id)}"
-        data-site-url="${escapeHtml(site.url)}"
-      >
-        <div class="card-masthead">
-          <div class="card-identity">
-            <span class="card-emblem" aria-hidden="true">
-              <img
+    const stat = window.NavLedger ? window.NavLedger.getStat(site.id) : null;
+    const isDusty = window.NavLedger ? window.NavLedger.isDusty(site.id, 60) : false;
+    const isShadow = site.visibility === "shadow";
+    const isFocusSealed = window.NavSanctum && typeof window.NavSanctum.shouldSeal === "function"
+      ? window.NavSanctum.shouldSeal(site)
+      : site.category === "social" &&
+        document.documentElement.getAttribute("data-focus-lock") === "true";
+    const subLinksHtml = subLinks.map(function (link) {
+      return [
+        "<button type=\"button\" class=\"marginalia-sublink\" data-marginalia-sublink=\"",
+        escapeHtml(link.url), "\" title=\"", escapeHtml(link.url), "\">",
+        escapeHtml(link.label || "子路由"), " <span aria-hidden=\"true\">↗</span></button>"
+      ].join("");
+    }).join("");
+    const stampText = stat && stat.count > 0
+      ? `调阅 ${stat.count} 次 · 末次 ${formatLedgerMonthDay(stat.lastVisited)}`
+      : "";
+    // Only request icon files that actually exist. Unknown/custom cards keep
+    // their typographic emblem and never generate 404 noise.
+    const primaryIcon = site.favicon
+      ? site.favicon
+      : (LOCAL_ICON_IDS.has(site.id) ? `icons/${encodeURIComponent(site.id)}.png` : "");
+    const iconImg = primaryIcon
+      ? `<img
                 class="emblem-img"
                 src="${escapeHtml(primaryIcon)}"
                 loading="lazy"
                 alt=""
                 width="20"
                 height="20"
-                onerror="if(!this.dataset.fallback){this.dataset.fallback='1';if('${escapeHtml(ddgFallback)}'){this.src='${escapeHtml(ddgFallback)}';}else{this.remove();}}else{this.remove();}"
-              >
-              <span class="emblem-fallback-text">${emblemText}</span>
-            </span>
+                onerror="this.remove();"
+              >`
+      : "";
+    const marginaliaTriggerHtml = (buttonClass, label) => `
+      <button
+        type="button"
+        class="${buttonClass}"
+        data-marginalia-toggle="${escapeHtml(site.id)}"
+        title="翻开批注面 (Alt+点击整卡)"
+        aria-label="${escapeHtml(label)}"
+      >№ ${indexStr}</button>`;
+
+    return `
+      <article
+        class="entry-card ${tierClass}${isDusty ? " card--dusty" : ""}${isShadow ? " card--shadow" : ""}${isFocusSealed ? " card--sealed" : ""}"
+        data-site-id="${escapeHtml(site.id)}"
+        data-site-url="${escapeHtml(site.url)}"
+        data-call-number="${escapeHtml(indexStr)}"
+        data-visibility="${escapeHtml(site.visibility || "public")}"
+      >
+        ${isDusty ? '<span class="card-dust-mark" aria-label="尘封藏书">[ 尘封 ]</span>' : ""}
+        ${isShadow ? '<span class="card-shadow-mark" aria-label="暗月卷宗">[ 暗月 ]</span>' : ""}
+        ${isFocusSealed ? '<button type="button" class="card-seal-mark" data-focus-seal aria-label="沉浸研习封条，点击解除">[ 司天监封条 · 沉浸研习中 ]</button>' : ""}
+        <div class="card-masthead">
+          <div class="card-identity">
+            <span class="card-emblem" aria-hidden="true">${iconImg}<span class="emblem-fallback-text">${emblemText}</span></span>
             <div class="card-titles">
               <h3 class="card-title-text">
                 <a
@@ -178,7 +642,8 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   class="card-title-link"
-                  title="${escapeHtml(site.name)}"
+                  title="${escapeHtml(name)}"
+                  data-card-open="1"
                 >
                   ${displayName}
                 </a>
@@ -190,7 +655,7 @@
             type="button"
             class="btn-bookmark ${isBookmarked ? 'bookmarked' : ''}"
             title="${isBookmarked ? '取消典藏' : '收入典藏'}"
-            aria-label="${isBookmarked ? '取消典藏 ' + site.name : '收藏 ' + site.name}"
+            aria-label="${isBookmarked ? '取消典藏 ' + escapeHtml(name) : '收藏 ' + escapeHtml(name)}"
             data-bookmark-id="${escapeHtml(site.id)}"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -201,63 +666,62 @@
             </svg>
           </button>
         </div>
-        <p class="card-synopsis" title="${escapeHtml(site.description || '')}">${displayDesc}</p>
+        <p class="card-synopsis" title="${escapeHtml(description)}">${displayDesc}</p>
         <div class="card-bottom-rail">
-          <span class="card-tag-pill">#${firstTag}</span>
+          <div class="card-ledger-rail">
+            <span class="card-tag-pill">#${firstTag}</span>
+            ${stampText ? `<span class="card-ledger-stamp">${escapeHtml(stampText)}</span>` : ""}
+          </div>
           <div class="card-bottom-actions">
             <button
               type="button"
               class="btn-bookplate"
               data-bookplate-id="${escapeHtml(site.id)}"
               title="查看专属数字藏书票 (Ex Libris)"
-              aria-label="查看 ${escapeHtml(site.name)} 的藏书票"
+              aria-label="查看 ${escapeHtml(name)} 的藏书票"
             >
               📜 藏书票
             </button>
+            ${marginaliaTriggerHtml("card-slip-marginalia-trigger", "翻开 " + name + " 的批注面")}
             <a
               href="${escapeHtml(site.url)}"
               target="_blank"
               rel="noopener noreferrer"
               class="card-jump-mark"
-              aria-label="访问 ${escapeHtml(site.name)}"
+              aria-label="访问 ${escapeHtml(name)}"
             >
-              № ${indexStr} ↗
+              <span class="card-call-number">№ ${indexStr}</span> ↗
             </a>
           </div>
         </div>
         <aside class="card-monograph-plate" aria-label="第 ${indexStr} 卷藏书票印鉴">
           <span class="card-monograph-orbit" aria-hidden="true"></span>
-          <span class="card-monograph-number">№ ${indexStr}</span>
+          <button
+            type="button"
+            class="card-monograph-number"
+            data-marginalia-toggle="${escapeHtml(site.id)}"
+            title="翻开批注面 (Alt+点击整卡)"
+            aria-label="翻开 ${escapeHtml(name)} 的批注面"
+          >№ ${indexStr}</button>
           <button
             type="button"
             class="btn-bookplate btn-monograph-plate"
             data-bookplate-id="${escapeHtml(site.id)}"
             title="查看专属数字藏书票 (Ex Libris)"
-            aria-label="查看 ${escapeHtml(site.name)} 的藏书票"
+            aria-label="查看 ${escapeHtml(name)} 的藏书票"
           >
             ★ 藏书票
           </button>
         </aside>
         <div class="card-slip-compact">
-          <span class="card-slip-index">№ ${indexStr}</span>
-          <span class="card-emblem card-slip-emblem" aria-hidden="true">
-            <img
-              class="emblem-img"
-              src="${escapeHtml(primaryIcon)}"
-              loading="lazy"
-              alt=""
-              width="20"
-              height="20"
-              onerror="if(!this.dataset.fallback){this.dataset.fallback='1';if('${escapeHtml(ddgFallback)}'){this.src='${escapeHtml(ddgFallback)}';}else{this.remove();}}else{this.remove();}"
-            >
-            <span class="emblem-fallback-text">${emblemText}</span>
-          </span>
+          ${marginaliaTriggerHtml("card-slip-index", "翻开 " + name + " 的批注面")}
+          <span class="card-emblem card-slip-emblem" aria-hidden="true">${iconImg}<span class="emblem-fallback-text">${emblemText}</span></span>
           <a
             href="${escapeHtml(site.url)}"
             target="_blank"
             rel="noopener noreferrer"
             class="card-slip-link"
-            aria-label="访问 ${escapeHtml(site.name)}"
+            aria-label="访问 ${escapeHtml(name)}"
           >
             <span class="card-slip-title">${displayName}</span>
             <span class="card-slip-summary">${displayDesc}</span>
@@ -268,7 +732,7 @@
             type="button"
             class="btn-bookmark card-slip-bookmark ${isBookmarked ? 'bookmarked' : ''}"
             title="${isBookmarked ? '取消典藏' : '收入典藏'}"
-            aria-label="${isBookmarked ? '取消典藏 ' + site.name : '收藏 ' + site.name}"
+            aria-label="${isBookmarked ? '取消典藏 ' + escapeHtml(name) : '收藏 ' + escapeHtml(name)}"
             data-bookmark-id="${escapeHtml(site.id)}"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -279,6 +743,38 @@
             </svg>
           </button>
         </div>
+        <section class="card-marginalia" data-marginalia-id="${escapeHtml(site.id)}" aria-label="${escapeHtml(name)} 的藏书票批注" aria-hidden="true">
+          <header class="marginalia-head">
+            <span class="marginalia-kicker">EX LIBRIS · MARGINALIA</span>
+            <button type="button" class="marginalia-close" data-marginalia-close aria-label="收起批注">✕</button>
+          </header>
+          <div class="marginalia-title-row">
+            <h3>${escapeHtml(name)}</h3>
+            <span>№ ${indexStr}</span>
+          </div>
+          <div class="marginalia-note-block">
+            <div class="marginalia-section-label">馆主批注 <button type="button" class="marginalia-edit" data-marginalia-edit aria-label="编辑批注">✎</button></div>
+            <p class="marginalia-note-text" data-marginalia-note-text>${notes ? escapeHtml(notes) : "<span class=\"marginalia-placeholder\">双击此处或点铅笔，写下私人评注与使用备忘。</span>"}</p>
+            <div class="marginalia-note-editor" data-marginalia-editor hidden>
+              <textarea rows="3" data-marginalia-input aria-label="馆主批注">${escapeHtml(notes)}</textarea>
+              <div class="marginalia-editor-actions">
+                <button type="button" data-marginalia-cancel>取消</button>
+                <button type="button" data-marginalia-save>存入账本</button>
+              </div>
+            </div>
+          </div>
+          <div class="marginalia-sublinks-block">
+            <div class="marginalia-section-label">快捷子路由</div>
+            <div class="marginalia-sublinks" data-marginalia-sublinks>
+              ${subLinksHtml || '<span class="marginalia-placeholder">暂无子路由</span>'}
+            </div>
+            <button type="button" class="marginalia-add-sublink" data-marginalia-add-sublink>+ 子路由</button>
+          </div>
+          <footer class="marginalia-stamp">
+            <span>累计调阅 ${stat ? stat.count : 0} 次</span>
+            <span>${stat && stat.lastVisited ? "末次 " + formatLedgerMonthDay(stat.lastVisited) : "尚未开卷"}</span>
+          </footer>
+        </section>
       </article>
     `;
   }
@@ -305,11 +801,24 @@
     `;
   }
 
+  // 在搜索状态下只渲染命中结果，并保留当前视图的稳定索书号。
+  function createMatchedGridHtml(matches, query) {
+    const allViewSites = getCurrentViewSites();
+    const callNumberMap = buildCallNumberMap(allViewSites.length ? allViewSites : getRawSites());
+    const cardsHtml = matches.map(function (site, index) {
+      const stableIndex = callNumberMap.has(site.id)
+        ? Number(callNumberMap.get(site.id)) - 1
+        : index;
+      return createEntryCardHtml(site, stableIndex, query, matches.length, true);
+    }).join("");
+    return `<div class="entries-grid cards-asymmetric-grid" data-category-key="search">${cardsHtml}</div>`;
+  }
+
   // 生成专用于检索未命中的典雅图书馆式空状态与推荐藏书
   function createSearchEmptyStateHtml(query, allSites) {
     // 挑选 3 本馆藏代表性典籍（优先选取已收藏或常驻案头条目，不足则取前列条目）
     const favs = allSites.filter(s => window.NavFavorites && window.NavFavorites.has(s.id));
-    const freqs = window.NavVisits ? window.NavVisits.getTopSites(allSites, 3) : [];
+    const freqs = getDeskSites(allSites).slice(0, 3);
     const pool = [...favs, ...freqs, ...allSites];
     const recSites = [];
     const seenIds = new Set();
@@ -365,7 +874,29 @@
   // 主渲染流程 (Main Render Flow)
   // ==========================================================================
 
+  function renderStarMapView() {
+    const hostElement = document.querySelector(".star-map-container");
+    if (!hostElement || !window.NavStarMap) return false;
+    dom.contentArea.hidden = true;
+    hostElement.hidden = false;
+    window.NavStarMap.open(hostElement);
+    if (window.NavAlmanac && typeof window.NavAlmanac.applyWindow === "function") {
+      window.NavAlmanac.applyWindow(window.NavAlmanac.getWindow());
+    }
+    return true;
+  }
+
   function renderContent() {
+    if (state.archiveView === "star-map") {
+      renderStarMapView();
+      return;
+    }
+    dom.contentArea.hidden = false;
+    const starMapContainer = document.querySelector(".star-map-container");
+    if (starMapContainer && window.NavStarMap) {
+      starMapContainer.hidden = true;
+      window.NavStarMap.close();
+    }
     const allSites = getRawSites();
     const categories = getRawCategories();
     const query = state.searchQuery.trim();
@@ -373,8 +904,10 @@
     // 1. 处于全局实时搜索模式
     if (query) {
       dom.statusBar.style.display = "flex";
-      const matches = window.NavSearch ? window.NavSearch.filter(allSites, query) : allSites;
+      const matches = getSearchMatches(query);
       const dist = window.NavSearch ? window.NavSearch.getCategoryDistribution(matches, categories) : [];
+      const uncataloguedMatches = getUncataloguedMatches(query);
+      const totalMatches = matches.length + uncataloguedMatches.length;
 
       const distHtml = dist.map(d => `
         <button type="button" class="search-cat-pill" data-focus-cat="${escapeHtml(d.id)}" title="一键聚焦至「${escapeHtml(d.name)}」">
@@ -385,22 +918,26 @@
 
       dom.statusText.innerHTML = `
         <div class="search-status-content">
-          <span>检索 “<strong>${escapeHtml(query)}</strong>” · 共寻得 <strong>${matches.length}</strong> 卷藏书</span>
+          <span>检索 “<strong>${escapeHtml(query)}</strong>” · 共寻得 <strong>${totalMatches}</strong> 卷藏书${uncataloguedMatches.length ? `（含待编目 ${uncataloguedMatches.length}）` : ""}</span>
           ${distHtml ? `<div class="search-dist-pills">${distHtml}</div>` : ''}
         </div>
       `;
 
+      const potentialHtml = window.NavUncatalogued
+        ? window.NavUncatalogued.renderPotentialMatches(query)
+        : "";
+
       if (matches.length === 0) {
-        dom.contentArea.innerHTML = createSearchEmptyStateHtml(query, allSites);
+        dom.contentArea.innerHTML = uncataloguedMatches.length > 0
+          ? potentialHtml
+          : createSearchEmptyStateHtml(query, allSites);
       } else {
         if (state.viewMode === "shelf" && window.NavBookshelf) {
           dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
         } else {
-          const cardsHtml = matches.map((site, idx) =>
-            createEntryCardHtml(site, idx, query, matches.length, true)
-          ).join("");
-          dom.contentArea.innerHTML = `<div class="entries-grid cards-asymmetric-grid" data-category-key="search">${cardsHtml}</div>`;
+          dom.contentArea.innerHTML = createMatchedGridHtml(matches, query);
         }
+        dom.contentArea.insertAdjacentHTML("beforeend", potentialHtml);
       }
       return;
     }
@@ -453,11 +990,11 @@
 
     // 2.2 查看「常驻案头」
     if (state.activeCategory === "frequent") {
-      const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 16) : [];
+      const freqSites = getDeskSites(allSites);
       if (freqSites.length === 0) {
         dom.contentArea.innerHTML = createEmptyStateHtml(
           "案头暂无常驻记录",
-          "在当前浏览器中点击访问的网站条目将在此自动汇聚与排序。",
+          "手动典藏或近 7 天调阅过的藏书会自动汇聚到案头。",
           "查阅全部藏书",
           "viewAll"
         );
@@ -471,7 +1008,7 @@
           dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
             "常驻案头 (高频访问)",
             "DESK",
-            "根据本地点击频次自动排序",
+            "手动典藏 + 近 7 天借阅频次 Top 6",
             freqSites,
             clearActionHtml,
             "frequent"
@@ -483,7 +1020,7 @@
           dom.contentArea.innerHTML = createSectionHtml(
             "常驻案头 (高频访问)",
             "DESK",
-            "根据本地点击频次自动排序",
+            "手动典藏 + 近 7 天借阅频次 Top 6",
             freqSites.length,
             cardsHtml,
             clearActionHtml,
@@ -499,11 +1036,16 @@
 
     // 2.3 查看「全部」
     if (state.activeCategory === "all") {
+      // Shadow entries are a separate visibility bucket. They are appended
+      // only in the "all" view and never merged into public call numbers.
+      const shadowSites = window.NavSanctum && window.NavSanctum.isShadow && window.NavSanctum.isShadow()
+        ? getShadowSites()
+        : [];
       // 书架视图渲染全馆各层
       if (state.viewMode === "shelf" && window.NavBookshelf) {
         const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
         const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
-        const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
+        const freqSites = getDeskSites(allSites);
 
         dom.contentArea.innerHTML = window.NavBookshelf.renderAllShelves(allSites, categories, favSites, freqSites);
         return;
@@ -511,29 +1053,32 @@
 
       // 网格视图渲染全馆板块
       const sectionsHtml = [];
+      const cataloguedIds = new Set();
 
       // 若有收藏，置顶展示私人典藏专栏（支持独立排序）
       const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
       const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
       if (favSites.length > 0) {
+        favSites.forEach(site => cataloguedIds.add(site.id));
         const favCards = favSites.map((site, idx) =>
           createEntryCardHtml(site, idx, "", favSites.length)
         ).join("");
         sectionsHtml.push(createSectionHtml("私人典藏", "FAV", "随时查阅的归档藏书", favSites.length, favCards, "", "favorites"));
       }
 
-      // 若有访问统计，展示常驻案头专栏 (前 6 个)
-      const freqSites = window.NavVisits ? window.NavVisits.getTopSites(allSites, 6) : [];
+      // 常驻案头只补充尚未在私人典藏出现的卡片，避免全馆视图重复编号。
+      const freqSites = getDeskSites(allSites).filter(site => !cataloguedIds.has(site.id));
       if (freqSites.length > 0) {
+        freqSites.forEach(site => cataloguedIds.add(site.id));
         const freqCards = freqSites.map((site, idx) =>
           createEntryCardHtml(site, idx, "", freqSites.length)
         ).join("");
         sectionsHtml.push(createSectionHtml("常驻案头", "TOP", "近期高频访问入口", freqSites.length, freqCards, "", "frequent"));
       }
 
-      // 依次展示各分类专栏（按本地记住的顺序排列）
+      // 依次展示各分类专栏；快捷专栏已经承载的卡片不再重复渲染。
       categories.forEach(cat => {
-        const rawCatSites = allSites.filter(s => s.category === cat.id);
+        const rawCatSites = allSites.filter(s => s.category === cat.id && !cataloguedIds.has(s.id));
         const catSites = window.NavSortable ? window.NavSortable.sortSites(cat.id, rawCatSites) : rawCatSites;
         if (catSites.length > 0) {
           const cards = catSites.map((site, idx) =>
@@ -542,6 +1087,21 @@
           sectionsHtml.push(createSectionHtml(cat.name, cat.code || "SEC", cat.desc, catSites.length, cards, "", cat.id));
         }
       });
+
+      if (shadowSites.length > 0) {
+        const shadowCards = shadowSites.map(function (site, idx) {
+          return createEntryCardHtml(site, idx, "", shadowSites.length);
+        }).join("");
+        sectionsHtml.push(createSectionHtml(
+          "暗月卷宗",
+          "SHADOW",
+          "仅在暗月密室中显现的私密馆藏",
+          shadowSites.length,
+          shadowCards,
+          "",
+          "shadow"
+        ));
+      }
 
       if (sectionsHtml.length === 0) {
         dom.contentArea.innerHTML = createEmptyStateHtml("藏馆暂无条目", "请在 data.js 中添加网站数据。", "", "");
@@ -657,7 +1217,12 @@
     }
     const freqBadge = document.getElementById("badge-freq-num");
     if (freqBadge) {
-      freqBadge.textContent = getValidFreqCount();
+      freqBadge.textContent = getDeskSites(getRawSites()).length;
+    }
+    const uncataloguedCount = document.getElementById("uncatalogued-entry-count");
+    if (uncataloguedCount) {
+      const count = getUncataloguedSites().length;
+      uncataloguedCount.textContent = count > 0 ? String(count).padStart(2, "0") : "00";
     }
     // 同步刷新刊头金石里程碑印章
     if (window.NavLore) {
@@ -670,64 +1235,68 @@
   // ==========================================================================
 
   function bindEvents() {
-    // 1. 实时搜索监听 (支持彩蛋探测)
+    document.querySelectorAll("[data-archive-view]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setArchiveView(button.getAttribute("data-archive-view"));
+      });
+    });
+    const almanacJump = document.getElementById("btn-almanac-jump");
+    if (almanacJump) {
+      almanacJump.addEventListener("click", function () {
+        if (state.archiveView === "star-map") setArchiveView("grid");
+        if (window.NavAlmanac) window.NavAlmanac.scrollIntoView();
+      });
+    }
+    document.addEventListener("keydown", function (event) {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select" ||
+        (target && target.isContentEditable)) return;
+      if (event.key !== "g" && event.key !== "G") return;
+      event.preventDefault();
+      setArchiveView(state.archiveView === "star-map" ? "grid" : "star-map");
+    }, true);
+
+    // 1. 实时搜索监听：普通词始终执行馆内过滤；命令前缀交给命令面板。
     dom.searchInput.addEventListener("input", function (e) {
-      state.searchQuery = e.target.value;
-      dom.searchClearBtn.style.display = state.searchQuery.trim().length > 0 ? "block" : "none";
+      const raw = e.target.value;
+      state.searchQuery = isCommandQuery(raw) ? "" : raw;
+      dom.searchClearBtn.style.display = raw.trim().length > 0 ? "block" : "none";
       if (window.NavLore && window.NavLore.checkSearchEasterEgg(state.searchQuery)) {
         window.NavLore.open("about");
       }
+      if (window.NavCommands) window.NavCommands.render(raw);
       renderContent();
     });
 
     // 1.1 特工暗号彩蛋 (***REMOVED*** 直达哪吒探针面板)
-    const AGENT_SECRET_CODE = "***REMOVED***";
-    const AGENT_PROBE_URL = "http://***REMOVED***:8008";
-
     function handleAgentEasterEgg(e) {
       const input = dom.searchInput || document.getElementById("archive-search-input");
       if (!input) return false;
       const rawVal = (input.value || "").trim();
       if (rawVal === AGENT_SECRET_CODE) {
-        if (e) {
-          if (typeof e.preventDefault === "function") e.preventDefault();
-          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-          if (typeof e.stopPropagation === "function") e.stopPropagation();
-        }
-        input.value = "";
-        state.searchQuery = "";
-        if (dom.searchClearBtn) dom.searchClearBtn.style.display = "none";
-        renderContent();
-        window.open(AGENT_PROBE_URL, "_blank");
+        openAgentProbe(e);
         return true;
       }
       return false;
     }
 
-    // 捕获阶段优先拦截回车事件 (防止外部引擎外跳或站内快捷焦点移交)
-    window.addEventListener(
-      "keydown",
-      function (e) {
-        if (e.target && e.target.id === "archive-search-input" && e.key === "Enter") {
-          if (e.isComposing || e.keyCode === 229) return;
-          if (handleAgentEasterEgg(e)) {
-            return;
-          }
-        }
-      },
-      true
-    );
-
-    // 搜索框元素事件监听
+    // 搜索框元素事件监听：捕获阶段先于 engine.js 和 shortcuts.js。
     if (dom.searchInput) {
       dom.searchInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          if (e.isComposing || e.keyCode === 229) return;
-          if (handleAgentEasterEgg(e)) {
-            return;
+        if (e.key === "Escape") {
+          if (window.NavSanctum && window.NavSanctum.isShadow && window.NavSanctum.isShadow()) {
+            // Allow Esc to leave the shadow reading mode without touching
+            // the hidden ***REMOVED*** probe route.
+            window.NavSanctum.setShadow(false);
           }
+          return;
         }
-      });
+        if (e.key === "Enter") {
+          routeSearchEnter(e);
+        }
+      }, true);
     }
 
     // 表单提交事件兜底拦截 (若存在外部插件或辅助提交)
@@ -746,9 +1315,7 @@
 
     // 2. 清空搜索按钮
     dom.searchClearBtn.addEventListener("click", function () {
-      dom.searchInput.value = "";
-      state.searchQuery = "";
-      dom.searchClearBtn.style.display = "none";
+      resetSearch({ render: false });
       dom.searchInput.focus();
       renderContent();
     });
@@ -758,21 +1325,13 @@
       const focusPill = e.target.closest("[data-focus-cat]");
       if (focusPill) {
         const catId = focusPill.getAttribute("data-focus-cat");
-        state.activeCategory = catId;
-        state.searchQuery = "";
-        dom.searchInput.value = "";
-        dom.searchClearBtn.style.display = "none";
-        renderIndexTabs();
-        renderContent();
+        switchCategory(catId);
         return;
       }
     });
 
     dom.statusResetBtn.addEventListener("click", function () {
-      dom.searchInput.value = "";
-      state.searchQuery = "";
-      dom.searchClearBtn.style.display = "none";
-      renderContent();
+      resetSearch({ render: true });
     });
 
     // 4. 分类标签切换
@@ -782,29 +1341,24 @@
       const targetCat = btn.getAttribute("data-cat-target");
       if (!targetCat) return;
 
-      state.activeCategory = targetCat;
-
-      // 如果有搜索词，切换栏目时重置搜索框以保证当前专栏聚焦
-      if (state.searchQuery) {
-        state.searchQuery = "";
-        dom.searchInput.value = "";
-        dom.searchClearBtn.style.display = "none";
-      }
-
-      renderIndexTabs();
-
-      if (typeof btn.scrollIntoView === "function") {
-        btn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-      }
-
-      renderContent();
+      switchCategory(targetCat);
     });
+
+    // 8. 索书条右侧快捷书签扣
+    const searchMeta = document.querySelector(".folio-search-meta");
+    if (searchMeta) {
+      searchMeta.addEventListener("click", function (event) {
+        const hook = event.target.closest("[data-search-cat]");
+        if (!hook) return;
+        switchCategory(hook.getAttribute("data-search-cat"));
+      });
+    }
 
     // 5. 内容委托（书签点击、清空案头、外链点击统计、空状态操作）
     dom.contentArea.addEventListener("click", function (e) {
       // 5.0 若处于整理模式或刚完成拖拽，禁止一切卡片跳转
       if (window.NavSortable && (window.NavSortable.isArrangeMode() || window.NavSortable.isJustFinishedDrag())) {
-        if (!e.target.closest("[data-bookmark-id]")) {
+        if (!e.target.closest("[data-bookmark-id], [data-bookplate-id]")) {
           e.preventDefault();
           e.stopPropagation();
           return;
@@ -821,6 +1375,141 @@
           window.NavFavorites.toggle(siteId);
           updateBadges();
           renderContent();
+        }
+        return;
+      }
+
+      // 5.12 藏书票批注层：关闭 / 编辑 / 保存 / 子路由
+      const marginaliaClose = e.target.closest("[data-marginalia-close]");
+      if (marginaliaClose) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = marginaliaClose.closest(".entry-card");
+        if (card) {
+          card.classList.remove("is-flipped");
+          const panel = card.querySelector(".card-marginalia");
+          if (panel) panel.setAttribute("aria-hidden", "true");
+        }
+        return;
+      }
+      if (e.target.closest("[data-focus-seal]")) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.NavSanctum && typeof window.NavSanctum.setFocus === "function") {
+          window.NavSanctum.setFocus(false);
+        }
+        return;
+      }
+      // A sealed card must be inert outside its explicit unlock seal. This
+      // closes edge clicks, keyboard links and stale stretched-link targets.
+      const sealedCard = e.target.closest(".entry-card.card--sealed");
+      if (sealedCard) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.NavShortcuts) {
+          window.NavShortcuts.showToast("封条未启 · 沉浸研习中", "点击中央封条即可解除考场结界", "⌛");
+        }
+        return;
+      }
+      const cardForFlip = e.target.closest(".entry-card");
+      if (cardForFlip && e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
+          window.NavMarginalia.flip(cardForFlip.getAttribute("data-site-id"));
+        } else {
+          cardForFlip.classList.toggle("is-flipped");
+        }
+        return;
+      }
+      if (e.target.closest("[data-card-open]") && cardForFlip) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!cardForFlip.classList.contains("is-flipped")) {
+          openSite(
+            cardForFlip.getAttribute("data-site-id"),
+            cardForFlip.getAttribute("data-site-url"),
+            "card-click"
+          );
+        }
+        return;
+      }
+      const marginaliaEdit = e.target.closest("[data-marginalia-edit]");
+      if (marginaliaEdit) {
+        e.preventDefault();
+        e.stopPropagation();
+        const panel = marginaliaEdit.closest(".card-marginalia");
+        if (panel) {
+          const editor = panel.querySelector("[data-marginalia-editor]");
+          const text = panel.querySelector("[data-marginalia-note-text]");
+          if (editor) editor.hidden = false;
+          if (text) text.hidden = true;
+          const input = panel.querySelector("[data-marginalia-input]");
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }
+        return;
+      }
+      const marginaliaCancel = e.target.closest("[data-marginalia-cancel]");
+      if (marginaliaCancel) {
+        e.preventDefault();
+        e.stopPropagation();
+        const panel = marginaliaCancel.closest(".card-marginalia");
+        if (panel) {
+          panel.querySelector("[data-marginalia-editor]").hidden = true;
+          panel.querySelector("[data-marginalia-note-text]").hidden = false;
+        }
+        return;
+      }
+      const marginaliaSave = e.target.closest("[data-marginalia-save]");
+      if (marginaliaSave) {
+        e.preventDefault();
+        e.stopPropagation();
+        const panel = marginaliaSave.closest(".card-marginalia");
+        const card = marginaliaSave.closest(".entry-card");
+        const input = panel && panel.querySelector("[data-marginalia-input]");
+        if (card && input && window.NavLedger) {
+          window.NavLedger.setMarginalia(card.getAttribute("data-site-id"), input.value);
+          if (window.NavShortcuts) window.NavShortcuts.showToast("批注已存入借阅账本", "", "✎");
+          renderContent();
+        }
+        return;
+      }
+      const subLink = e.target.closest("[data-marginalia-sublink]");
+      if (subLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = subLink.closest(".entry-card");
+        if (card) {
+          openSubLink(card.getAttribute("data-site-id"), subLink.getAttribute("data-marginalia-sublink"));
+        }
+        return;
+      }
+      const addSubLink = e.target.closest("[data-marginalia-add-sublink]");
+      if (addSubLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = addSubLink.closest(".entry-card");
+        const site = card ? getSiteById(card.getAttribute("data-site-id")) : null;
+        if (site) {
+          const label = prompt("子路由名称（如 API Keys / Docs）");
+          if (!label) return;
+          const url = prompt("子路由网址（http:// 或 https://）");
+          if (!url || !/^https?:\/\//i.test(url)) {
+            if (window.NavShortcuts) window.NavShortcuts.showToast("子路由网址格式不合法", "需以 http(s):// 开头", "⚠");
+            return;
+          }
+          const next = (Array.isArray(site.subLinks) ? site.subLinks : []).slice();
+          if (next.length >= 4) {
+            if (window.NavShortcuts) window.NavShortcuts.showToast("最多 4 个子路由", "请先删除旧锚点", "ℹ");
+            return;
+          }
+          next.push({ label: String(label).trim().slice(0, 24), url: String(url).trim() });
+          if (window.NavOverrides && typeof window.NavOverrides.updateSite === "function") {
+            window.NavOverrides.updateSite(site.id, { subLinks: next });
+          }
         }
         return;
       }
@@ -867,14 +1556,9 @@
       if (emptyBtn) {
         const action = emptyBtn.getAttribute("data-empty-action");
         if (action === "resetSearch") {
-          dom.searchInput.value = "";
-          state.searchQuery = "";
-          dom.searchClearBtn.style.display = "none";
-          renderContent();
+          resetSearch({ render: true });
         } else if (action === "viewAll") {
-          state.activeCategory = "all";
-          renderIndexTabs();
-          renderContent();
+          switchCategory("all");
         }
         return;
       }
@@ -883,9 +1567,32 @@
       const card = e.target.closest(".entry-card");
       if (card) {
         const siteId = card.getAttribute("data-site-id");
-        if (siteId && window.NavVisits) {
-          window.NavVisits.record(siteId);
-          updateBadges();
+        const marginaliaToggle = e.target.closest("[data-marginalia-toggle]");
+        if (marginaliaToggle) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
+            window.NavMarginalia.flip(siteId);
+          } else {
+            card.classList.toggle("is-flipped");
+          }
+          return;
+        }
+        if (e.altKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
+            window.NavMarginalia.flip(siteId);
+          } else {
+            card.classList.toggle("is-flipped");
+          }
+          return;
+        }
+        if (siteId && e.target.closest(".card-slip-link, .card-jump-mark")) {
+          if (card.classList.contains("is-flipped")) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openSite(siteId, card.getAttribute("data-site-url"), "card-click");
           // 若正处于案头专栏，即刻重新渲染排序
           if (state.activeCategory === "frequent") {
             renderContent();
@@ -894,11 +1601,23 @@
       }
     });
 
+    dom.contentArea.addEventListener("dblclick", function (e) {
+      const note = e.target.closest("[data-marginalia-note-text]");
+      if (!note) return;
+      e.preventDefault();
+      const edit = note.closest(".card-marginalia").querySelector("[data-marginalia-edit]");
+      if (edit) edit.click();
+    });
+
     // 5.9 视图模式切换 (网格 ⟷ 3D 书架)
     const viewBtn = dom.viewBtn || document.getElementById("btn-view-toggle");
     if (viewBtn) {
       dom.viewBtn = viewBtn;
       viewBtn.addEventListener("click", function () {
+        if (state.archiveView === "star-map") {
+          state.archiveView = "grid";
+          updateArchiveViewSwitcher();
+        }
         if (window.NavSortable && window.NavSortable.isArrangeMode()) {
           window.NavSortable.exitArrangeMode();
         }
@@ -946,7 +1665,12 @@
       });
     }
 
-    // 7. 全站快捷键漫游由独立模块 js/shortcuts.js 统管，此处无需重复监听
+    // 9. A8 顶栏随机开卷
+    if (dom.randomBtn) {
+      dom.randomBtn.addEventListener("click", openRandom);
+    }
+
+    // 10. 全站快捷键漫游由独立模块 js/shortcuts.js 统管
   }
 
   // ==========================================================================
@@ -958,6 +1682,11 @@
     if (window.NavTheme) window.NavTheme.init(dom.themeBtn);
     if (window.NavFavorites) window.NavFavorites.init();
     if (window.NavVisits) window.NavVisits.init();
+    if (window.NavLedger && typeof window.NavLedger.initializeFirstSeenForSites === "function") {
+      window.NavLedger.initializeFirstSeenForSites(getRawSites().map(function (site) {
+        return site.id;
+      }));
+    }
 
     // 2. 初始化书架整理与拖动排序模块
     if (window.NavSortable) {
@@ -980,6 +1709,8 @@
     }
 
     // 2.7 初始化全站键盘无障碍漫游与微交互控制模块
+    state.archiveView = "grid";
+    updateArchiveViewSwitcher();
     if (window.NavShortcuts) {
       window.NavShortcuts.init({
         getViewMode: () => state.viewMode,
@@ -1005,6 +1736,10 @@
         onViewToggle: () => {
           if (window.NavSortable && window.NavSortable.isArrangeMode()) {
             window.NavSortable.exitArrangeMode();
+          }
+          if (state.archiveView === "star-map") {
+            state.archiveView = "grid";
+            updateArchiveViewSwitcher();
           }
           state.viewMode = state.viewMode === "grid" ? "shelf" : "grid";
           if (window.NavStorage) {
@@ -1049,16 +1784,9 @@
           if (targetBtn) {
             const targetCat = targetBtn.getAttribute("data-cat-target");
             if (targetCat) {
-              state.activeCategory = targetCat;
-              if (state.searchQuery) {
-                state.searchQuery = "";
-                dom.searchInput.value = "";
-                dom.searchClearBtn.style.display = "none";
-              }
-              renderIndexTabs();
-              renderContent();
-              const catLabel = targetBtn.querySelector("span")?.textContent?.trim() || targetCat;
-              window.NavShortcuts.showToast(`专栏：${catLabel}`, "按 h/l 或数字键 1~7 导航", "📑");
+              switchCategory(targetCat, { focusTab: false });
+              const catLabel = targetBtn.querySelector(".tab-label")?.textContent?.trim() || targetCat;
+              window.NavShortcuts.showToast(`专栏：${catLabel}`, "按 Alt+1~7 或 h/l 导航", "📑");
             }
           }
         },
@@ -1092,6 +1820,57 @@
       window.NavLore.init();
     }
 
+    // 2.9 A1/A2/A8 纯前端效率模块
+    if (window.NavCommands) {
+      window.NavCommands.init();
+    }
+    if (window.NavMarginalia) {
+      window.NavMarginalia.init();
+    }
+    if (window.NavUncatalogued) {
+      window.NavUncatalogued.init();
+    }
+    if (window.NavSnippets) {
+      window.NavSnippets.init();
+    }
+    if (window.NavConstellations) {
+      window.NavConstellations.init();
+    }
+    if (window.NavSanctum) {
+      window.NavSanctum.init();
+    }
+    if (window.NavFolioKeys) {
+      window.NavFolioKeys.init({
+        onOpenNumber: function (code) {
+          const site = getRawSites().find(function (site, index) {
+            return getCallNumber(site, index) === code;
+          });
+          if (!site) return null;
+          return { site: site, callNumber: code };
+        },
+        onRandom: openRandom,
+        onCategorySwitch: function (tabIndex) {
+          const tab = dom.tabsRail.querySelectorAll(".index-tab-item")[tabIndex];
+          if (tab) switchCategory(tab.getAttribute("data-cat-target"), { focusTab: false });
+        }
+      });
+    }
+    if (window.NavSerendipity) {
+      window.NavSerendipity.init();
+    }
+    if (window.NavAstronomy) {
+      window.NavAstronomy.init();
+    }
+    if (window.NavSoundscape) {
+      window.NavSoundscape.init();
+    }
+    if (window.NavBrassTools) {
+      window.NavBrassTools.init();
+    }
+    if (window.NavAlmanac) {
+      window.NavAlmanac.init();
+    }
+
     // 3. 装配刊头信息
     if (dom.mastheadDate) dom.mastheadDate.textContent = formatEditorialDate();
     if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
@@ -1113,9 +1892,37 @@
         updateBadges();
         updateOverridesNote();
       },
+      getAllSites: getRawSites,
+      getState() {
+        return {
+          activeCategory: state.activeCategory,
+          searchQuery: state.searchQuery,
+          viewMode: state.viewMode,
+          archiveView: state.archiveView
+        };
+      },
       updateBadges,
+      getCategories: getRawCategories,
       renderContent,
-      renderIndexTabs
+      renderIndexTabs,
+      openSite: openSite,
+      openSearchResult: openSearchResult,
+      openRandom: openRandom,
+      getSearchMatches: getSearchMatches,
+      getUncataloguedSites: getUncataloguedSites,
+      getUncataloguedMatches: getUncataloguedMatches,
+      getShadowSites: getShadowSites,
+      getSiteById: getSiteById,
+      Astronomy: window.NavAstronomy || null,
+      Soundscape: window.NavSoundscape || null,
+      BrassTools: window.NavBrassTools || null,
+      Almanac: window.NavAlmanac || null,
+      StarMap: window.NavStarMap || null,
+      setArchiveView: setArchiveView,
+      openSubLink: openSubLink,
+      switchCategory: switchCategory,
+      resetSearch: resetSearch,
+      recordSiteAccess: recordSiteAccess
     };
 
     window.addEventListener("nav-overrides-changed", function () {
@@ -1123,6 +1930,22 @@
         window.NavApp.refresh();
       }
     });
+    window.addEventListener("mynav-ledger-changed", function () {
+      if (state.activeCategory === "frequent") renderContent();
+      if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") {
+        window.NavAlmanac.refresh();
+      }
+      if (state.archiveView === "grid" && document.querySelector(".is-time-dimmed")) {
+        window.NavAlmanac.applyWindow(window.NavAlmanac.getWindow());
+      }
+      if (window.NavStarMap && typeof window.NavStarMap.refresh === "function" && state.archiveView === "star-map") {
+        window.NavStarMap.refresh();
+      }
+      updateBadges();
+    });
+    if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") {
+      window.NavAlmanac.refresh();
+    }
   }
 
   // 更新页脚未导出修改小提示

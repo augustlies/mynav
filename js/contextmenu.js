@@ -179,6 +179,22 @@
                 </div>
               </div>
 
+              <div class="form-row-2col phase2-meta-row">
+                <div class="form-group">
+                  <label for="edit-card-visibility" class="form-label">可见结界</label>
+                  <select id="edit-card-visibility" class="form-select">
+                    <option value="public">表世界 · 公开馆藏</option>
+                    <option value="shadow">暗月密室 · 仅里世界可见</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label form-check-label">
+                    <input type="checkbox" id="edit-card-uncatalogued">
+                    暂存待编目匣
+                  </label>
+                </div>
+              </div>
+
               <footer class="editorial-modal-footer form-actions-footer">
                 <button type="button" id="btn-cancel-card-edit" class="btn-modal-cancel">取消 (Esc)</button>
                 <button type="button" id="btn-save-card-edit" class="btn-modal-primary">保存修改</button>
@@ -275,7 +291,10 @@
         <span class="ctx-icon" aria-hidden="true">✏️</span>
         <span class="ctx-label">编辑卡片…</span>
       </div>
-
+      <div class="ctx-item" data-action="show-marginalia" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">✎</span>
+        <span class="ctx-label">翻开批注面</span>
+      </div>
       <div class="ctx-item has-submenu" data-action="submenu-cat" role="menuitem" aria-haspopup="true">
         <span class="ctx-icon" aria-hidden="true">📁</span>
         <span class="ctx-label">移动到分类</span>
@@ -455,9 +474,13 @@
     switch (action) {
       case "open-tab":
         if (site && site.url) {
-          window.open(site.url, "_blank", "noopener,noreferrer");
-          if (window.NavVisits && typeof window.NavVisits.record === "function") {
-            window.NavVisits.record(site.id);
+          if (site.id && window.NavApp && typeof window.NavApp.openSite === "function") {
+            window.NavApp.openSite(site.id);
+          } else {
+            window.open(site.url, "_blank", "noopener,noreferrer");
+            if (window.NavVisits && typeof window.NavVisits.record === "function") {
+              window.NavVisits.record(site.id);
+            }
           }
         }
         break;
@@ -471,6 +494,12 @@
       case "edit-card":
         if (site) {
           openEditModal(site);
+        }
+        break;
+
+      case "show-marginalia":
+        if (site && window.NavMarginalia) {
+          window.NavMarginalia.flip(site.id, true);
         }
         break;
 
@@ -667,6 +696,10 @@
     document.getElementById("edit-card-desc").value = site.description || "";
     document.getElementById("edit-card-tags").value = Array.isArray(site.tags) ? site.tags.join(", ") : "";
     document.getElementById("edit-card-icon").value = site.icon || site.name.slice(0, 2);
+    const visibilityInput = document.getElementById("edit-card-visibility");
+    const uncataloguedInput = document.getElementById("edit-card-uncatalogued");
+    if (visibilityInput) visibilityInput.value = site.visibility === "shadow" ? "shadow" : "public";
+    if (uncataloguedInput) uncataloguedInput.checked = site.status === "uncatalogued";
 
     const errorTip = document.getElementById("edit-url-error");
     if (errorTip) errorTip.style.display = "none";
@@ -691,6 +724,10 @@
     document.getElementById("edit-card-desc").value = "";
     document.getElementById("edit-card-tags").value = "";
     document.getElementById("edit-card-icon").value = "";
+    const visibilityInput = document.getElementById("edit-card-visibility");
+    const uncataloguedInput = document.getElementById("edit-card-uncatalogued");
+    if (visibilityInput) visibilityInput.value = "public";
+    if (uncataloguedInput) uncataloguedInput.checked = false;
 
     const errorTip = document.getElementById("edit-url-error");
     if (errorTip) errorTip.style.display = "none";
@@ -742,6 +779,10 @@
       : [];
     const icon = iconInput.value.trim().toUpperCase() || name.slice(0, 2);
     const category = catInput.value;
+    const visibilityInput = document.getElementById("edit-card-visibility");
+    const uncataloguedInput = document.getElementById("edit-card-uncatalogued");
+    const visibility = visibilityInput && visibilityInput.value === "shadow" ? "shadow" : "public";
+    const status = uncataloguedInput && uncataloguedInput.checked ? "uncatalogued" : "catalogued";
 
     const ov = getOverrides();
     if (!ov) return;
@@ -754,7 +795,9 @@
         description: desc,
         tags,
         icon,
-        category
+        category,
+        visibility,
+        status
       });
       showToast("已保存卡片修改", name, "✏️");
     } else {
@@ -765,7 +808,10 @@
         description: desc,
         tags,
         icon,
-        category
+        category,
+        visibility,
+        status,
+        createdAt: Date.now()
       });
       showToast("已录入新卡片", name, "➕");
     }
@@ -967,6 +1013,12 @@
         if (hiddenModalEl && hiddenModalEl.style.display !== "none") {
           e.preventDefault();
           closeHiddenModal();
+          return;
+        }
+        const snippetsModal = document.getElementById("snippets-modal");
+        if (snippetsModal && snippetsModal.style.display !== "none" && window.NavSnippets) {
+          e.preventDefault();
+          window.NavSnippets.close();
           return;
         }
       }

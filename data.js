@@ -84,6 +84,11 @@ const NAV_DATA = {
       category: "ai",
       tags: ["ai", "deepseek", "api", "开放平台", "密钥", "用量"],
       icon: "DP",
+      subLinks: [
+        { label: "API Keys", url: "https://platform.deepseek.com/api_keys" },
+        { label: "Usage 账单", url: "https://platform.deepseek.com/usage" },
+        { label: "Docs", url: "https://api-docs.deepseek.com/" }
+      ],
     },
     {
       id: "ai-deepseek",

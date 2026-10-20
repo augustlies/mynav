@@ -19,6 +19,17 @@ temp/
 
 # 本地视觉验证产物
 .playwright-mcp/
+artifacts/
+.agents/
 baseline-*.png
 after-*.png
 final-*.png
+art-*.png
+folio-*.jpg
+verify-*.png
+merged-*.png
+responsive-*.json
+layout-*.json
+desktop-layout-*.json
+dark-style.json
+slip-layout.json

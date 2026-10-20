@@ -6,7 +6,7 @@
  *    - / 或 Ctrl+K: 聚焦检索框
  *    - j / k (或 方向键上下): 顺序漫游聚焦藏书 (卡片 / 3D 书脊)
  *    - h / l (或 方向键左右): 切换分类专栏标签
- *    - 1 ~ 7: 数字键直达各专栏
+ *    - Alt+1 ~ 7: 数字键直达各专栏（裸数字保留给 A2 索书号）
  *    - Enter: 翻开并访问所选藏书 (新标签页)
  *    - f: 一键收藏 / 移出私人典藏阁
  *    - e: 打开专属数字藏书票 (Ex Libris)
@@ -245,12 +245,18 @@
     const colophonModal = document.getElementById("colophon-modal");
     const cardEditModal = document.getElementById("card-edit-modal");
     const hiddenCardsModal = document.getElementById("hidden-cards-modal");
+    const snippetsModal = document.getElementById("snippets-modal");
+    const uncataloguedDrawer = document.getElementById("uncatalogued-drawer");
+    const brassWorkbench = document.getElementById("brass-workbench");
     return (
       (shortcutsModal && shortcutsModal.style.display !== "none") ||
       (bookplateModal && bookplateModal.style.display !== "none") ||
       (colophonModal && colophonModal.style.display !== "none") ||
       (cardEditModal && cardEditModal.style.display !== "none") ||
-      (hiddenCardsModal && hiddenCardsModal.style.display !== "none")
+      (hiddenCardsModal && hiddenCardsModal.style.display !== "none") ||
+      (snippetsModal && snippetsModal.style.display !== "none") ||
+      (uncataloguedDrawer && !uncataloguedDrawer.hidden) ||
+      (brassWorkbench && !brassWorkbench.hidden)
     );
   }
 
@@ -268,12 +274,9 @@
         }
         target.blur();
       } else if (key === "Enter" && target.id === "archive-search-input") {
-        // 在搜索框按回车，若有匹配结果则移交焦点至第一本书
-        const items = getFocusableElements();
-        if (items.length > 0) {
-          target.blur();
-          focusIndex(0);
-        }
+        // Enter routing belongs to app.js: it owns the hidden probe, the
+        // command deck, unique-hit opening and external search.
+        return;
       }
       return; // 坚决不拦截输入框内打字
     }
@@ -290,6 +293,18 @@
         }
         if (window.NavLore && typeof window.NavLore.close === "function") {
           window.NavLore.close();
+        }
+        if (window.NavSnippets && typeof window.NavSnippets.close === "function") {
+          window.NavSnippets.close();
+        }
+        if (window.NavUncatalogued && typeof window.NavUncatalogued.close === "function") {
+          window.NavUncatalogued.close();
+        }
+        if (window.NavMarginalia && typeof window.NavMarginalia.closeAll === "function") {
+          window.NavMarginalia.closeAll();
+        }
+        if (window.NavBrassTools && typeof window.NavBrassTools.close === "function") {
+          window.NavBrassTools.close();
         }
       }
       return; // 模态窗打开时，禁用背景卡片漫游
@@ -354,13 +369,19 @@
       return;
     }
 
-    // 8. 数字键直达专栏 (1 ~ 7)
-    if (/^[1-7]$/.test(key)) {
+    // 8. 数字键直达专栏 (Alt+1 ~ 7)。裸数字属于两位索书号手柄。
+    if (e.altKey && /^[1-7]$/.test(key)) {
       e.preventDefault();
       const tabNum = parseInt(key, 10);
       if (typeof hooks.onCategorySwitch === "function") {
         hooks.onCategorySwitch(null, tabNum);
       }
+      return;
+    }
+
+    // Alt+ digit chords are also owned by js/folio-keys.js, which listens in
+    // the capture phase and stops this handler. This guard is only a fallback.
+    if (/^\d$/.test(key) && !e.altKey) {
       return;
     }
 
@@ -374,7 +395,7 @@
     }
 
     // 10. 昼夜时序主题切换 (t)
-    if (key === "t" || key === "T") {
+    if (key === "t") {
       e.preventDefault();
       if (typeof hooks.onThemeToggle === "function") {
         hooks.onThemeToggle();
@@ -431,8 +452,12 @@
       if (hooks.getViewMode && hooks.getViewMode() === "shelf") {
         // 3D 书架：若便签卡已展开则跳转，否则展开
         if (el.classList.contains("is-open") && url) {
-          window.open(url, "_blank");
-          if (window.NavVisits) window.NavVisits.record(siteId);
+          if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+            window.NavApp.openSite(siteId);
+          } else {
+            window.open(url, "_blank");
+            if (window.NavVisits) window.NavVisits.record(siteId);
+          }
           showToast("已开卷翻阅", el.querySelector(".flyout-card-name")?.textContent?.trim() || url, "📖");
         } else {
           document.querySelectorAll(".book-item.is-open").forEach(b => b.classList.remove("is-open"));
@@ -443,8 +468,12 @@
         if (hooks.isArrangeMode && hooks.isArrangeMode()) {
           el.classList.toggle("flipped");
         } else if (url) {
-          window.open(url, "_blank");
-          if (window.NavVisits) window.NavVisits.record(siteId);
+          if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+            window.NavApp.openSite(siteId);
+          } else {
+            window.open(url, "_blank");
+            if (window.NavVisits) window.NavVisits.record(siteId);
+          }
           showToast("已开卷翻阅", el.querySelector(".card-title-text")?.textContent?.trim() || url, "📖");
         }
       }

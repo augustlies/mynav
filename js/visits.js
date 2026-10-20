@@ -1,80 +1,54 @@
 /**
- * 模块：常用案头访问统计 (js/visits.js)
- * 仅记录当前浏览器点击行为，按访问频次与最近时间排序，无侵入、可重置
+ * Compatibility facade for the existing visit API.
+ * All telemetry now lives in MYNAV_LEDGER_V2 (js/ledger.js), while callers
+ * such as bookshelf.js, contextmenu.js and shortcuts.js keep their old
+ * interface and therefore do not double-write separate storage keys.
  */
 
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    module.exports = factory(require("./storage.js"));
+    module.exports = factory(require("./ledger.js"));
   } else {
-    root.NavVisits = factory(root.NavStorage);
+    root.NavVisits = factory(root.NavLedger);
   }
-})(typeof self !== "undefined" ? self : this, function (NavStorage) {
+})(typeof self !== "undefined" ? self : this, function (NavLedger) {
   "use strict";
 
-  let stats = {}; // { [siteId]: { count: number, lastVisit: number } }
-
-  function load() {
-    if (!NavStorage) return;
-    const raw = NavStorage.get(NavStorage.KEYS.VISITS, {});
-    if (raw && typeof raw === "object") {
-      stats = raw;
-    }
-  }
-
-  function save() {
-    if (!NavStorage) return;
-    NavStorage.set(NavStorage.KEYS.VISITS, stats);
+  function fallbackGetStat() {
+    return { count: 0, lastVisit: 0, lastVisited: 0, history: [] };
   }
 
   return {
     init() {
-      load();
+      if (NavLedger) NavLedger.ensureLoaded();
     },
 
     record(siteId) {
-      if (!siteId) return;
-      const now = Date.now();
-      if (!stats[siteId]) {
-        stats[siteId] = { count: 1, lastVisit: now };
-      } else {
-        stats[siteId].count = (stats[siteId].count || 0) + 1;
-        stats[siteId].lastVisit = now;
-      }
-      save();
+      return NavLedger ? NavLedger.recordAccess(siteId) : false;
     },
 
     getTopSites(allSites, limit = 6) {
-      if (!Array.isArray(allSites)) return [];
+      return NavLedger ? NavLedger.getTopSites(allSites, limit) : [];
+    },
 
-      const visited = allSites.filter((site) => {
-        const item = stats[site.id];
-        return item && item.count > 0;
-      });
+    getRecentTopSites(allSites, limit = 6, withinDays = 7) {
+      return NavLedger ? NavLedger.getRecentTopSites(allSites, limit, withinDays) : [];
+    },
 
-      visited.sort((a, b) => {
-        const statA = stats[a.id] || { count: 0, lastVisit: 0 };
-        const statB = stats[b.id] || { count: 0, lastVisit: 0 };
-        if (statB.count !== statA.count) {
-          return statB.count - statA.count;
-        }
-        return statB.lastVisit - statA.lastVisit;
-      });
-
-      return visited.slice(0, limit);
+    isDusty(siteId, days = 60) {
+      return NavLedger ? NavLedger.isDusty(siteId, days) : false;
     },
 
     clear() {
-      stats = {};
-      save();
+      if (NavLedger) NavLedger.clearAccessLog();
     },
 
     count() {
-      return Object.keys(stats).filter((id) => (stats[id]?.count || 0) > 0).length;
+      return NavLedger ? NavLedger.count() : 0;
     },
 
     getStat(siteId) {
-      return stats[siteId] || { count: 0, lastVisit: 0 };
+      return NavLedger ? NavLedger.getStat(siteId) : fallbackGetStat();
     }
   };
 });

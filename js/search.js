@@ -119,6 +119,8 @@
 
     const name = normalize(site.name);
     const desc = normalize(site.description);
+    const whySaved = normalize(site.whySaved);
+    const notes = normalize(site.notes);
     const url = normalize(site.url);
     const tags = Array.isArray(site.tags) ? site.tags.map(normalize) : [];
     const tagsStr = tags.join(" ");
@@ -131,6 +133,8 @@
     const index = {
       name,
       desc,
+      whySaved,
+      notes,
       url,
       tags,
       tagsStr,
@@ -193,14 +197,23 @@
       score += 35;
     }
 
-    // 5. 网址/域名匹配
-    if (idx.url.includes(cleanTerm)) {
+    // 5. 域名匹配（排除所有网址共有的 "https" 等协议片段）
+    const hostname = idx.url.replace(/^https?:\/\//, "").split(/[\/?#]/)[0];
+    if (hostname.includes(cleanTerm)) {
       score += 40;
     }
 
     // 6. 简介正文匹配
     if (idx.desc.includes(cleanTerm)) {
       score += 25;
+    }
+
+    if (idx.whySaved && idx.whySaved.includes(cleanTerm)) {
+      score += 20;
+    }
+
+    if (idx.notes && idx.notes.includes(cleanTerm)) {
+      score += 12;
     }
 
     return score;

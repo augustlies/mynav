@@ -234,6 +234,13 @@
     return merged;
   }
 
+  // Kept separate from getSites() so app.js can explicitly decide which
+  // visibility/status buckets belong in the public archive, shadow archive,
+  // or the uncatalogued drawer.
+  function getAllIncludingUncatalogued(includeHidden = true) {
+    return getAllMergedSites(includeHidden);
+  }
+
   // 供 app.js 统一使用的有效渲染站点列表（非隐藏、非删除）
   function getSites() {
     return getAllMergedSites(false);
@@ -276,6 +283,30 @@
     return true;
   }
 
+  function getLedgerExport() {
+    if (typeof window === "undefined" || !window.NavLedger) return null;
+    const ledger = window.NavLedger.getAll();
+    return {
+      app: "mynav",
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      overrides: loadOverrides(),
+      favorites: getStorage().get("mynav_arch_favorites", []),
+      sortOrders: getStorage().get("mynav_arch_order", {}),
+      ledger: ledger,
+      visits: Object.fromEntries(Object.entries(ledger.accessLog).map(function (entry) {
+        return [entry[0], { count: entry[1].count, lastVisit: entry[1].lastVisited }];
+      })),
+      sites: getAllMergedSites(true),
+      preferences: {
+        theme: getStorage().get("mynav_arch_theme", "light"),
+        themeMode: getStorage().get("mynav_theme_mode", "auto"),
+        searchEngine: getStorage().get("mynav_search_engine_v2", getStorage().get("mynav_search_engine", "google")),
+        viewMode: getStorage().get("mynav_arch_view", "grid")
+      }
+    };
+  }
+
   // 移动卡片至新分类
   function moveCategory(id, newCategory) {
     return updateSite(id, { category: newCategory });
@@ -309,7 +340,13 @@
       tags: Array.isArray(siteData.tags)
         ? siteData.tags.map(t => String(t).trim()).filter(Boolean)
         : [],
-      icon: (siteData.icon || siteData.name.slice(0, 2)).trim().toUpperCase()
+      icon: (siteData.icon || siteData.name.slice(0, 2)).trim().toUpperCase(),
+      status: siteData.status === "uncatalogued" ? "uncatalogued" : "catalogued",
+      whySaved: (siteData.whySaved || "").trim(),
+      notes: (siteData.notes || "").trim(),
+      subLinks: Array.isArray(siteData.subLinks) ? siteData.subLinks.slice(0, 4) : [],
+      visibility: siteData.visibility === "shadow" ? "shadow" : "public",
+      createdAt: Number.isFinite(siteData.createdAt) ? siteData.createdAt : Date.now()
     };
 
     o.added.push(newSite);
@@ -490,6 +527,30 @@
         js += `      tags: ${JSON.stringify(Array.isArray(site.tags) ? site.tags : [])},\n`;
         js += `      icon: ${JSON.stringify(site.icon || site.name.slice(0, 2))}`;
 
+        const optionalFields = [
+          "status", "whySaved", "notes", "visibility", "snapshotUrl"
+        ];
+        optionalFields.forEach(function (field) {
+          const value = site[field];
+          if (field === "status" && value !== "uncatalogued") return;
+          if (field === "visibility" && value !== "shadow") return;
+          if ((field === "whySaved" || field === "notes" || field === "snapshotUrl") &&
+            (typeof value !== "string" || !value)) {
+            return;
+          }
+          js += `,\n      ${field}: ${JSON.stringify(value)}`;
+        });
+        if (Array.isArray(site.subLinks) && site.subLinks.length > 0) {
+          js += `,\n      subLinks: ${JSON.stringify(site.subLinks.slice(0, 4))}`;
+        }
+        ["createdAt", "firstSeenAt"].forEach(function (field) {
+          if (Number.isFinite(site[field]) && site[field] > 0) {
+            js += `,\n      ${field}: ${JSON.stringify(site[field])}`;
+          }
+        });
+        if (site.telemetry && typeof site.telemetry === "object") {
+          js += `,\n      telemetry: ${JSON.stringify(site.telemetry)}`;
+        }
         if (site.hidden) {
           js += `,\n      hidden: true`;
         }
@@ -545,12 +606,19 @@
     const dateStr = now.toISOString();
 
     const backup = {
+      ledger: typeof window !== "undefined" && window.NavLedger
+        ? window.NavLedger.getAll()
+        : null,
+      visits: window.NavLedger
+        ? Object.fromEntries(Object.entries(window.NavLedger.getAccessLog()).map(function (entry) {
+            return [entry[0], { count: entry[1].count, lastVisit: entry[1].lastVisited }];
+          }))
+        : st.get("mynav_arch_visits", {}),
       app: "mynav",
       version: 1,
       exportedAt: dateStr,
       overrides: loadOverrides(),
       favorites: st.get("mynav_arch_favorites", []),
-      visits: st.get("mynav_arch_visits", {}),
       sortOrders: st.get("mynav_arch_order", {}),
       preferences: {
         theme: st.get("mynav_arch_theme", "light"),
@@ -593,7 +661,7 @@
     }
 
     // 校验必要字段：必须包含 overrides、favorites 或 preferences 之一
-    if (!backup.overrides && !backup.favorites && !backup.preferences && !backup.data) {
+    if (!backup.overrides && !backup.favorites && !backup.preferences && !backup.data && !backup.ledger && !backup.visits) {
       return { success: false, message: "备份文件缺少必要的书目修改或用户配置字段" };
     }
 
@@ -644,8 +712,13 @@
       }
 
       // 3. 恢复访问统计
-      if (backup.visits && typeof backup.visits === "object") {
+      if (backup.ledger && typeof backup.ledger === "object" && window.NavLedger) {
+        window.NavLedger.importData(backup.ledger);
+      } else if (backup.visits && typeof backup.visits === "object") {
         st.set("mynav_arch_visits", backup.visits);
+        if (window.NavLedger && typeof window.NavLedger.reload === "function") {
+          window.NavLedger.reload();
+        }
       }
 
       // 4. 恢复偏好（主题、搜索引擎、视图模式）
@@ -690,6 +763,7 @@
     saveOverrides,
     getSites,
     getAllMergedSites,
+    getAllIncludingUncatalogued,
     getHiddenSites,
     getSiteById,
     hasModifications,
@@ -706,6 +780,7 @@
     exportDataJsString,
     downloadDataJs,
     exportBackupObject,
+    getLedgerExport,
     downloadBackupJson,
     importBackupJson
   };

@@ -382,10 +382,12 @@
 
         const url = book.getAttribute("data-site-url");
         const siteId = book.getAttribute("data-site-id");
-        if (siteId && window.NavVisits) {
-          window.NavVisits.record(siteId);
-        }
-        if (url) {
+        if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+          window.NavApp.openSite(siteId);
+        } else if (url) {
+          if (siteId && window.NavVisits) {
+            window.NavVisits.record(siteId);
+          }
           window.open(url, "_blank", "noopener,noreferrer");
         }
         return;
@@ -395,7 +397,9 @@
       const visitBtn = e.target.closest("[data-shelf-visit-id]");
       if (visitBtn) {
         const siteId = visitBtn.getAttribute("data-shelf-visit-id");
-        if (siteId && window.NavVisits) {
+        if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+          window.NavApp.openSite(siteId);
+        } else if (siteId && window.NavVisits) {
           window.NavVisits.record(siteId);
         }
         return;
@@ -438,10 +442,12 @@
 
             const url = book.getAttribute("data-site-url");
             const siteId = book.getAttribute("data-site-id");
-            if (siteId && window.NavVisits) {
-              window.NavVisits.record(siteId);
-            }
-            if (url) {
+            if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+              window.NavApp.openSite(siteId);
+            } else if (url) {
+              if (siteId && window.NavVisits) {
+                window.NavVisits.record(siteId);
+              }
               window.open(url, "_blank", "noopener,noreferrer");
             }
             e.preventDefault();

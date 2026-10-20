@@ -2,8 +2,8 @@
  * 模块：搜索引擎切换器 (js/engine.js)
  * 职责：
  * 1. 管理默认 Google 搜索、站内书目检索与 GitHub 快捷检索配置
- * 2. 外部引擎模式下，捕获阶段拦截 input 事件防站内实时筛选
- * 3. 外部引擎模式下回车跳转（带 encodeURIComponent 与 noopener,noreferrer）
+ * 2. 无论当前引擎为何，输入始终驱动馆内实时筛选
+ * 3. Enter 在唯一命中时开卷；否则或 Shift+Enter 跳转当前外部引擎
  * 4. 防中文输入法回车误触 (e.isComposing / compositionstart / keyCode: 229)
  * 5. 输入框内按 Tab 循环切换引擎，placeholder 动态更新
  * 6. 本地持久化记住用户引擎选择 (localStorage: mynav_search_engine_v2)
@@ -26,20 +26,27 @@
     {
       id: "google",
       name: "Google",
-      placeholder: "用 Google 搜索全网，回车打开... (Tab 切换引擎)",
+      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 Google... (Tab 切换引擎)",
       url: "https://www.google.com/search?q=关键词"
     },
     {
       id: "site",
       name: "站内",
-      placeholder: "检索书目名称、简介、标签或域名... (按 / 快捷聚焦)",
+      placeholder: "检索书名、简介、标签或域名，/ 调出馆内命令...",
       url: null
     },
     {
       id: "github",
       name: "GitHub",
-      placeholder: "用 GitHub 搜索全网，回车打开... (Tab 切换引擎)",
+      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 GitHub... (Tab 切换引擎)",
       url: "https://github.com/search?q=关键词&type=repositories"
+    },
+    {
+      id: "constellation",
+      name: "✦ 群星会诊",
+      placeholder: "馆内实时检索；⇧Enter 同时投射 Google / GitHub / Bing...",
+      url: null,
+      multicast: true
     }
   ];
 
@@ -55,9 +62,9 @@
 
   function getEnginePlaceholder(engine) {
     if (engine.id === "site") {
-      return engine.placeholder || "检索书目名称、简介、标签或域名... (按 / 快捷聚焦)";
+      return engine.placeholder || "检索书名、简介、标签或域名，/ 调出馆内命令...";
     }
-    return `用 ${engine.name} 搜索全网，回车打开... (Tab 切换引擎)`;
+    return `馆内实时检索，/ 调出命令，⇧Enter 全网 ${engine.name}... (Tab 切换引擎)`;
   }
 
   function isSiteSearch() {
@@ -96,18 +103,15 @@
       localStorage.setItem("mynav_search_engine", currentEngineId);
     } catch (e) {}
 
-    // 处理已输入文字与站内筛选的联动
+    // 处理已输入文字与站内筛选的联动。文字本身不应驱动筛选状态，
+    // app.js 的 input 监听会维护 state.searchQuery。
     if (options.userInitiated && searchInput) {
       const currentText = searchInput.value;
 
       if (prevEngineId === "site" && currentEngineId !== "site") {
-        // 从站内切到外部：保留文字，但撤销站内筛选（恢复完整目录）
+        // 从站内切到外部：保留文字与当前馆内筛选结果，以便继续编辑。
         if (currentText.trim().length > 0) {
-          const resetBtn = document.getElementById("btn-reset-filter");
-          if (resetBtn) {
-            resetBtn.click();
-          }
-          searchInput.value = currentText;
+          searchInput.dispatchEvent(new Event("input", { bubbles: true }));
           const clearBtn = document.getElementById("btn-clear-search");
           if (clearBtn) clearBtn.style.display = "block";
         }
@@ -119,10 +123,53 @@
       }
 
       if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
-        const tip = currentEngineId === "site" ? "实时检索馆藏书目" : `回车跳转 ${targetEngine.name} 搜索全网`;
+        const tip = currentEngineId === "site"
+          ? "实时检索馆藏书目；唯一命中按 Enter 开卷"
+          : `馆内实时过滤；Shift+Enter 跳转 ${targetEngine.name}`;
         window.NavShortcuts.showToast(`搜索引擎：${targetEngine.name}`, tip, "🔍");
       }
     }
+  }
+
+  function searchExternal(value) {
+    const val = String(value || "").trim();
+    if (!val) {
+      if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
+        window.NavShortcuts.showToast("请输入搜索关键词", "输入普通检索词后按 Shift+Enter", "ℹ");
+      }
+      return false;
+    }
+
+    const engine = getEngineById(currentEngineId);
+    if (engine && engine.id === "constellation") {
+      if (window.NavConstellations && typeof window.NavConstellations.multicast === "function") {
+        return window.NavConstellations.multicast(val);
+      }
+      if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
+        window.NavShortcuts.showToast("群星会诊尚未就绪", "请稍后重试", "ℹ");
+      }
+      return false;
+    }
+    if (!engine || !engine.url) {
+      if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
+        window.NavShortcuts.showToast("站内模式不跳外网", "Tab 切换到 Google 或 GitHub", "ℹ");
+      }
+      return false;
+    }
+
+    const targetUrl = engine.url.replace("关键词", encodeURIComponent(val));
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
+    if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
+      window.NavShortcuts.showToast(`已通过 ${engine.name} 搜索`, val, "↗");
+    }
+    return true;
+  }
+
+  function multicast(value) {
+    if (window.NavConstellations && typeof window.NavConstellations.multicast === "function") {
+      return window.NavConstellations.multicast(value);
+    }
+    return false;
   }
 
   // 循环切换下一个/上一个引擎
@@ -177,25 +224,8 @@
     } catch (e) {}
     setEngine(savedEngine, { userInitiated: false });
 
-    // 捕获阶段拦截 input 事件：选外部引擎时阻止事件冒泡到 app.js
-    document.addEventListener(
-      "input",
-      function (e) {
-        if (e.target && e.target.id === "archive-search-input") {
-          if (currentEngineId !== "site") {
-            e.stopImmediatePropagation();
-            // 外部引擎输入时，维护清空按钮 (✕) 的显示状态
-            const clearBtn = document.getElementById("btn-clear-search");
-            if (clearBtn) {
-              clearBtn.style.display = e.target.value.trim().length > 0 ? "block" : "none";
-            }
-          }
-        }
-      },
-      true // 捕获阶段
-    );
-
-    // 捕获阶段拦截 keydown 事件：Tab 循环切引擎、Enter 触发外部搜索、防输入法回车
+    // 捕获阶段只接管 Tab；Enter 交给 app.js 的馆内路由，
+    // 从而保留隐藏口令、唯一命中开卷与 Shift+Enter 外搜。
     document.addEventListener(
       "keydown",
       function (e) {
@@ -212,46 +242,7 @@
             return;
           }
 
-          // 2. Enter 键：外部引擎在新标签页打开搜索结果
-          if (e.key === "Enter") {
-            // 中文输入法选词时的回车不要触发搜索 (多层防误触保护)
-            if (e.isComposing || isComposing || e.keyCode === 229) {
-              return;
-            }
-
-            // 特工暗号彩蛋拦截 (***REMOVED*** 直达哪吒探针面板)
-            const rawVal = (e.target.value || "").trim();
-            if (rawVal === "***REMOVED***") {
-              e.preventDefault();
-              e.stopImmediatePropagation();
-              e.target.value = "";
-              const clearBtn = document.getElementById("btn-clear-search");
-              if (clearBtn) clearBtn.style.display = "none";
-              window.open("http://***REMOVED***:8008", "_blank");
-              return;
-            }
-
-            if (currentEngineId !== "site") {
-              e.preventDefault();
-              e.stopImmediatePropagation();
-              const val = e.target.value.trim();
-              if (!val) {
-                if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
-                  window.NavShortcuts.showToast("请输入搜索关键词", "回车即可跳转外部搜索", "ℹ");
-                }
-                return;
-              }
-
-              const engine = getEngineById(currentEngineId);
-              if (engine && engine.url) {
-                const targetUrl = engine.url.replace("关键词", encodeURIComponent(val));
-                window.open(targetUrl, "_blank", "noopener,noreferrer");
-                if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
-                  window.NavShortcuts.showToast(`已通过 ${engine.name} 搜索`, val, "↗");
-                }
-              }
-            }
-          }
+          // Enter 由馆内路由处理：唯一命中开卷，否则按当前引擎外搜。
         }
       },
       true // 捕获阶段
@@ -274,6 +265,8 @@
     getCurrent,
     setEngine,
     cycleNext,
-    cyclePrev
+    cyclePrev,
+    searchExternal,
+    multicast
   };
 });

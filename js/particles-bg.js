@@ -47,9 +47,13 @@
 
   // 主题平滑过渡参数 (0.0: 完全浅色手稿星图, 1.0: 完全暗夜深邃星空)
   let themeRatio = 0.0;
+  let lastFrameTimestamp = 0;
 
   // 粒子集合
   const particles = [];
+  const meteors = [];
+  let meteorSeed = 0;
+  let meteorTimer = null;
 
   // 光标状态（在 window 上监听 pointermove）
   const mouse = {
@@ -70,7 +74,10 @@
     darkMobileCount: 30,
     connectRadius: 180,     // 鼠标引力与连线半径
     interPointDist: 115,    // 粒子间连线距离
-    speed: 0.28             // 沉静缓慢漂移
+    speed: 0.28,            // 沉静缓慢漂移
+    meteorIntervalMin: 18000,
+    meteorIntervalMax: 42000,
+    meteorLifetime: 1450
   };
 
   // 检测减弱动效偏好 (prefers-reduced-motion)
@@ -360,6 +367,81 @@
     ctx.restore();
   }
 
+  // 流星是独立于星尘池的短生命周期图元。它只在暗色观星台出现，
+  // 因而不会干扰浅色日晷手稿的测绘线。
+  function spawnMeteor(force) {
+    if (!isDarkTheme() && !force) return false;
+    if (prefersReducedMotion()) return false;
+    if (!isRunning) startAnimation();
+    if (!isRunning) return false;
+    if (!width || !height) resize();
+    const startX = width * (0.12 + Math.random() * 0.78);
+    const startY = height * (0.04 + Math.random() * 0.44);
+    const travel = Math.max(180, Math.min(width, height) * (0.34 + Math.random() * 0.25));
+    const angle = Math.PI * (0.23 + Math.random() * 0.12);
+    const speed = travel / (CONFIG.meteorLifetime * 0.84);
+    meteors.push({
+      id: ++meteorSeed,
+      x: startX,
+      y: startY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      age: 0,
+      life: CONFIG.meteorLifetime * (0.82 + Math.random() * 0.32),
+      length: 80 + Math.random() * 110,
+      width: 0.7 + Math.random() * 0.75,
+      hue: Math.random() < 0.25 ? "244, 224, 184" : "218, 235, 255"
+    });
+    return true;
+  }
+
+  function scheduleMeteor() {
+    if (meteorTimer) clearTimeout(meteorTimer);
+    const delay = CONFIG.meteorIntervalMin +
+      Math.random() * (CONFIG.meteorIntervalMax - CONFIG.meteorIntervalMin);
+    meteorTimer = setTimeout(function () {
+      if (isRunning && isDarkTheme()) spawnMeteor(false);
+      scheduleMeteor();
+    }, delay);
+  }
+
+  function drawMeteors(deltaMs) {
+    if (!meteors.length) return;
+    const delta = Math.min(48, Math.max(0, Number(deltaMs) || 16.67));
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const meteor = meteors[i];
+      meteor.age += delta;
+      const progress = meteor.age / meteor.life;
+      if (progress >= 1) {
+        meteors.splice(i, 1);
+        continue;
+      }
+
+      meteor.x += meteor.vx * delta;
+      meteor.y += meteor.vy * delta;
+      const fade = Math.sin(Math.min(1, progress) * Math.PI);
+      const tailX = meteor.x - meteor.vx / Math.max(0.001, Math.hypot(meteor.vx, meteor.vy)) * meteor.length;
+      const tailY = meteor.y - meteor.vy / Math.max(0.001, Math.hypot(meteor.vx, meteor.vy)) * meteor.length;
+      const gradient = ctx.createLinearGradient(meteor.x, meteor.y, tailX, tailY);
+      gradient.addColorStop(0, `rgba(${meteor.hue}, ${(0.7 * fade * themeRatio).toFixed(3)})`);
+      gradient.addColorStop(0.32, `rgba(${meteor.hue}, ${(0.32 * fade * themeRatio).toFixed(3)})`);
+      gradient.addColorStop(1, `rgba(${meteor.hue}, 0)`);
+      ctx.save();
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = meteor.width;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(meteor.x, meteor.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(255, 250, 236, ${(0.88 * fade * themeRatio).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(meteor.x, meteor.y, meteor.width * 1.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
   // 主动画帧循环
   function render(timestamp) {
     if (!isRunning) return;
@@ -605,6 +687,9 @@
       }
     }
 
+    const frameDelta = lastFrameTimestamp ? timestamp - lastFrameTimestamp : 16.67;
+    lastFrameTimestamp = timestamp || 0;
+    drawMeteors(frameDelta);
     animId = requestAnimationFrame(render);
   }
 
@@ -618,6 +703,7 @@
     resize();
     themeRatio = isDarkTheme() ? 1.0 : 0.0;
     isRunning = true;
+    scheduleMeteor();
     animId = requestAnimationFrame(render);
   }
 
@@ -628,11 +714,16 @@
       cancelAnimationFrame(animId);
       animId = null;
     }
+    if (meteorTimer) {
+      clearTimeout(meteorTimer);
+      meteorTimer = null;
+    }
   }
 
   function resumeAnimation() {
     if (!isRunning && isStoredEnabled() && !prefersReducedMotion()) {
       isRunning = true;
+      scheduleMeteor();
       animId = requestAnimationFrame(render);
     }
   }
@@ -644,6 +735,11 @@
     }
     if (container) {
       container.style.display = "none";
+    }
+    meteors.length = 0;
+    if (meteorTimer) {
+      clearTimeout(meteorTimer);
+      meteorTimer = null;
     }
   }
 
@@ -696,6 +792,12 @@
     setEnabled,
     isEnabled,
     resize,
+    triggerMeteor: function () {
+      return spawnMeteor(true);
+    },
+    getMeteorCount: function () {
+      return meteors.length;
+    },
     updateTheme: () => {
       // 外部可主动触发主题检查
       if (isRunning) {

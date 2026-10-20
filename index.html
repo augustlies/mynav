@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=1.9.0">
+  <link rel="stylesheet" href="styles.css?v=2.0.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -23,6 +23,50 @@
         <span class="colophon-sub-title">个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
+        <!-- Phase 3A：D6 白噪音天文台 -->
+        <button
+          type="button"
+          id="btn-soundscape-toggle"
+          class="theme-switch-btn soundscape-switch-btn"
+          data-state="off"
+          aria-pressed="false"
+          aria-label="开启白噪音天文台"
+          title="寂静（/sound 开启）"
+        >
+          <span class="soundscape-icon" aria-hidden="true">𝄞</span>
+          <span class="soundscape-label">寂静</span>
+        </button>
+        <!-- Phase 2：活字秘卷与双生结界 -->
+        <button
+          type="button"
+          id="btn-snippets-entry"
+          class="theme-switch-btn snippets-switch-btn"
+          aria-label="打开活字秘卷匣 (S)"
+          title="活字秘卷匣 (S)"
+        >
+          <span class="snippets-icon" aria-hidden="true">📜</span>
+          <span class="snippets-label">秘卷</span>
+        </button>
+        <button
+          type="button"
+          id="btn-shadow-toggle"
+          class="theme-switch-btn shadow-switch-btn"
+          aria-label="切换暗月密室 (/shadow)"
+          title="暗月密室 (/shadow)"
+        >
+          <span class="shadow-icon" aria-hidden="true">☾</span>
+          <span class="shadow-label">暗月</span>
+        </button>
+        <button
+          type="button"
+          id="btn-focus-toggle"
+          class="theme-switch-btn focus-switch-btn"
+          aria-label="切换考场结界 (/focus)"
+          title="考场结界 (/focus)"
+        >
+          <span class="focus-icon" aria-hidden="true">⌛</span>
+          <span class="focus-label">结界</span>
+        </button>
         <!-- 视图切换按钮：网格 ⟷ 书架 -->
         <button
           type="button"
@@ -69,6 +113,18 @@
         >
           <span class="shortcuts-icon" aria-hidden="true">⌨</span>
           <span class="shortcuts-label">指南</span>
+        </button>
+        <!-- A8：随机开卷 -->
+        <button
+          type="button"
+          id="btn-random-open"
+          class="theme-switch-btn random-switch-btn"
+          aria-label="今日开卷：从全馆随机抽一卷 (R)"
+          title="今日开卷 · 随机寻星 (R)"
+        >
+          <span class="random-icon" aria-hidden="true">✦</span>
+          <span class="random-label">随机开卷</span>
+          <kbd class="header-key">R</kbd>
         </button>
         <!-- 云同步登录按钮 -->
         <button
@@ -120,6 +176,48 @@
             </div>
           </nav>
 
+          <!-- C1：活字秘卷书脊入口 -->
+          <button
+            type="button"
+            id="btn-snippets-spine-entry"
+            class="spine-uncatalogued-entry spine-snippets-entry"
+            title="打开活字秘卷匣 (S)"
+          >
+            <span class="uncatalogued-glyph" aria-hidden="true">📜</span>
+            <span class="uncatalogued-label">活字秘卷</span>
+            <span class="uncatalogued-meta">PROMPT · S</span>
+          </button>
+
+          <!-- B2：待编目匣入口，抽屉由 js/uncatalogued.js 接管 -->
+          <button
+            type="button"
+            id="btn-uncatalogued-entry"
+            class="spine-uncatalogued-entry"
+            title="打开待编目匣 (U)"
+          >
+            <span class="uncatalogued-glyph" aria-hidden="true">⌘</span>
+            <span class="uncatalogued-label">待编目匣</span>
+            <span class="uncatalogued-meta"><span id="uncatalogued-entry-count">00</span> · U</span>
+          </button>
+
+          <!-- Phase 3A：D3 黄铜工具尺（桌面书脊入口） -->
+          <button
+            type="button"
+            id="btn-brass-tools-entry"
+            class="spine-uncatalogued-entry spine-brass-entry"
+            title="打开黄铜工具尺 (T)"
+          >
+            <span class="uncatalogued-glyph" aria-hidden="true">📐</span>
+            <span class="uncatalogued-label">黄铜工具尺</span>
+            <span class="uncatalogued-meta">UTILITY · T</span>
+          </button>
+
+          <div id="focus-timer" class="focus-timer" hidden aria-live="polite">
+            <span class="focus-timer-kicker">FOCUS · 沉浸研习</span>
+            <strong id="focus-timer-value">00:00:00</strong>
+            <button type="button" id="btn-stop-focus">解除封条</button>
+          </div>
+
           <div class="spine-colophon" aria-hidden="true">
             <span class="spine-colophon-rule"></span>
             <span>RA 18h 36m · DEC +38°47′</span>
@@ -130,12 +228,21 @@
 
       <section class="folio-main" aria-label="馆藏检索与典藏目录">
         <header class="folio-search-bar" aria-label="馆藏检索">
+          <div class="folio-view-switcher" role="group" aria-label="典藏视图">
+            <button type="button" id="btn-catalog-view" class="folio-view-btn is-active" data-archive-view="grid" aria-pressed="true" title="书本目录视图">
+              <span aria-hidden="true">📖</span><span>书本目录</span>
+            </button>
+            <span class="folio-view-divider" aria-hidden="true">|</span>
+            <button type="button" id="btn-star-map-view" class="folio-view-btn" data-archive-view="star-map" aria-pressed="false" title="穹顶星图视图 (G)">
+              <span aria-hidden="true">🌌</span><span>穹顶星图</span>
+            </button>
+          </div>
           <div class="archive-search-section">
             <div class="search-box-frame">
               <span class="search-glyph" aria-hidden="true">§</span>
               <div id="search-engine-picker" class="search-engine-picker is-external" title="切换搜索引擎 (Tab 循环切换)">
                 <select id="search-engine-select" class="search-engine-select" aria-label="切换搜索引擎">
-                  <option value="google" selected>Google</option>
+                <option value="google" selected>Google</option>
                   <option value="site">站内</option>
                   <option value="github">GitHub</option>
                 </select>
@@ -145,12 +252,14 @@
                 type="search"
                 id="archive-search-input"
                 class="archive-search-input"
-                placeholder="用 Google 搜索全网，回车打开... (Tab 切换引擎)"
+                placeholder="检索馆藏，或输入 / 调用指令... (Tab 切换引擎)"
                 inputmode="search"
                 enterkeyhint="search"
                 autocomplete="off"
                 spellcheck="false"
                 aria-label="全馆实时检索"
+                aria-controls="folio-command-panel"
+                aria-expanded="false"
               >
               <div class="search-tools">
                 <button
@@ -166,12 +275,54 @@
                 <kbd class="kbd-tag" title="按 / 键快速聚焦">/</kbd>
               </div>
             </div>
+            <div
+              id="folio-command-panel"
+              class="folio-command-panel"
+              role="listbox"
+              aria-label="馆内命令"
+              hidden
+            ></div>
           </div>
-          <div class="folio-search-meta" aria-hidden="true">
+          <div class="folio-search-meta">
             <span>寻书镜</span>
-            <span>INDEX / 001</span>
+            <div class="search-quick-hooks" role="group" aria-label="典藏快捷筛选">
+              <button
+                type="button"
+                class="search-hook-btn"
+                data-search-cat="favorites"
+                title="只看私人典藏"
+              >★ 私人典藏</button>
+              <button
+                type="button"
+                class="search-hook-btn"
+                data-search-cat="frequent"
+                title="查看近 7 天常驻案头"
+              >🔥 常驻案头</button>
+              <button
+                type="button"
+                id="btn-almanac-jump"
+                class="search-hook-btn search-hook-btn--almanac"
+                title="展开星轨编年史"
+              >🗓️ 星轨编年</button>
+            </div>
+            <div class="almanac-status-switch" role="group" aria-label="星轨时光回溯窗口">
+              <button type="button" class="almanac-window-btn is-active" data-almanac-window="all" aria-pressed="true">✦ 全部纪元</button>
+              <button type="button" class="almanac-window-btn" data-almanac-window="7d" aria-pressed="false">🌒 近 7 日</button>
+              <button type="button" class="almanac-window-btn" data-almanac-window="30d" aria-pressed="false">🌓 近 30 日</button>
+              <button type="button" class="almanac-window-btn" data-almanac-window="old" aria-pressed="false">⌛ 尘封往昔</button>
+            </div>
+          </div>
+          <div class="mobile-phase3-actions" role="group" aria-label="移动端 Phase 3A 快捷入口">
+            <button type="button" id="btn-uncatalogued-mobile" class="mobile-phase3-btn">
+              <span aria-hidden="true">⌘</span> 待编目
+            </button>
+            <button type="button" id="btn-brass-tools-mobile" class="mobile-phase3-btn">
+              <span aria-hidden="true">📐</span> 工具尺
+            </button>
           </div>
         </header>
+
+        <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
 
         <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
           <div class="arrange-toolbar-content">
@@ -194,6 +345,10 @@
         <main class="archive-main-area" id="archive-content-area" role="main">
           <!-- 动态排版渲染区域 -->
         </main>
+        <section id="star-map-container" class="star-map-container" aria-label="穹顶知识关系星图" hidden></section>
+        <section id="almanac-chronicle" class="almanac-chronicle" aria-labelledby="almanac-title" hidden>
+          <div class="almanac-chronicle-slot"></div>
+        </section>
 
         <footer class="colophon-footer" role="contentinfo">
           <div class="footer-inner-rail">
@@ -201,6 +356,13 @@
             <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
             <div class="footer-shortcuts-line">
               <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
+              <span><kbd class="kbd-tag">&gt;</kbd> 馆内命令</span>
+              <span><kbd class="kbd-tag">01</kbd> 索书号直达</span>
+              <span><kbd class="kbd-tag">R</kbd> 随机开卷</span>
+              <span><kbd class="kbd-tag">U</kbd> 待编目匣</span>
+              <span><kbd class="kbd-tag">S</kbd> 活字秘卷</span>
+              <span><kbd class="kbd-tag">T</kbd> 黄铜工具尺</span>
+              <span><kbd class="kbd-tag">/sound</kbd> 白噪音天文台</span>
               <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
               <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
               <span><kbd class="kbd-tag">f</kbd> 典藏</span>
@@ -267,6 +429,18 @@
                 <div class="shortcut-desc">瞬时聚焦全馆检索框</div>
               </li>
               <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">/</kbd> 或 <kbd class="kbd-badge">&gt;</kbd></div>
+                <div class="shortcut-desc">在索书框内展开馆内命令面板</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Shift</kbd>+<kbd class="kbd-badge">Enter</kbd></div>
+                <div class="shortcut-desc">保留馆内筛选，同时用当前引擎搜索全网</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Ctrl</kbd>+<kbd class="kbd-badge">Shift</kbd>+<kbd class="kbd-badge">Enter</kbd></div>
+                <div class="shortcut-desc">群星会诊：同一检索词并发投射 Google / GitHub / Bing</div>
+              </li>
+              <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">Esc</kbd></div>
                 <div class="shortcut-desc">退出搜索 / 关闭弹窗 / 取消聚焦</div>
               </li>
@@ -311,8 +485,12 @@
                 <div class="shortcut-desc">品鉴专属数字藏书票 (Ex Libris)</div>
               </li>
               <li>
-                <div class="shortcut-keys"><kbd class="kbd-badge">1</kbd> ~ <kbd class="kbd-badge">7</kbd></div>
-                <div class="shortcut-desc">数字快捷键直达分类专栏</div>
+                <div class="shortcut-keys"><kbd class="kbd-badge">01</kbd> ~ <kbd class="kbd-badge">36</kbd></div>
+                <div class="shortcut-desc">450ms 内连按两位索书号，盲打开卷并记账</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Alt</kbd>+<kbd class="kbd-badge">1</kbd> ~ <kbd class="kbd-badge">7</kbd></div>
+                <div class="shortcut-desc">直达分类专栏（裸数字留给索书号）</div>
               </li>
             </ul>
           </div>
@@ -327,6 +505,30 @@
               <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">t</kbd></div>
                 <div class="shortcut-desc">循环切换昼夜模式 (浅色/深色/自动)</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">R</kbd></div>
+                <div class="shortcut-desc">今日开卷：从全馆随机抽一张藏书票</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">U</kbd></div>
+                <div class="shortcut-desc">拉开「待编目匣 · 暗星带」抽屉</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">S</kbd></div>
+                <div class="shortcut-desc">打开「活字秘卷匣」并复制 Prompt / 脚本</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">T</kbd></div>
+                <div class="shortcut-desc">拉开「黄铜工具尺 · 炼金实验台」</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">/sound</kbd></div>
+                <div class="shortcut-desc">开启 / 关闭白噪音天文台</div>
+              </li>
+              <li>
+                <div class="shortcut-keys"><kbd class="kbd-badge">Alt</kbd> + 点击卡片</div>
+                <div class="shortcut-desc">翻开藏书票批注面，不触发外链</div>
               </li>
               <li>
                 <div class="shortcut-keys"><span class="kbd-badge">右键空白</span></div>
@@ -392,7 +594,7 @@
             <div class="specs-row"><span>字体系统</span><span>Cinzel / Noto Serif SC / JetBrains Mono</span></div>
             <div class="specs-row"><span>色彩令牌</span><span>Ivory Paper (#F8F6F0) & Charcoal Ink (#1C1D19)</span></div>
             <div class="specs-row"><span>版印算法</span><span>FNV-1a 32-bit 确定性矢量几何星芒与藏书票</span></div>
-            <div class="specs-row"><span>馆藏编目</span><span>19 卷经典藏书 · 4 大分类专栏 · 83 组索引词</span></div>
+            <div class="specs-row"><span>馆藏编目</span><span>36 卷经典藏书 · 5 大分类专栏 · 151 组索引词</span></div>
           </div>
         </section>
 
@@ -409,27 +611,282 @@
     </div>
   </div>
 
+  <!-- A2 黄铜索书号印章 Toast -->
+  <div id="folio-chord-stamp" class="folio-chord-stamp" role="status" aria-live="polite" aria-atomic="true">
+    <span class="chord-stamp-corner" aria-hidden="true"></span>
+    <span class="chord-stamp-kicker">CATALOGUE ACCESS</span>
+    <strong class="chord-stamp-title">索书号</strong>
+    <span class="chord-stamp-sub"></span>
+  </div>
+
+  <!-- A8 今日推荐藏书票 -->
+  <div
+    id="today-open-modal"
+    class="today-open-modal-backdrop"
+    style="display: none;"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="today-open-title"
+  >
+    <article class="today-open-card">
+      <span class="today-open-orbit" aria-hidden="true"></span>
+      <header class="today-open-header">
+        <div>
+          <span class="today-open-kicker">SERENDIPITY · DAILY OPENING</span>
+          <h2 id="today-open-title" class="today-open-title">今日开卷</h2>
+        </div>
+        <button
+          type="button"
+          id="btn-close-today-open"
+          class="btn-close-today-open"
+          aria-label="关闭今日开卷 (Esc)"
+          title="关闭 (Esc)"
+        >✕</button>
+      </header>
+      <div class="today-open-body">
+        <div class="today-open-number-rail" aria-hidden="true">
+          <span id="today-open-number" class="today-open-number">№ 01</span>
+          <span class="today-open-rule"></span>
+          <span class="today-open-seal">EX<br>LIBRIS</span>
+        </div>
+        <div class="today-open-editorial">
+          <div class="today-open-meta">
+            <span id="today-open-category">ARCHIVE</span>
+            <span id="today-open-domain"></span>
+          </div>
+          <h3 id="today-open-site-title" class="today-open-site-title">—</h3>
+          <p id="today-open-desc" class="today-open-desc"></p>
+          <div id="today-open-tags" class="today-open-tags"></div>
+        </div>
+      </div>
+      <footer class="today-open-footer">
+        <button type="button" id="btn-today-open-another" class="btn-today-open-secondary">
+          换一卷
+        </button>
+        <button type="button" id="btn-today-open-visit" class="btn-today-open-primary">
+          立即调阅 ↵
+        </button>
+      </footer>
+    </article>
+  </div>
+
   <!-- 典雅微印记 Toast 提示浮层 (Editorial Toast Container) -->
   <div id="editorial-toast-container" class="editorial-toast-container" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- B1-B4 待编目匣 · 暗星带 -->
+  <div id="uncatalogued-backdrop" class="uncatalogued-backdrop" hidden></div>
+  <aside
+    id="uncatalogued-drawer"
+    class="uncatalogued-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="uncatalogued-title"
+    hidden
+  >
+    <header class="uncatalogued-drawer-header">
+      <div>
+        <span class="uncatalogued-kicker">DARK STAR BELT · TEMPORARY FOLIOS</span>
+        <h2 id="uncatalogued-title">待编目匣 <span id="uncatalogued-count">00</span></h2>
+      </div>
+      <button type="button" id="btn-close-uncatalogued" class="uncatalogued-close" aria-label="关闭待编目匣">✕</button>
+    </header>
+    <form id="uncatalogued-form" class="uncatalogued-form">
+      <label>网址 URL <input type="url" id="uncatalogued-url" placeholder="https://..." required></label>
+      <label>网站名称 <input type="text" id="uncatalogued-name" placeholder="待查书卷题名" required></label>
+      <label>收录动机 Why Saved <em>（必填）</em>
+        <textarea id="uncatalogued-why" rows="2" placeholder="以后做地图切瓦片可能用得上" required></textarea>
+      </label>
+      <label>暂拟分类 <select id="uncatalogued-category"></select></label>
+      <button type="button" id="btn-uncatalogued-add" class="uncatalogued-submit">封存候选 ↗</button>
+    </form>
+    <div id="uncatalogued-list" class="uncatalogued-list" aria-live="polite"></div>
+  </aside>
+
+  <!-- C1 活字秘卷匣 -->
+  <div id="snippets-modal" class="snippets-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="snippets-title">
+    <section class="snippets-modal-card">
+      <header class="snippets-modal-header">
+        <div>
+          <span class="snippets-kicker">CODEX · MOVABLE TYPE CABINET</span>
+          <h2 id="snippets-title">活字秘卷匣</h2>
+        </div>
+        <button type="button" id="btn-close-snippets" class="snippets-close" aria-label="关闭活字秘卷">✕</button>
+      </header>
+      <div class="snippets-modal-toolbar">
+        <span>点击秘卷即复制正文，并展开 AI 携卷菜单。</span>
+        <button type="button" id="btn-add-snippet">+ 新增秘卷</button>
+      </div>
+      <div id="snippets-list" class="snippets-list"></div>
+      <div id="snippets-copy-menu" class="snippets-copy-menu" hidden aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Phase 3A · D3 黄铜工具尺 · 炼金实验台 -->
+  <div id="brass-tools-backdrop" class="brass-tools-backdrop" hidden></div>
+  <aside
+    id="brass-workbench"
+    class="brass-workbench"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="brass-workbench-title"
+    hidden
+  >
+    <header class="brass-workbench-header">
+      <div>
+        <span class="brass-workbench-kicker">BRASS INSTRUMENT ROOM · LOCAL SANDBOX</span>
+        <h2 id="brass-workbench-title">黄铜工具尺</h2>
+      </div>
+      <button type="button" id="btn-close-brass-workbench" class="brass-workbench-close" aria-label="关闭黄铜工具尺 (Esc)" title="关闭 (Esc)">✕</button>
+    </header>
+
+    <nav class="brass-workbench-tabs" role="tablist" aria-label="黄铜工具尺仪器">
+      <button type="button" role="tab" data-brass-tab="compass" class="is-active" aria-selected="true">
+        <span aria-hidden="true">🧭</span> 星象罗盘
+      </button>
+      <button type="button" role="tab" data-brass-tab="cipher" aria-selected="false">
+        <span aria-hidden="true">⚙️</span> 译码转盘
+      </button>
+      <button type="button" role="tab" data-brass-tab="clock" aria-selected="false">
+        <span aria-hidden="true">⏳</span> 历法刻漏
+      </button>
+    </nav>
+
+    <div class="brass-workbench-body">
+      <section class="brass-panel" data-brass-panel="compass" role="tabpanel" aria-label="星象罗盘">
+        <div class="brass-panel-intro">
+          <span class="brass-panel-code">INSTRUMENT I · EXIT PROBE</span>
+          <p>双栈网络与出口探针仅在打开时测量；离线环境自动回退本地沙盒，不会阻塞桌面。</p>
+        </div>
+        <div class="brass-dial-grid">
+          <article class="brass-dial">
+            <span class="brass-dial-label">境内链路状态 &amp; Δt 延迟</span>
+            <strong id="brass-probe-domestic">LOCAL SANDBOX · 127.0.0.1 (Δt 1ms)</strong>
+          </article>
+          <article class="brass-dial">
+            <span class="brass-dial-label">星际出口 IP / 节点归属</span>
+            <strong id="brass-probe-exit">LOCAL SANDBOX · 127.0.0.1 (Δt 1ms)</strong>
+          </article>
+          <article class="brass-dial">
+            <span class="brass-dial-label">浏览器 DNS / 在线状态</span>
+            <strong id="brass-probe-dns">在线 · LOCAL SANDBOX · 127.0.0.1</strong>
+          </article>
+        </div>
+        <div class="brass-panel-actions">
+          <button type="button" id="btn-brass-reprobe" class="brass-action brass-action-primary">↻ 重新测绘</button>
+          <span id="brass-probe-note" class="brass-status">探针采用 2000ms AbortController；离线时静默回退至本地沙盒。</span>
+        </div>
+      </section>
+
+      <section class="brass-panel" data-brass-panel="cipher" role="tabpanel" aria-label="译码转盘" hidden>
+        <div class="brass-panel-intro">
+          <span class="brass-panel-code">INSTRUMENT II · CIPHER WHEEL</span>
+          <p>UTF-8 安全的本地译码。JSON 会报告语法错误所在行；JWT 仅解码 Payload，不验证签名。</p>
+        </div>
+        <div class="brass-mode-row" role="group" aria-label="译码模式">
+          <button type="button" data-brass-mode="base64" class="is-active" aria-pressed="true">Base64</button>
+          <button type="button" data-brass-mode="url" aria-pressed="false">URL</button>
+          <button type="button" data-brass-mode="json" aria-pressed="false">JSON</button>
+          <button type="button" data-brass-mode="jwt" aria-pressed="false">JWT Payload</button>
+        </div>
+        <label class="brass-field">
+          <span>输入 · INPUT</span>
+          <textarea id="brass-cipher-input" rows="6" spellcheck="false" placeholder="粘贴 Base64、URL、JSON 或 JWT..."></textarea>
+        </label>
+        <div class="brass-cipher-actions">
+          <button type="button" class="brass-action" data-brass-operation="encode">编码 ↗</button>
+          <button type="button" class="brass-action" data-brass-operation="decode">解码 ↙</button>
+          <button type="button" class="brass-action" data-brass-operation="format">格式化 JSON</button>
+          <button type="button" class="brass-action" data-brass-operation="compact">压缩 JSON</button>
+          <button type="button" id="brass-copy" class="brass-action">复制结果</button>
+          <button type="button" id="brass-clear" class="brass-action">清空</button>
+        </div>
+        <label class="brass-field">
+          <span>输出 · OUTPUT</span>
+          <textarea id="brass-cipher-output" rows="7" readonly spellcheck="false" placeholder="译码结果将在此显现"></textarea>
+        </label>
+        <p id="brass-cipher-status" class="brass-status" aria-live="polite">等待输入 · BASE64</p>
+      </section>
+
+      <section class="brass-panel" data-brass-panel="clock" role="tabpanel" aria-label="历法刻漏" hidden>
+        <div class="brass-panel-intro">
+          <span class="brass-panel-code">INSTRUMENT III · EPOCH &amp; SHA-256</span>
+          <p>本地时间采用浏览器时区；SHA-256 由原生 Web Crypto 计算，摘要不会离开本机。</p>
+        </div>
+        <div class="brass-clock-now">
+          <span class="brass-dial-label">实时刻漏</span>
+          <strong id="brass-epoch-now">UNIX —</strong>
+          <span id="brass-epoch-now-date" class="brass-status"></span>
+        </div>
+        <div class="brass-conversion-grid">
+          <label class="brass-field">
+            <span>Unix 秒 / 毫秒时间戳</span>
+            <input type="text" id="brass-epoch-input" inputmode="numeric" placeholder="1760860800 或 1760860800000">
+          </label>
+          <button type="button" id="btn-brass-ts-to-date" class="brass-action">时间戳 → 日期</button>
+          <label class="brass-field">
+            <span>本地日期 YYYY-MM-DD HH:mm:ss</span>
+            <input type="text" id="brass-epoch-date-input" placeholder="2026-10-19 12:00:00">
+          </label>
+          <button type="button" id="btn-brass-date-to-ts" class="brass-action">日期 → 时间戳</button>
+        </div>
+        <label class="brass-field">
+          <span>换算结果</span>
+          <input type="text" id="brass-epoch-output" readonly placeholder="结果将在此显现">
+        </label>
+        <p id="brass-epoch-status" class="brass-status" aria-live="polite"></p>
+        <div class="brass-hash-grid">
+          <label class="brass-field">
+            <span>任意字符串 · SHA-256</span>
+            <textarea id="brass-sha-input" rows="3" spellcheck="false" placeholder="输入需要摘要的字符串..."></textarea>
+          </label>
+          <label class="brass-field">
+            <span>十六进制摘要</span>
+            <textarea id="brass-sha-output" rows="3" readonly spellcheck="false" placeholder="摘要将实时显现"></textarea>
+          </label>
+        </div>
+        <p id="brass-sha-status" class="brass-status" aria-live="polite">输入字符串后实时计算 SHA-256</p>
+      </section>
+    </div>
+
+    <footer class="brass-workbench-footer">
+      <span>EX LIBRIS · BRASS INSTRUMENTS · ZERO EXTERNAL DEPENDENCIES</span>
+      <span>按 T 或 Esc 收卷</span>
+    </footer>
+  </aside>
+
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.8.0"></script>
-  <script src="js/storage.js?v=1.7.0"></script>
+  <script src="js/storage.js?v=2.0.0"></script>
+  <script src="js/schema.js?v=2.0.0"></script>
+  <script src="js/ledger.js?v=2.0.0"></script>
   <script src="js/overrides.js?v=1.7.0"></script>
   <script src="js/theme.js?v=1.7.0"></script>
   <script src="js/particles-bg.js?v=1.7.0"></script>
+  <script src="js/astronomy.js?v=3.0.0"></script>
+  <script src="js/soundscape.js?v=3.0.0"></script>
+  <script src="js/brass-tools.js?v=3.0.0"></script>
   <script src="js/favorites.js?v=1.7.0"></script>
-  <script src="js/visits.js?v=1.7.0"></script>
+  <script src="js/visits.js?v=2.0.0"></script>
   <script src="js/search.js?v=1.7.0"></script>
-  <script src="js/engine.js?v=1.7.0"></script>
+  <script src="js/engine.js?v=2.0.0"></script>
   <script src="js/motion.js?v=1.7.0"></script>
   <script src="js/sortable.js?v=1.7.0"></script>
   <script src="js/exlibris.js?v=1.7.0"></script>
   <script src="js/bookshelf.js?v=1.7.0"></script>
-  <script src="js/shortcuts.js?v=1.7.0"></script>
+  <script src="js/shortcuts.js?v=2.0.0"></script>
+  <script src="js/commands.js?v=2.0.0"></script>
+  <script src="js/folio-keys.js?v=2.0.0"></script>
+  <script src="js/serendipity.js?v=2.0.0"></script>
+  <script src="js/marginalia.js?v=2.0.0"></script>
+  <script src="js/uncatalogued.js?v=2.0.0"></script>
+  <script src="js/snippets.js?v=2.0.0"></script>
+  <script src="js/constellations.js?v=2.0.0"></script>
+  <script src="js/sanctum.js?v=2.0.0"></script>
+  <script src="js/almanac.js?v=3.1.0"></script>
+  <script src="js/star-map.js?v=3.1.0"></script>
   <script src="js/lore.js?v=1.7.0"></script>
   <script src="js/contextmenu.js?v=1.7.0"></script>
   <script src="js/cloud-sync.js?v=1.7.0"></script>
-  <script src="app.js?v=1.9.0"></script>
+  <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
