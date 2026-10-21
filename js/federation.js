@@ -546,9 +546,32 @@
     }
     list.innerHTML = node.items.map(function (item) {
       var local = node.id === "local";
+      var iconAttributes = "";
+      if (window.NavSchema) {
+        if (local) {
+          iconAttributes = window.NavSchema.iconAttributes({
+            id: item.id,
+            name: item.title,
+            url: item.url
+          });
+        } else if (typeof window.NavSchema.buildMonogramDataUri === "function") {
+          // Neighbour catalogues are static sandbox data, not user-confirmed
+          // sources. Never let an unfamiliar remote domain emit provider
+          // requests (and the 404 console noise that comes with them) just
+          // because a demo card is on screen.
+          var seal = window.NavSchema.buildMonogramDataUri(item.title);
+          iconAttributes = 'src="' + escapeHtml(seal) + '" ' +
+            'data-icon-fallback="' + escapeHtml(seal) + '" ' +
+            'data-icon-probe-step="0"';
+        }
+      }
+      var iconHtml = iconAttributes
+        ? '<img class="archive-icon-img" ' + iconAttributes + ' alt="" loading="lazy" width="24" height="24">'
+        : "";
       return [
         '<article class="federation-card" data-federation-id="', escapeHtml(item.id), '">',
         '<header class="federation-card-head">',
+        '<span class="archive-icon-box federation-card-icon" aria-hidden="true">', iconHtml, '</span>',
         '<span class="federation-callsign">', escapeHtml(item.callsign || ""), '</span>',
         '<span class="federation-category">', escapeHtml(item.category || "未分类"), '</span>',
         '</header>',
@@ -570,6 +593,9 @@
         '</article>'
       ].join("");
     }).join("");
+    if (window.NavSchema && typeof window.NavSchema.bindIconFallbacks === "function") {
+      window.NavSchema.bindIconFallbacks(list);
+    }
   }
 
   function renderFooter() {

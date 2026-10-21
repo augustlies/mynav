@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=4.1.0">
+  <link rel="stylesheet" href="styles.css?v=4.2.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -67,17 +67,8 @@
           <span class="focus-icon" aria-hidden="true">⌛</span>
           <span class="focus-label">结界</span>
         </button>
-        <!-- 视图切换按钮：网格 ⟷ 书架 -->
-        <button
-          type="button"
-          id="btn-view-toggle"
-          class="theme-switch-btn view-switch-btn"
-          aria-label="切换为 3D 藏书馆书架视图"
-          title="切换展示视图"
-        >
-          <span class="view-icon" aria-hidden="true">🏛</span>
-          <span class="view-label">书架</span>
-        </button>
+        <!-- Phase 5：3D 书架视图已移除。画布视图切换改由
+             「书本目录 / 穹顶星图」双段开关（data-archive-view）与 v 键驱动。 -->
 
         <!-- 整理书架模式开关按钮 -->
         <button
@@ -484,7 +475,7 @@
               <span><kbd class="kbd-tag">f</kbd> 典藏</span>
               <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
               <span><kbd class="kbd-tag">c</kbd> 馆长手记</span>
-              <span><kbd class="kbd-tag">v</kbd> 切换书架</span>
+              <span><kbd class="kbd-tag">v</kbd> 切换视图</span>
               <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
               <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
               <button type="button" id="btn-footer-export" class="footer-export-action-btn" title="导出与备份数据">💾 导出</button>
@@ -827,7 +818,7 @@
             <ul class="shortcut-list">
               <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">v</kbd></div>
-                <div class="shortcut-desc">切换期刊网格 ⟷ 3D 立体书架</div>
+                <div class="shortcut-desc">切换 书本目录 ⟷ 穹顶星图</div>
               </li>
               <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">t</kbd></div>
@@ -893,7 +884,7 @@
             在算法投喂与浮躁信息充斥的数字浪潮中，我们比以往任何时候都更需要一间安静的书房。
           </p>
           <p class="colophon-paragraph">
-            <strong>MyNav</strong> 不是千篇一律的 SaaS 仪表盘，而是一本可以不断扩充、温润有度的私人期刊。暖象牙白纸与桑皮炭黑的质感，是向铅字与物理装帧的致敬；独一无二的确定性矢量藏书票、纯原生 3D 物理书架与精准键盘漫游，则是方寸数字世界里的工匠精神。
+            <strong>MyNav</strong> 不是千篇一律的 SaaS 仪表盘，而是一本可以不断扩充、温润有度的私人期刊。暖象牙白纸与桑皮炭黑的质感，是向铅字与物理装帧的致敬；独一无二的确定性矢量藏书票、可自由缩放拖拽的穹顶星图与精准键盘漫游，则是方寸数字世界里的工匠精神。
           </p>
         </section>
 
@@ -909,7 +900,7 @@
           </div>
           <div class="colophon-pillar-card">
             <h4>🏛 装帧美学</h4>
-            <p>独立杂志式排印、双色时序自适应、确定性矢量藏书票版印与 3D 物理书架交织共鸣。</p>
+            <p>独立杂志式排印、双色时序自适应、确定性矢量藏书票版印与穹顶星图交织共鸣。</p>
           </div>
         </section>
 
@@ -981,7 +972,12 @@
             <span id="today-open-category">ARCHIVE</span>
             <span id="today-open-domain"></span>
           </div>
-          <h3 id="today-open-site-title" class="today-open-site-title">—</h3>
+          <div class="today-open-title-row">
+            <span class="archive-icon-box today-open-icon" aria-hidden="true">
+              <img id="today-open-site-icon" class="archive-icon-img" alt="" width="28" height="28">
+            </span>
+            <h3 id="today-open-site-title" class="today-open-site-title">—</h3>
+          </div>
           <p id="today-open-desc" class="today-open-desc"></p>
           <div id="today-open-tags" class="today-open-tags"></div>
         </div>
@@ -1231,44 +1227,43 @@
   </aside>
 
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
-  <script src="data.js?v=1.8.0"></script>
-  <script src="js/storage.js?v=2.0.0"></script>
-  <script src="js/schema.js?v=2.0.0"></script>
-  <script src="js/ledger.js?v=4.1.0"></script>
-  <script src="js/overrides.js?v=1.7.0"></script>
-  <script src="js/theme.js?v=1.7.0"></script>
-  <script src="js/particles-bg.js?v=1.7.0"></script>
-  <script src="js/astronomy.js?v=3.0.0"></script>
-  <script src="js/soundscape.js?v=3.0.0"></script>
-  <script src="js/brass-tools.js?v=3.0.0"></script>
-  <script src="js/favorites.js?v=1.7.0"></script>
-  <script src="js/visits.js?v=2.0.0"></script>
-  <script src="js/search.js?v=1.7.0"></script>
-  <script src="js/engine.js?v=2.0.0"></script>
-  <script src="js/motion.js?v=1.7.0"></script>
-  <script src="js/sortable.js?v=1.7.0"></script>
-  <script src="js/exlibris.js?v=1.7.0"></script>
-  <script src="js/bookshelf.js?v=1.7.0"></script>
-  <script src="js/shortcuts.js?v=4.1.0"></script>
-  <script src="js/commands.js?v=4.1.0"></script>
-  <script src="js/folio-keys.js?v=2.0.0"></script>
-  <script src="js/serendipity.js?v=2.0.0"></script>
-  <script src="js/marginalia.js?v=2.0.0"></script>
-  <script src="js/uncatalogued.js?v=2.0.0"></script>
-  <script src="js/snippets.js?v=2.0.0"></script>
-  <script src="js/constellations.js?v=2.0.0"></script>
-  <script src="js/sanctum.js?v=2.0.0"></script>
-  <script src="js/almanac.js?v=3.1.0"></script>
-  <script src="js/star-map.js?v=3.1.0"></script>
-  <script src="js/librarian.js?v=4.1.0"></script>
-  <script src="js/telemetry.js?v=4.1.0"></script>
-  <script src="js/ephemeris.js?v=4.1.0"></script>
-  <script src="js/amber.js?v=4.1.0"></script>
-  <script src="js/courier.js?v=4.1.0"></script>
-  <script src="js/federation.js?v=4.1.0"></script>
-  <script src="js/lore.js?v=1.7.0"></script>
-  <script src="js/contextmenu.js?v=1.7.0"></script>
-  <script src="js/cloud-sync.js?v=1.7.0"></script>
-  <script src="app.js?v=4.1.0"></script>
+  <script src="data.js?v=1.8.0" defer></script>
+  <script src="js/storage.js?v=2.0.0" defer></script>
+  <script src="js/schema.js?v=4.2.0" defer></script>
+  <script src="js/ledger.js?v=4.1.0" defer></script>
+  <script src="js/overrides.js?v=4.2.0" defer></script>
+  <script src="js/theme.js?v=1.7.0" defer></script>
+  <script src="js/particles-bg.js?v=1.7.0" defer></script>
+  <script src="js/astronomy.js?v=3.0.0" defer></script>
+  <script src="js/soundscape.js?v=3.0.0" defer></script>
+  <script src="js/brass-tools.js?v=3.0.0" defer></script>
+  <script src="js/favorites.js?v=1.7.0" defer></script>
+  <script src="js/visits.js?v=2.0.0" defer></script>
+  <script src="js/search.js?v=1.7.0" defer></script>
+  <script src="js/engine.js?v=2.0.0" defer></script>
+  <script src="js/motion.js?v=1.7.0" defer></script>
+  <script src="js/sortable.js?v=1.7.0" defer></script>
+  <script src="js/exlibris.js?v=1.7.0" defer></script>
+  <script src="js/shortcuts.js?v=4.1.0" defer></script>
+  <script src="js/commands.js?v=4.1.0" defer></script>
+  <script src="js/folio-keys.js?v=2.0.0" defer></script>
+  <script src="js/serendipity.js?v=4.2.0" defer></script>
+  <script src="js/marginalia.js?v=2.0.0" defer></script>
+  <script src="js/uncatalogued.js?v=4.2.0" defer></script>
+  <script src="js/snippets.js?v=2.0.0" defer></script>
+  <script src="js/constellations.js?v=2.0.0" defer></script>
+  <script src="js/sanctum.js?v=2.0.0" defer></script>
+  <script src="js/almanac.js?v=3.1.0" defer></script>
+  <script src="js/star-map.js?v=4.2.0" defer></script>
+  <script src="js/librarian.js?v=4.2.0" defer></script>
+  <script src="js/telemetry.js?v=4.1.0" defer></script>
+  <script src="js/ephemeris.js?v=4.1.0" defer></script>
+  <script src="js/amber.js?v=4.1.0" defer></script>
+  <script src="js/courier.js?v=4.2.0" defer></script>
+  <script src="js/federation.js?v=4.2.0" defer></script>
+  <script src="js/lore.js?v=1.7.0" defer></script>
+  <script src="js/contextmenu.js?v=1.7.0" defer></script>
+  <script src="js/cloud-sync.js?v=1.7.0" defer></script>
+  <script src="app.js?v=4.2.0" defer></script>
 </body>
 </html>

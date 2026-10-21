@@ -1,5 +1,7 @@
 # mynav 2.0 · EX LIBRIS 终极进化工程代办清单 (Master Roadmap)
 
+> 🎉 mynav 2.0 · EX LIBRIS 全量 22 项提案与 Phase 0~5 性能架构升级已 100% 竣工
+
 > 架构准则：先重构「古籍对开卷」骨架与统一数据 Schema，再按「纯前端效率 → 策展与沙盒 → 视图升维 → 云端与 AI 算力」分五期推进。
 > 规则：每完成一项，把 `[ ]` 改成 `[x]`。数据结构与命名以 `ARCHITECTURE_2.0.md` 为准；每个功能的完整设计细节见 `docs/FEATURE_IDEAS.md`（编号 A1–A8、B、C1–C6、D1–D7 一一对应）。
 
@@ -54,3 +56,12 @@
 > **Phase 0 ~ Phase 4B 全部 22 项提案 100% 达成。**
 >
 > 0.1 骨架重构 · 0.2 Schema 2.0 · A1 星盘检字法 · A2 索书号盲打 · A4 借阅热度与蒙尘 · A8 今日开卷 · A3 藏书票批注 · B1–B4 待编目匣 · C1 活字秘卷匣 · C3 星群连珠 · D2 双生结界 · A7 天文日晷与恒星时 · D6 白噪音天文台 · D3 黄铜工具尺 · D4 星轨编年史 · C6 穹顶引力星图 · D1 守馆人 AI · A5 星轨联通探针 · C4 星轨遥测机关台 · C2 观星简报台 · D5 网页琥珀 · A6 & C5 飞鸽传书与 Notion 桥 · D7 联邦星图寻星镜。
+
+## 🖼️ 图标体系加固（已完成 · 2026-10-21）
+- [x] **本地图标清零**：修复 16 个缺失 / 损坏文件（其中 `ai-deepseek-platform.png`、`learn-ecut.png`、`learn-ecut-ehall.png` 原为 HTML 冒充 PNG）；全部重制为 128x128 透明 PNG，官方来源包括站点自有 SVG、GitHub README 品牌徽标、原站 favicon 与校徽原图。`node validate.js` = 36 / 36、0 warnings。
+- [x] **`validate.js` 加 Magic Bytes 校验**：不仅检查文件存在，还校验 PNG 文件头与最小体积，HTML 404 页无法再冒充图标。
+- [x] **`js/schema.js` 统一解析层**：`resolveIcon` / `iconAttributes` / `handleIconError` / `bindIconFallbacks` / `waitForIcon` / `isPrivateOrIpHost` / `buildMonogramDataUri` / `hostnameOf`；公网走 `DuckDuckGo → Icon.Horse → Google S2 → 内联 SVG`，内网 / localhost / 任意 IPv4（含 `***REMOVED***`）/ IPv6 直接内联徽标、零外发。
+- [x] **全模块收口**：`app.js`、`uncatalogued`、`librarian`、`federation`、`serendipity`、`star-map` 全部改用统一图标属性；「今日开卷」浮层新增图标容器；模块缓存版本统一 `4.2.0`。
+- [x] **Bookmarklet 源头捕获**：`js/courier.js` 自动提取 `apple-touch-icon` / `icon` 绝对地址并以 `&icon=` 回传，`courier.js` / `overrides.js` 持久化为 `favicon`；Notion 导出新增 `Icon` 列（十列）。
+- [x] **三级尺寸与三套主题护盾**：40 / 34 / 24px 底座，浅色日晷 / 深色观星台 / 暗月密室三套边框与背光；顺带修复暗月倾斜导致的 1440 断点 8px 横向溢出。
+- [x] **验收**：`artifacts/visual-qa/icons-2026-10-21/acceptance.js` 全绿 —— 36/36 图标解码、三档尺寸、9 断点（1440/1280/1024/900/899/768/640/390/375）零溢出、冷启动 0 三方请求 / 0 控制台错误 / 0 失败请求、DOM 级降级链终止于内联 SVG；`phase01 / phase02 / phase03a / phase03b / phase05-perf` 回归全绿。

@@ -21,6 +21,12 @@
   let lastActiveElement = null;
   let sealedCandidate = null;
 
+  function getIconAttributes(site) {
+    return window.NavSchema && typeof window.NavSchema.iconAttributes === "function"
+      ? window.NavSchema.iconAttributes(site)
+      : "";
+  }
+
   function escapeHtml(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
@@ -100,10 +106,15 @@
     const tmp = getDisplayNumber(site);
     const sealed = isSealed(site);
     const category = getCategories().find(function (cat) { return cat.id === site.category; });
+    const iconAttributes = getIconAttributes(site);
+    const iconHtml = iconAttributes
+      ? '<img class="archive-icon-img" ' + iconAttributes + ' alt="" loading="lazy" width="24" height="24">'
+      : "";
     return [
       '<article class="uncatalogued-card" data-uncatalogued-id="', escapeHtml(site.id),
       '" data-tmp-number="', escapeHtml(tmp), '">',
       '<div class="uncatalogued-card-head">',
+      '<span class="archive-icon-box uncatalogued-card-icon" aria-hidden="true">', iconHtml, '</span>',
       '<span class="uncatalogued-tmp">', escapeHtml(tmp), '</span>',
       '<span class="uncatalogued-status-stamp">[ 留卷待查 ]</span>',
       sealed ? '<span class="uncatalogued-hourglass">⌛ 已封存三月</span>' : "",
@@ -134,6 +145,9 @@
     list.innerHTML = sites.length
       ? sites.map(renderCard).join("")
       : '<div class="uncatalogued-empty"><span>⌘</span><p>暗星带暂无封存候选。</p><small>在上方输入网址与收录动机，回车即可留卷待查。</small></div>';
+    if (window.NavSchema && typeof window.NavSchema.bindIconFallbacks === "function") {
+      window.NavSchema.bindIconFallbacks(list);
+    }
     if (window.NavApp && typeof window.NavApp.updateBadges === "function") {
       window.NavApp.updateBadges();
     }

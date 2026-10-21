@@ -765,15 +765,27 @@
     const tags = (previewSite.tags || []).slice(0, 4).map(function (tag) {
       return "<span>#" + escapeHtml(tag) + "</span>";
     }).join("");
+    const iconAttributes = window.NavSchema && typeof window.NavSchema.iconAttributes === "function"
+      ? window.NavSchema.iconAttributes(previewSite)
+      : "";
+    const iconHtml = iconAttributes
+      ? '<img class="archive-icon-img" ' + iconAttributes + ' alt="" width="24" height="24">'
+      : "";
     preview.innerHTML = [
       '<div class="star-preview-kicker">EX LIBRIS · ORBITAL CARD</div>',
       '<span class="star-preview-call">№ ', escapeHtml(getCallNumber(previewSite.id)), '</span>',
+      '<div class="star-preview-title-row">',
+      '<span class="archive-icon-box star-preview-icon" aria-hidden="true">', iconHtml, '</span>',
       '<h3>', escapeHtml(previewSite.name || previewSite.title), '</h3>',
+      '</div>',
       '<p class="star-preview-domain">', escapeHtml(getDomain(previewSite.url)), '</p>',
       '<p class="star-preview-desc">', escapeHtml(previewSite.description || previewSite.desc || "暂无馆藏简介"), '</p>',
       '<div class="star-preview-tags">', tags, '</div>',
       '<button type="button" class="star-preview-visit" data-star-visit="', escapeHtml(previewSite.id), '">立即调阅 ↗</button>'
     ].join("");
+    if (window.NavSchema && typeof window.NavSchema.bindIconFallbacks === "function") {
+      window.NavSchema.bindIconFallbacks(preview);
+    }
   }
 
   function selectNode(nodeId, options) {

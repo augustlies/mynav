@@ -191,6 +191,8 @@
   }
 
   function scheduleDarkEvents() {
+    // Phase 5：仅在音频真正启动后挂载，stopAudio() 会彻底销毁。
+    if (darkPulseTimer !== null || darkTickTimer !== null) return;
     darkPulseTimer = window.setInterval(function () {
       if (!running || !context || getCurrentTheme() !== "dark") return;
       playTone({
@@ -224,6 +226,8 @@
   }
 
   function scheduleLightEvents() {
+    // Phase 5：仅在音频真正启动后挂载，stopAudio() 会彻底销毁。
+    if (pendulumTimer !== null) return;
     pendulumTimer = window.setInterval(function () {
       if (!running || !context || getCurrentTheme() !== "light") return;
       playTone({
@@ -271,9 +275,10 @@
 
   function stopAudio() {
     running = false;
-    if (darkPulseTimer) window.clearInterval(darkPulseTimer);
-    if (darkTickTimer) window.clearInterval(darkTickTimer);
-    if (pendulumTimer) window.clearInterval(pendulumTimer);
+    // Phase 5：关闭白噪音时彻底销毁全部声场定时器（零空转）。
+    if (darkPulseTimer !== null) window.clearInterval(darkPulseTimer);
+    if (darkTickTimer !== null) window.clearInterval(darkTickTimer);
+    if (pendulumTimer !== null) window.clearInterval(pendulumTimer);
     darkPulseTimer = null;
     darkTickTimer = null;
     pendulumTimer = null;
@@ -358,6 +363,9 @@
     updateButton();
     if (pendingWake) bindWake();
 
+    // Phase 5：init() 不再创建 3 个常驻 setInterval。
+    // 声场定时器只在 beginAudio()（真实音频启动）时挂载，stopAudio() 时销毁。
+
     if (typeof MutationObserver !== "undefined") {
       observer = new MutationObserver(handleThemeChange);
       observer.observe(document.documentElement, {
@@ -377,6 +385,10 @@
     hasContext: function () { return Boolean(context); },
     beginAudio,
     labels: LABELS,
-    stopAudio
+    stopAudio,
+    // Phase 5：供验收断言「音频启动才挂载 / 关闭即销毁」。
+    hasTimers: function () {
+      return darkPulseTimer !== null || darkTickTimer !== null || pendulumTimer !== null;
+    }
   };
 });

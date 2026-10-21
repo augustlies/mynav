@@ -4,13 +4,13 @@
  * 1. 监听全局键盘事件，智能识别输入框/弹窗上下文，防止按键冲突
  * 2. 支持 Vim/期刊式快捷键：
  *    - / 或 Ctrl+K: 聚焦检索框
- *    - j / k (或 方向键上下): 顺序漫游聚焦藏书 (卡片 / 3D 书脊)
+ *    - j / k (或 方向键上下): 顺序漫游聚焦藏书卡片
  *    - h / l (或 方向键左右): 切换分类专栏标签
  *    - Alt+1 ~ 7: 数字键直达各专栏（裸数字保留给 A2 索书号）
  *    - Enter: 翻开并访问所选藏书 (新标签页)
  *    - f: 一键收藏 / 移出私人典藏阁
  *    - e: 打开专属数字藏书票 (Ex Libris)
- *    - v: 切换网格 / 3D 藏书馆书架视图
+ *    - v: 书本目录 ⟷ 穹顶星图 一键切换
  *    - t: 循环切换昼夜时序主题
  *    - ?: 唤出 / 关闭快捷键漫游指南
  *    - Esc: 关闭模态、退出搜索、清除高亮、退出整理模式
@@ -40,10 +40,24 @@
     onBookmarkToggle: null,
     onBookplateOpen: null,
     onItemOpen: null,
-    getViewMode: () => "grid",
+    // Phase 5：Stage 2（空闲帧挂载）的同步冲刷闸门。任何按键先冲刷，
+    // 保证次要模块尚未挂载时按键不会落空（零竞态）。
+    beforeAction: null,
     isArrangeMode: () => false,
     getAllSites: () => []
   };
+
+  function flushBoot() {
+    if (typeof hooks.beforeAction === "function") {
+      try {
+        hooks.beforeAction();
+      } catch (error) {
+        if (window.console && typeof window.console.warn === "function") {
+          window.console.warn("[mynav] Stage 2 冲刷失败，已隔离：", error);
+        }
+      }
+    }
+  }
 
   // 检测减弱动效偏好
   function prefersReducedMotion() {
@@ -108,22 +122,14 @@
 
   function getFocusableElements() {
     if (typeof document === "undefined") return [];
-    const viewMode = hooks.getViewMode ? hooks.getViewMode() : "grid";
     const area = document.getElementById("archive-content-area");
     if (!area) return [];
-
-    if (viewMode === "shelf") {
-      return Array.from(area.querySelectorAll(".book-item"));
-    }
     return Array.from(area.querySelectorAll(".entry-card"));
   }
 
   function clearFocus() {
     const items = getFocusableElements();
     items.forEach(el => el.classList.remove("keyboard-focused"));
-    if (typeof document !== "undefined") {
-      document.querySelectorAll(".book-item.is-open").forEach(b => b.classList.remove("is-open"));
-    }
     focusedIndex = -1;
   }
 
@@ -168,13 +174,6 @@
           block: "nearest",
           inline: "nearest"
         });
-      }
-
-      // 如果是 3D 书架，同步触发便签卷卡展开
-      const viewMode = hooks.getViewMode ? hooks.getViewMode() : "grid";
-      if (viewMode === "shelf") {
-        document.querySelectorAll(".book-item.is-open").forEach(b => b.classList.remove("is-open"));
-        target.classList.add("is-open");
       }
     }
   }
@@ -239,6 +238,12 @@
     );
   }
 
+  // 会落到 Stage 2 模块上的按键（指南 / 手记 / 秘卷 / 工具尺 / 晨报 / 印画 ...）。
+  // j/k/h/l/方向键等纯导航键不在此列，保持零额外开销。
+  const FLUSH_BOOT_KEYS = new Set([
+    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "m", "M", "v", "V", "f", "F"
+  ]);
+
   function isAnyModalOpen() {
     const shortcutsModal = document.getElementById("shortcuts-modal");
     const bookplateModal = document.getElementById("bookplate-modal");
@@ -274,6 +279,12 @@
     const target = e.target;
     const inEditable = isEditableElement(target);
     const key = e.key;
+
+    // 0. Phase 5：先冲刷 Stage 2（空闲帧挂载的隐藏模块）。
+    //    只有真正会落到次要模块上的按键才需要冲刷；纯导航键保持轻量。
+    if (!inEditable && !isAnyModalOpen() && FLUSH_BOOT_KEYS.has(key)) {
+      flushBoot();
+    }
 
     // 1. 输入框内的特殊键处理
     if (inEditable) {
@@ -459,33 +470,17 @@
       const siteId = el.getAttribute("data-site-id");
       const url = el.getAttribute("data-site-url");
 
-      if (hooks.getViewMode && hooks.getViewMode() === "shelf") {
-        // 3D 书架：若便签卡已展开则跳转，否则展开
-        if (el.classList.contains("is-open") && url) {
-          if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
-            window.NavApp.openSite(siteId);
-          } else {
-            window.open(url, "_blank");
-            if (window.NavVisits) window.NavVisits.record(siteId);
-          }
-          showToast("已开卷翻阅", el.querySelector(".flyout-card-name")?.textContent?.trim() || url, "📖");
+      // 卡片矩阵：如果处于整理模式，翻转卡片；否则跳转并统计
+      if (hooks.isArrangeMode && hooks.isArrangeMode()) {
+        el.classList.toggle("flipped");
+      } else if (url) {
+        if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
+          window.NavApp.openSite(siteId);
         } else {
-          document.querySelectorAll(".book-item.is-open").forEach(b => b.classList.remove("is-open"));
-          el.classList.add("is-open");
+          window.open(url, "_blank");
+          if (window.NavVisits) window.NavVisits.record(siteId);
         }
-      } else {
-        // 卡片矩阵：如果处于整理模式，翻转卡片；否则跳转并统计
-        if (hooks.isArrangeMode && hooks.isArrangeMode()) {
-          el.classList.toggle("flipped");
-        } else if (url) {
-          if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
-            window.NavApp.openSite(siteId);
-          } else {
-            window.open(url, "_blank");
-            if (window.NavVisits) window.NavVisits.record(siteId);
-          }
-          showToast("已开卷翻阅", el.querySelector(".card-title-text")?.textContent?.trim() || url, "📖");
-        }
+        showToast("已开卷翻阅", el.querySelector(".card-title-text")?.textContent?.trim() || url, "📖");
       }
     }
   }
@@ -521,7 +516,7 @@
     const area = document.getElementById("archive-content-area");
     if (area) {
       area.addEventListener("pointerdown", function (e) {
-        const item = e.target.closest(".entry-card, .book-spine");
+        const item = e.target.closest(".entry-card");
         if (item) {
           const items = getFocusableElements();
           const idx = items.indexOf(item);

@@ -40,6 +40,7 @@
     lastActiveElement = document.activeElement;
 
     const numberEl = document.getElementById("today-open-number");
+    const iconBox = document.querySelector(".today-open-icon");
     const titleEl = document.getElementById("today-open-site-title");
     const categoryEl = document.getElementById("today-open-category");
     const domainEl = document.getElementById("today-open-domain");
@@ -48,6 +49,17 @@
     const visitBtn = document.getElementById("btn-today-open-visit");
 
     if (numberEl) numberEl.textContent = "№ " + currentCallNumber;
+    if (iconBox && window.NavSchema) {
+      iconBox.hidden = false;
+      const attrs = window.NavSchema.iconAttributes(site);
+      iconBox.innerHTML = attrs
+        ? '<img id="today-open-site-icon" class="archive-icon-img" ' + attrs +
+          ' alt="" width="28" height="28">'
+        : "";
+      if (typeof window.NavSchema.bindIconFallbacks === "function") {
+        window.NavSchema.bindIconFallbacks(iconBox);
+      }
+    }
     if (titleEl) titleEl.textContent = site.name || site.title || site.id;
     if (categoryEl) categoryEl.textContent = getCategoryName(site.category);
     if (domainEl) domainEl.textContent = getDomain(site.url);

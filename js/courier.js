@@ -26,7 +26,7 @@
   var SYNC_TIMEOUT_MS = 2000;
   var NOTION_FIELDS = [
     "Title", "URL", "Category", "Description",
-    "CallNumber", "Status", "WhySaved", "Tags", "Notes"
+    "CallNumber", "Status", "WhySaved", "Tags", "Notes", "Icon"
   ];
   var WORKER_STORAGE_KEY = "MYNAV_NOTION_ENDPOINT";
 
@@ -71,6 +71,13 @@
 
   function isHttpUrl(value) {
     return /^https?:\/\/[^\s]+$/i.test(String(value || "").trim());
+  }
+
+  function safeIngestIcon(value) {
+    var text = String(value || "").trim();
+    if (!text) return "";
+    if (/^https?:\/\/[^\s"'<>]+$/i.test(text)) return text;
+    return "";
   }
 
   function normalizeUrl(value) {
@@ -150,6 +157,7 @@
     var title = decodeParam(params.get("title") || params.get("t") || "");
     var why = decodeParam(params.get("why") || params.get("w") || "");
     var selection = decodeParam(params.get("selection") || params.get("sel") || "");
+    var icon = safeIngestIcon(params.get("icon") || params.get("i") || "");
     var category = decodeParam(params.get("category") || params.get("cat") || "");
     var mode = decodeParam(params.get("mode") || "");
 
@@ -161,6 +169,7 @@
       })(),
       why: why,
       selection: selection,
+      icon: icon,
       category: categoryIdFromLabel(category) || category || "",
       mode: mode === "catalogued" ? "catalogued" : "uncatalogued",
       at: Date.now()
@@ -171,7 +180,8 @@
     if (!/^https?:$/.test(window.location.protocol)) return false;
     try {
       var next = new URL(window.location.href);
-      ["ingest", "url", "u", "title", "t", "why", "w", "selection", "sel", "category", "cat", "mode"]
+      ["ingest", "url", "u", "title", "t", "why", "w", "selection", "sel",
+        "icon", "i", "category", "cat", "mode"]
         .forEach(function (key) { next.searchParams.delete(key); });
       var target = next.pathname + (next.searchParams.toString() ? "?" + next.searchParams.toString() : "") + next.hash;
       window.history.replaceState({}, document.title, target);
@@ -241,6 +251,7 @@
         notes: payload.selection ? "选中文本：" + payload.selection : "",
         category: payload.category || "tools",
         tags: ["飞鸽传书", mode === "catalogued" ? "盖章入馆" : "待编目"],
+        favicon: payload.icon || "",
         status: mode,
         visibility: "public",
         createdAt: Date.now()
@@ -291,7 +302,10 @@
       "var t=encodeURIComponent(document.title||\"\");",
       "var s=encodeURIComponent((window.getSelection&&String(window.getSelection()))||\"\");",
       "var w=encodeURIComponent((window.getSelection&&String(window.getSelection()))||document.title||\"\");",
-      "window.open(b+\"?ingest=1&url=\"+u+\"&title=\"+t+\"&why=\"+w+\"&selection=\"+s,\"_blank\");",
+      "var q=document.querySelector(\"link[rel~='apple-touch-icon'][sizes][href],link[rel~='apple-touch-icon'][href],link[rel~='icon'][href]\");",
+      "var i=\"\";",
+      "if(q&&q.href){try{var p=new URL(q.getAttribute(\"href\"),location.href);if(/^https?:$/.test(p.protocol))i=encodeURIComponent(p.href);}catch(e){}}",
+      "window.open(b+\"?ingest=1&url=\"+u+\"&title=\"+t+\"&why=\"+w+\"&selection=\"+s+\"&icon=\"+i,\"_blank\");",
       "})();"
     ].join("");
     return "javascript:" + script;
@@ -330,7 +344,8 @@
       Status: site.status === "uncatalogued" ? "Uncatalogued" : "Catalogued",
       WhySaved: site.whySaved || "",
       Tags: Array.isArray(site.tags) ? site.tags.join(" / ") : "",
-      Notes: site.notes || ""
+      Notes: site.notes || "",
+      Icon: site.favicon || ""
     };
   }
 
@@ -351,6 +366,7 @@
       description: String(row.Description || row.description || ""),
       whySaved: String(row.WhySaved || row.whySaved || ""),
       notes: String(row.Notes || row.notes || ""),
+      favicon: safeIngestIcon(row.Icon || row.icon || row.Favicon || row.favicon || ""),
       tags: tags,
       status: status,
       visibility: "public",
@@ -709,7 +725,7 @@
         var csv = toCsv();
         state.lastExport = { at: Date.now(), kind: "csv", bytes: csv.length };
         download("mynav-notion-export.csv", csv, "text/csv;charset=utf-8");
-        notify("Notion CSV 已导出", exportRows().length + " 卷 · 9 列字段", "📤");
+        notify("Notion CSV 已导出", exportRows().length + " 卷 · " + NOTION_FIELDS.length + " 列字段", "📤");
         renderStats();
       });
     }
@@ -805,8 +821,28 @@
       lastExport: state.lastExport,
       bookmarklet: buildBookmarklet(),
       fields: NOTION_FIELDS.slice(),
-      exportable: exportRows().length
+      exportable: exportRows().length,
+      pendingIcon: state.pending ? state.pending.icon || "" : ""
     };
+  }
+
+  // Deterministic hooks for the real-browser acceptance run.
+  function ingestForTest(payload) {
+    if (!payload || !isHttpUrl(payload.url)) return false;
+    return ingestFromParams({
+      payload: {
+        ingest: true,
+        url: payload.url,
+        title: payload.title || "",
+        why: payload.why || "",
+        selection: payload.selection || "",
+        icon: safeIngestIcon(payload.icon || ""),
+        category: payload.category || "tools",
+        mode: payload.mode === "catalogued" ? "catalogued" : "uncatalogued",
+        at: Date.now()
+      },
+      clean: false
+    });
   }
 
   var api = {
@@ -816,6 +852,7 @@
     toggle,
     isOpen,
     ingestFromParams,
+    ingestForTest,
     parseIngestParams,
     cleanIngestParams,
     commitIngest,

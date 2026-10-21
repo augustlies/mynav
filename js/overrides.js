@@ -341,6 +341,7 @@
         ? siteData.tags.map(t => String(t).trim()).filter(Boolean)
         : [],
       icon: (siteData.icon || siteData.name.slice(0, 2)).trim().toUpperCase(),
+      favicon: typeof siteData.favicon === "string" ? siteData.favicon.trim() : "",
       status: siteData.status === "uncatalogued" ? "uncatalogued" : "catalogued",
       whySaved: (siteData.whySaved || "").trim(),
       notes: (siteData.notes || "").trim(),

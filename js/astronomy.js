@@ -40,6 +40,10 @@
   let timerId = null;
   let mockHour = null;
   let lastAngle = null;
+  // Phase 5：恒星时字符串每秒刷新，日晷 CSS 变量与月相降频到每 60 秒。
+  const SUNDIAL_INTERVAL_MS = 60000;
+  let lastSundialAt = 0;
+  let lastMoonKey = null;
 
   function pad(value) {
     return String(value).padStart(2, "0");
@@ -150,20 +154,57 @@
         line.insertAdjacentElement("afterend", moonLine);
       }
       moonLine.textContent = moon.symbol + " " + moon.name;
+      lastMoonKey = moon.key;
     }
     const sundial = applySundial(date);
+    lastSundialAt = Date.now();
     return { sidereal, moon, sundial };
+  }
+
+  /**
+   * Phase 5 tick：每秒只重写恒星时字符串（一次 DOM textContent 写入），
+   * 把耗时的日晷 CSS 变量计算与月相计算降频到每 60 秒。
+   * 页面不可见时直接早退，不空转。
+   */
+  function tick() {
+    if (typeof document === "undefined") return null;
+    if (document.hidden) return null;
+
+    const date = nowDate();
+    const spineSidereal = getLocalSiderealTime(date, SPINE_OBSERVER.longitude);
+    const colophon = document.querySelector(".spine-colophon");
+    if (colophon) {
+      const line = colophon.querySelector(".spine-astronomy-line");
+      if (line) {
+        line.textContent = spineSidereal.text + " · DEC " + SPINE_OBSERVER.declinationLabel;
+      }
+    }
+
+    if (Date.now() - lastSundialAt >= SUNDIAL_INTERVAL_MS) {
+      const moon = getMoonPhase(date);
+      if (moon.key !== lastMoonKey) {
+        const moonLine = colophon && colophon.querySelector(".spine-moon-phase");
+        if (moonLine) moonLine.textContent = moon.symbol + " " + moon.name;
+        lastMoonKey = moon.key;
+      }
+      applySundial(date);
+      lastSundialAt = Date.now();
+    }
+    return null;
   }
 
   function setMockTime(hour) {
     const value = Number(hour);
     if (!Number.isFinite(value)) return null;
     mockHour = clamp(value, 0, 23.9999);
+    // 测试钩子必须立即重算日晷，不能被 60s 降频挡住。
+    lastSundialAt = 0;
     return render();
   }
 
   function resetMockTime() {
     mockHour = null;
+    lastSundialAt = 0;
     return render();
   }
 
@@ -182,12 +223,13 @@
     if (bound) return;
     bound = true;
     render();
-    timerId = window.setInterval(render, 1000);
+    timerId = window.setInterval(tick, 1000);
   }
 
   return {
     init,
     render,
+    tick,
     setMockTime,
     resetMockTime,
     triggerMeteor,

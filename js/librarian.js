@@ -906,6 +906,12 @@
     cardsEl.innerHTML = picks.map(function (item) {
       const site = item.entry.site;
       const status = item.entry.status;
+      const iconAttributes = window.NavSchema && typeof window.NavSchema.iconAttributes === "function"
+        ? window.NavSchema.iconAttributes(site)
+        : "";
+      const iconHtml = iconAttributes
+        ? '<img class="archive-icon-img" ' + iconAttributes + ' alt="" loading="lazy" width="24" height="24">'
+        : "";
       const callNumber = site.callNumber
         ? String(site.callNumber)
         : (window.NavUncatalogued && status === "uncatalogued" && typeof window.NavUncatalogued.getTmpNumber === "function"
@@ -918,6 +924,7 @@
         '<span class="librarian-card-stamp">', escapeHtml(stamp), '</span>',
         '<button type="button" class="librarian-card-open" data-librarian-open="', escapeHtml(site.id), '" title="立即调阅 ',
         escapeHtml(siteName(site)), '">',
+        '<span class="archive-icon-box librarian-card-icon" aria-hidden="true">', iconHtml, '</span>',
         '<span class="librarian-card-number">№ ', escapeHtml(callNumber), '</span>',
         '<span class="librarian-card-title">', escapeHtml(siteName(site)), '</span>',
         '<span class="librarian-card-host">', escapeHtml(siteHost(site)), '</span>',
@@ -930,6 +937,9 @@
         '</article>'
       ].join("");
     }).join("");
+    if (window.NavSchema && typeof window.NavSchema.bindIconFallbacks === "function") {
+      window.NavSchema.bindIconFallbacks(cardsEl);
+    }
   }
 
   // The folio unfurls downward from the sticky search bar. When the bar sits low

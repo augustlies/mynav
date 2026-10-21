@@ -237,3 +237,36 @@ entries[]: { id, callNumber, title, url, category, description, tags[], whySaved
 - 恒星时签名与 `signatureHash` 均由 **FNV-1a 32-bit**（与 Phase 4A 遥测同一算法）派生，同一份清单永远得到同一枚戳记。
 - **隐私红线**：生成器与 `buildPublicManifest()` 双向硬过滤 `visibility === "shadow"`；写入前额外断言「数量必须为 36」且「不得含任何 shadow 条目」，任一不满足即抛错中止。
 - 该文件是**静态快照**，不随浏览器端改动自动刷新；用户新增 / 转正卡片后需重跑生成器，或在寻星镜面板点 `[ 💾 导出本馆清单 ]` 下载动态版本。
+
+### 6.6 图标解析层（`js/schema.js`）
+
+图标是**跨模块横切关注点**，唯一收口在 `NavSchema`，任何模块都不得自行拼接 `<img src>` 或裸请求 `https://${domain}/favicon.ico`。
+
+```javascript
+NavSchema.resolveIcon(site, fallbackText)    // 返回最终 src 字符串
+NavSchema.iconAttributes(site, fallbackText) // 返回完整属性串（src + 降级链）
+NavSchema.bindIconFallbacks(root)            // 为 root 内新插入的 <img> 绑定 error
+NavSchema.handleIconError(img)               // 手动推进一级降级（返回是否推进）
+NavSchema.waitForIcon(img, timeoutMs)        // Promise<{complete,naturalWidth,...}>
+NavSchema.isPrivateOrIpHost(hostname)        // 内网 / localhost / IPv4 / IPv6 判定
+NavSchema.buildMonogramDataUri(text)         // 零网络内联 SVG 字母徽标
+NavSchema.hostnameOf(url)                    // 安全取 hostname，异常返回 ""
+```
+
+**解析优先级**
+
+| 级别 | 条件 | 结果 |
+| :--- | :--- | :--- |
+| A | `site.iconPath` / `site.icon` / `site.favicon` 以 `icons/` 开头 | 本地静态路径 |
+| B | `site.id` 命中 `LOCAL_ICON_IDS`（36 个内置 ID） | `icons/<id>.png` |
+| C | 显式 `http(s)` favicon（Bookmarklet 捕获 / Notion 导入） | 该外链，外链失败后续接 C′ 链 |
+| D | 主机为空、`localhost`、`.local/.lan/.internal/.home`、任意 IPv4、任意含 `:` 的 IPv6 | 内联 SVG 徽标，**零网络** |
+| E | 其余公网域名 | `icons.duckduckgo.com` → `icon.horse` → `google.com/s2` → 内联 SVG |
+
+**降级链与死循环防护**：`iconAttributes()` 把 C′/E 的三段候选写入 `src` / `data-fallback-1` / `data-fallback-2`，终极档写入 `data-icon-fallback`；`data-icon-probe-step` 记录当前级别。`handleIconError()` 只在候选与当前 `src` 不同时才推进；落到 `data:image/` 的瞬间即置 `data-icon-fallback-locked="true"` 且不再推进，因此**不可能递归触发 `onerror`**。
+
+**渲染收口清单**（全部经 `iconAttributes` + `bindIconFallbacks`）：`app.js` 正式卡片（`.card-emblem`）、`js/uncatalogued.js` 待编目匣、`js/librarian.js` 司天监推荐票、`js/federation.js` 寻星镜、`js/serendipity.js` 今日开卷、`js/star-map.js` 星图预览卡。
+
+**联邦星图的例外**：邻馆沙盒条目不是用户确认的来源，`federation.js` 对非本馆节点只输出内联徽标，避免陌生域名探测把 404 噪声带进控制台；本馆节点仍走正常解析。
+
+**尺寸与主题**：`.archive-icon-box` 统一 `inline-flex` + `object-fit: contain`；`.card--monograph` 40px、`.card--archive/.card--full` 34px、`.card--slip` 24px；`[data-theme="dark"]` 追加 `drop-shadow(0 0 1px …0.35)` 背光，`[data-sanctum="shadow"]` 换成暗红底座。

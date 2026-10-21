@@ -69,7 +69,7 @@ MyNav/
 │   └── prompts/
 │       ├── STEP1_PROMPT.md
 │       └── STEP2_PROMPT.md
-├── icons/              # 本地高清图标库 (64x64 PNG)
+├── icons/              # 本地高清图标库 (官方源转码的 128x128 透明 PNG)
 ├── functions/          # Cloudflare Pages Functions（云同步 API）
 └── artifacts/          # 本地视觉验收产物（已忽略，不参与部署）
     └── visual-qa/      # 按日期归档的截图、布局快照与诊断数据
@@ -149,6 +149,23 @@ node validate.js
 | `Alt` + 点击卡片 | 翻转批注面；`№ XX` 印章也可单独触发 |
 
 暗月卷宗只展示 `visibility: "shadow"` 的卡片；新建或编辑卡片时可在右键编辑层勾选「仅暗月密室可见」或「暂存待编目匣」。尘封以本地自然日计算，未访问卡片使用持久化的 `firstSeenAt` 作为 60 天判定锚点。
+
+### 图标体系
+
+36 卷正式馆藏全部使用 `icons/<id>.png` 本地 PNG（128x128，透明底），首屏零外网请求。图标统一经 `window.NavSchema.iconAttributes(site)` 解析，渲染在 `.archive-icon-box` 底座内，按卡片层级取 `40 / 34 / 24px` 三档尺寸；浅色、深色观星台与暗月密室各有一套边框与背光护盾。
+
+运行时新增的站点按下列顺序取图，失败即降级，最后一级是**零网络的内联 SVG 字母徽标**：
+
+```
+显式本地 icons/... → 已知 36 个 ID 的本地 PNG → 显式 favicon → 公网域名：
+DuckDuckGo → Icon.Horse → Google S2 → 内联 SVG 字母徽标
+```
+
+- 任何**内网、localhost、IPv6 或字面量 IPv4**（含探针 `***REMOVED***`）一律跳过所有第三方接口，直接渲染内联徽标，杜绝私有地址外泄。
+- `data-fallback-1/2` 与 `data-icon-fallback` 构成无死循环降级链：最后一档落下即 `onerror = null` 并加锁，不可能反复触发。
+- 联邦星图的邻馆沙盒数据不是用户确认的馆藏，只渲染内联徽标，不向陌生域名发起探测请求。
+- 飞鸽 Bookmarklet 会自动读取目标页 `<link rel="apple-touch-icon">` / `rel="icon">` 的绝对地址，回传 `&icon=` 并持久化为 `favicon`；Notion 导出新增 `Icon` 列。
+- 三方 Favicon 服务对**确实不存在的域名**会返回 404，Chromium 会在控制台留下一条网络日志；这是浏览器行为，不影响页面，且正式馆藏冷启动不会触发任何三方请求。
 
 ---
 

@@ -538,6 +538,15 @@ html[data-sanctum="shadow"] body {
   transition: transform 0.8s var(--transition-smooth);
 }
 
+/* A 0.18deg tilt on a full-bleed sheet widens its bounding box by ~8px and
+   creates horizontal overflow at exactly 1440. Contain the tilt instead of
+   letting it push the document. */
+@media (min-width: 901px) {
+  .archive-wrapper:has(.folio-shell) {
+    overflow-x: clip;
+  }
+}
+
 [data-sanctum="shadow"] .folio-main::before {
   transform: rotate(180deg) scale(1.08);
   transition: transform 0.9s var(--transition-smooth);
@@ -1151,11 +1160,7 @@ body,
 .quiet-empty-state,
 .colophon-footer,
 .card-emblem,
-.tab-badge-num,
-.bookshelf-stage,
-.book-spine,
-.book-cover,
-.bookshelf-plank {
+.tab-badge-num {
   transition: background-color var(--transition-smooth),
               border-color var(--transition-smooth),
               color var(--transition-smooth),
@@ -2816,10 +2821,21 @@ html {
 
 .footer-shortcuts-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  gap: 6px 12px;
+  max-width: 100%;
+  box-sizing: border-box;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
+}
+
+.footer-shortcuts-line > span,
+.footer-shortcuts-line > button {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
 }
 
 /* --------------------------------------------------------------------------
@@ -3125,14 +3141,11 @@ html {
   .footer-shortcuts-line {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px 10px;
+    gap: 6px 12px;
     max-width: 100%;
+    box-sizing: border-box;
     font-size: 0.625rem;
     line-height: 1.6;
-  }
-
-  .footer-shortcuts-line > span {
-    white-space: nowrap;
   }
 }
 
@@ -3712,628 +3725,6 @@ body.modal-open {
   }
   .exlibris-svg {
     max-width: 270px;
-  }
-}
-
-/* ==========================================================================
-   15. 3D 藏书馆书架视图 (Editorial 3D Bookshelf)
-   ========================================================================== */
-
-/* 书架总容器 */
-.bookshelf-container {
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-  margin-top: 10px;
-  margin-bottom: 40px;
-}
-
-/* 单层书架单元 */
-.bookshelf-tier {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 黄铜铭牌栏 (Brass Plaque Header) */
-.bookshelf-plaque-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 0 4px;
-}
-
-.bookshelf-plaque {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(180deg, #F5E8D0 0%, #E8D7B8 100%);
-  color: #4A351D;
-  border: 1px solid #C4A575;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  padding: 4px 12px;
-  border-radius: 2px;
-  position: relative;
-}
-
-[data-theme="dark"] .bookshelf-plaque {
-  background: linear-gradient(180deg, #383023 0%, #292318 100%);
-  color: #E8D6B7;
-  border-color: #5E4E35;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.plaque-rivet {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #9E7D4E;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4);
-  flex-shrink: 0;
-}
-
-.plaque-code {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  opacity: 0.9;
-}
-
-.plaque-title-text {
-  font-family: var(--font-serif);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-.plaque-desc-text {
-  font-size: 0.75rem;
-  opacity: 0.85;
-  margin-left: 4px;
-}
-
-.bookshelf-plaque-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.bookshelf-count-tag {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* 书架陈列箱体 (3D Chamber) */
-.bookshelf-chamber {
-  position: relative;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-card);
-  border-radius: 3px;
-  box-shadow: var(--shadow-subtle);
-  overflow: visible;
-}
-
-/* 内部纵深背墙 */
-.bookshelf-backwall {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 45%);
-  pointer-events: none;
-  border-radius: 3px;
-}
-
-[data-theme="dark"] .bookshelf-backwall {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, transparent 50%);
-}
-
-/* 3D 透视视口 (Perspective Stage) */
-.bookshelf-stage {
-  perspective: 1200px;
-  perspective-origin: 50% 30%;
-  overflow-x: auto;
-  overflow-y: visible;
-  padding: 34px 28px 12px 28px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-hairline) transparent;
-  scroll-behavior: smooth;
-}
-
-.bookshelf-books-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-  min-height: 248px;
-}
-
-/* 底部实体层板梁 (Shelf Wood/Paper Beam) */
-.bookshelf-wood-beam {
-  position: relative;
-  width: 100%;
-}
-
-.beam-top-ledge {
-  height: 8px;
-  background: linear-gradient(90deg, #E6DFD1, #DDD4C3, #E6DFD1);
-  border-top: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
-}
-
-.beam-face {
-  height: 16px;
-  background: linear-gradient(180deg, #CFC5B2 0%, #B8AC98 100%);
-  border-top: 1px solid #A89B85;
-  border-bottom: 1px solid #8F826E;
-}
-
-.beam-under-shadow {
-  height: 8px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, transparent 100%);
-}
-
-[data-theme="dark"] .beam-top-ledge {
-  background: linear-gradient(90deg, #24261F, #2A2D24, #24261F);
-  border-top-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
-}
-
-[data-theme="dark"] .beam-face {
-  background: linear-gradient(180deg, #1C1D18 0%, #151612 100%);
-  border-top-color: #2F3229;
-  border-bottom-color: #0E0F0C;
-}
-
-[data-theme="dark"] .beam-under-shadow {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
-}
-
-/* --------------------------------------------------------------------------
-   单本书目立体单元 (3D Book Item)
-   -------------------------------------------------------------------------- */
-.book-item {
-  position: relative;
-  flex-shrink: 0;
-  width: var(--spine-width, 32px);
-  height: var(--book-height, 220px);
-  perspective: 800px;
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
-  cursor: pointer;
-  user-select: none;
-  will-change: transform;
-  z-index: 1;
-}
-
-.book-3d-wrap {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-/* 书顶面（纸页顶缘） */
-.book-top-edge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--spine-width, 32px);
-  height: 16px;
-  background: var(--spine-edge, #EDE8DC);
-  transform-origin: top;
-  transform: rotateX(-90deg);
-  border-radius: 2px 2px 0 0;
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
-}
-
-/* 书侧面露出部分（纸页侧缘） */
-.book-side-edge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 16px;
-  height: 100%;
-  background: var(--spine-edge, #EDE8DC);
-  transform-origin: right;
-  transform: rotateY(90deg);
-  box-shadow: inset -1px 0 3px rgba(0, 0, 0, 0.2);
-}
-
-/* 书脊正面 (Spine Face) */
-.book-spine-face {
-  position: absolute;
-  inset: 0;
-  background: var(--spine-bg);
-  border: 1px solid var(--spine-border);
-  border-radius: 2px 2px 0 0;
-  color: var(--spine-text);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 10px 4px;
-  box-sizing: border-box;
-  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.22), inset 1px 0 2px rgba(255, 255, 255, 0.18), inset -2px 0 4px rgba(0, 0, 0, 0.35);
-  outline: none;
-  transition: box-shadow 0.25s ease;
-}
-
-.book-spine-face:focus-visible {
-  outline: 2px solid var(--spine-foil);
-  outline-offset: 2px;
-}
-
-/* 书脊顶部印记 */
-.spine-head-band {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.spine-rule-gold {
-  display: block;
-  width: 75%;
-  height: 1px;
-  background-color: var(--spine-foil);
-  opacity: 0.75;
-}
-
-.spine-monogram {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--spine-foil);
-  line-height: 1;
-  letter-spacing: 0.05em;
-  text-align: center;
-  padding: 1px 0;
-}
-
-/* 书脊中部题名竖排 */
-.spine-title-rail {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  margin: 6px 0;
-}
-
-.spine-title-text {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-family: var(--font-serif);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  line-height: 1.2;
-  max-height: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--spine-text);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-}
-
-/* 书脊底端卷标与星标 */
-.spine-tail-band {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.spine-bookmark-glyph {
-  font-size: 0.625rem;
-  color: var(--spine-foil);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  line-height: 1;
-}
-
-.spine-bookmark-glyph.active {
-  opacity: 1;
-}
-
-.spine-volume-tag {
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  color: var(--spine-foil);
-  opacity: 0.85;
-  line-height: 1;
-}
-
-/* 抽书悬停与聚焦动效 (3D Pull-out) */
-.book-item:hover,
-.book-item:focus-within,
-.book-item.is-open {
-  transform: translateY(-14px);
-  z-index: 500;
-}
-
-.book-item:hover .book-3d-wrap,
-.book-item:focus-within .book-3d-wrap,
-.book-item.is-open .book-3d-wrap {
-  transform: translateZ(36px) rotateY(-8deg);
-}
-
-.book-item:hover .book-spine-face,
-.book-item:focus-within .book-spine-face,
-.book-item.is-open .book-spine-face {
-  box-shadow: -8px 8px 18px rgba(0, 0, 0, 0.42), inset 1px 0 2px rgba(255, 255, 255, 0.28);
-}
-
-/* --------------------------------------------------------------------------
-   抽书侧向便签卷卡 (Flyout Card)
-   -------------------------------------------------------------------------- */
-.book-flyout-card {
-  position: absolute;
-  left: calc(100% + 14px);
-  top: 50%;
-  transform: translateY(-50%) scale(0.92);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  width: 228px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-xs);
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--border-hairline);
-  padding: 12px 14px;
-  z-index: 600;
-  cursor: default;
-}
-
-.book-item:hover .book-flyout-card,
-.book-item:focus-within .book-flyout-card,
-.book-item.is-open .book-flyout-card {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(-50%) scale(1);
-}
-
-/* 右边缘智能向左翻转 */
-.book-item.flyout-flip-left .book-flyout-card {
-  left: auto;
-  right: calc(100% + 14px);
-}
-
-/* 古典雕花书立 (Brass Bookend) */
-.shelf-bookend {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  margin-left: 6px;
-  height: 160px;
-  user-select: none;
-  pointer-events: none;
-  flex-shrink: 0;
-}
-
-.bookend-body {
-  width: 18px;
-  height: 120px;
-  background: linear-gradient(135deg, #DEBA57 0%, #B88E28 50%, #876112 100%);
-  border-radius: 4px 8px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.2), inset 1px 1px 2px rgba(255, 255, 255, 0.4);
-  border: 1px solid #A88022;
-  transform: skewX(-3deg);
-  transform-origin: bottom;
-}
-
-.bookend-ornament {
-  font-size: 0.8125rem;
-  color: #4A3206;
-  opacity: 0.85;
-  transform: skewX(3deg);
-}
-
-.bookend-base {
-  width: 28px;
-  height: 8px;
-  background: linear-gradient(180deg, #B88E28 0%, #7B550F 100%);
-  border-radius: 0 3px 2px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-  border: 1px solid #6E4907;
-}
-
-[data-theme="dark"] .bookend-body {
-  background: linear-gradient(135deg, #8A7238 0%, #615024 50%, #3B3012 100%);
-  border-color: #54441B;
-}
-
-[data-theme="dark"] .bookend-ornament {
-  color: #E2CA94;
-}
-
-[data-theme="dark"] .bookend-base {
-  background: linear-gradient(180deg, #615024 0%, #2A2109 100%);
-  border-color: #3B3012;
-}
-
-.flyout-card-masthead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  gap: 8px;
-}
-
-.flyout-card-identity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.flyout-card-emblem {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-xs);
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--text-main);
-}
-
-.flyout-card-titles {
-  min-width: 0;
-}
-
-.flyout-card-name {
-  font-family: var(--font-serif);
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.flyout-card-domain {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-faint);
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-flyout-bookmark {
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-xs);
-  transition: color var(--transition-fast), transform var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-flyout-bookmark:hover {
-  color: var(--color-bookmark);
-  transform: scale(1.15);
-}
-
-.btn-flyout-bookmark.bookmarked {
-  color: var(--color-bookmark);
-}
-
-.flyout-card-desc {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0 0 10px 0;
-  min-height: 2.1em;
-}
-
-.flyout-card-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding-top: 8px;
-  border-top: 1px dotted var(--border-hairline);
-}
-
-.btn-flyout-bookplate {
-  font-family: var(--font-serif);
-  font-size: 0.6875rem;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border-hairline);
-  color: var(--text-faint);
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-flyout-bookplate:hover {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  background-color: var(--bg-surface);
-}
-
-.btn-flyout-visit {
-  font-family: var(--font-serif);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  background-color: var(--color-accent);
-  color: #FFFFFF;
-  padding: 2px 9px;
-  border-radius: var(--radius-xs);
-  text-decoration: none;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  display: inline-block;
-}
-
-.btn-flyout-visit:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
-/* --------------------------------------------------------------------------
-   响应式与无障碍微调
-   -------------------------------------------------------------------------- */
-@media (max-width: 768px) {
-  .bookshelf-stage {
-    padding: 24px 16px 8px 16px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .book-item {
-    scroll-snap-align: start;
-  }
-
-  /* 移动端关闭高频 3D 旋转，改用纯 2D 位移以保 60 FPS 流畅 */
-  .book-item:hover,
-  .book-item:focus-within,
-  .book-item.is-open {
-    transform: translateY(-10px) !important;
-  }
-
-  .book-flyout-card {
-    width: 200px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .book-item {
-    transition: none !important;
-  }
-
-  .book-item:hover,
-  .book-item:focus-within,
-  .book-item.is-open {
-    transform: none !important;
-  }
-
-  .book-flyout-card {
-    transition: none !important;
-    transform: translateY(-50%) !important;
   }
 }
 
@@ -6581,8 +5972,7 @@ body.modal-open {
 
 /* 纸张质感强化：为主要卡片容器补充纯正出版物纸面边缘微投影与触感 */
 .entry-card,
-.bookplate-modal-card,
-.book-flyout-card {
+.bookplate-modal-card {
   position: relative;
 }
 
@@ -6605,17 +5995,6 @@ body.modal-open {
 /* 阅读室台灯焦点晕染：突出当前活跃/悬停卡片的聚光灯质感 */
 .entry-card:hover {
   box-shadow: var(--shadow-lift), 0 0 0 1px var(--color-accent);
-}
-
-/* 自动时序状态标签微提示 */
-.circadian-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
-  color: var(--text-faint);
 }
 
 /* ==========================================================================
@@ -6662,15 +6041,6 @@ body.modal-open {
 [data-theme="dark"] .entry-card.keyboard-focused {
   border-color: var(--color-accent) !important;
   box-shadow: 0 14px 32px -4px rgba(0, 0, 0, 0.7), 0 0 0 2px var(--color-accent) !important;
-}
-
-.book-item.keyboard-focused {
-  transform: translateY(-14px) !important;
-  z-index: 40 !important;
-}
-
-.book-item.keyboard-focused .book-spine-face {
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 0 2px var(--color-accent) !important;
 }
 
 /* 快捷键指南模态背景遮罩 */
@@ -7649,11 +7019,6 @@ body.modal-open {
   justify-content: center;
   padding: 16px;
   animation: modalBackdropFadeIn 0.2s ease-out;
-}
-
-@keyframes modalBackdropFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .editorial-modal-window {
@@ -12446,5 +11811,162 @@ body.federation-open {
   .courier-sheet,
   .federation-sheet {
     animation: none;
+  }
+}
+
+/* ==========================================================================
+   Icon system · one optical scale across every archive surface
+   ========================================================================== */
+.archive-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(140, 90, 50, 0.18);
+  border-radius: 6px;
+  background: rgba(28, 29, 25, 0.035);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.archive-icon-box .archive-icon-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.folio-main .card-emblem {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  box-sizing: border-box;
+  border: 1px solid rgba(140, 90, 50, 0.18);
+  border-radius: 6px;
+  background: rgba(28, 29, 25, 0.035);
+}
+
+.folio-main .card-emblem .emblem-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 3px;
+}
+
+.folio-main .card--monograph .card-emblem {
+  width: 40px;
+  height: 40px;
+  padding: 6px;
+}
+
+.folio-main .card--slip .card-slip-emblem {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+}
+
+.folio-main .card--slip .card-slip-emblem .emblem-img {
+  width: 100%;
+  height: 100%;
+}
+
+[data-theme="dark"] .archive-icon-box,
+[data-theme="dark"] .card-emblem {
+  border-color: rgba(200, 169, 126, 0.24);
+  background: rgba(244, 231, 197, 0.08);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .archive-icon-box .archive-icon-img,
+[data-theme="dark"] .card-emblem .emblem-img {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.35));
+}
+
+[data-theme="dark"] .card-emblem .emblem-fallback-text {
+  color: var(--text-main);
+}
+
+[data-sanctum="shadow"] .archive-icon-box,
+[data-sanctum="shadow"] .card-emblem {
+  border-color: rgba(158, 59, 66, 0.28);
+  background: rgba(158, 59, 66, 0.1);
+}
+
+.uncatalogued-card-icon {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+}
+
+.federation-card-head {
+  align-items: center;
+}
+
+.federation-card-icon {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+  margin-right: auto;
+}
+
+.librarian-card-open {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+
+.librarian-card-icon {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+  align-self: center;
+}
+
+.star-preview-title-row,
+.today-open-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.star-preview-icon,
+.today-open-icon {
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.star-preview-title-row h3,
+.today-open-title-row .today-open-site-title {
+  min-width: 0;
+}
+
+.today-open-title-row .today-open-site-title {
+  margin: 10px 0;
+}
+
+@media (max-width: 900px) {
+  .folio-main .card--monograph .card-emblem {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .star-preview-icon,
+  .today-open-icon {
+    width: 28px;
+    height: 28px;
+    padding: 4px;
   }
 }

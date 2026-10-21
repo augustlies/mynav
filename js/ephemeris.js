@@ -557,6 +557,7 @@
     var modal = document.getElementById("ephemeris-modal");
     if (!backdrop || !modal) return false;
     lastActiveElement = document.activeElement;
+    // Phase 5：正文（204 节点）在首次打开时才拼装；之后复用。
     render();
     backdrop.hidden = false;
     modal.hidden = false;
@@ -701,7 +702,8 @@
     bindEvents();
     state.sources = readSources();
     state.items = BULLETINS.slice();
-    render();
+    // Phase 5：init() 只绑定触发按钮，不再预渲染 204 个隐藏节点。
+    // 正文的首次拼装推迟到 open() / loadSources() / Stage 2 空闲帧之后。
     if (window.NavApp && !window.NavApp.Ephemeris) {
       window.NavApp.Ephemeris = api;
     }

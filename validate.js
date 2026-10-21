@@ -24,6 +24,7 @@ function validateData(data, baseDir = __dirname) {
     categoryCount: 0,
     siteCount: 0,
     localIconCount: 0,
+    invalidIconCount: 0,
     tagCount: 0
   };
 
@@ -131,7 +132,15 @@ function validateData(data, baseDir = __dirname) {
     if (site.id) {
       const localIconPath = path.join(iconsDir, `${site.id}.png`);
       if (fs.existsSync(localIconPath)) {
-        metrics.localIconCount++;
+        const bytes = fs.readFileSync(localIconPath);
+        const isPng = bytes.length >= 8 &&
+          bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+        if (isPng && bytes.length >= 100) {
+          metrics.localIconCount++;
+        } else {
+          metrics.invalidIconCount++;
+          warnings.push(`${prefix} 本地图标 icons/${site.id}.png 文件头不是合法 PNG 或体积过小（${bytes.length} bytes）`);
+        }
       } else if (!site.favicon) {
         warnings.push(`${prefix} 尚未放置本地高清图标 icons/${site.id}.png（将使用外链与字母徽标兜底）`);
       }
@@ -173,6 +182,9 @@ if (require.main === module) {
     console.log(`   • 统计分类: ${result.metrics.categoryCount} 个专栏`);
     console.log(`   • 统计网站: ${result.metrics.siteCount} 卷藏书`);
     console.log(`   • 本地图标: ${result.metrics.localIconCount} / ${result.metrics.siteCount} 卷已配齐`);
+    if (result.metrics.invalidIconCount > 0) {
+      console.log(`   • 损坏图标: ${result.metrics.invalidIconCount} 个（已列入上方警告）`);
+    }
     console.log(`   • 检索标签: ${result.metrics.tagCount} 个独立关键词索引`);
     console.log("   • ID 唯一性: 100% 通过");
     console.log("   • URL 合规性: 100% 通过");

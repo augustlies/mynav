@@ -20,6 +20,9 @@ temp/
 # 本地视觉验证产物
 .playwright-mcp/
 artifacts/
+artifacts/**
+responsive-check.js
+responsive-check.json
 .agents/
 baseline-*.png
 after-*.png

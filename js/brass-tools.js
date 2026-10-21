@@ -24,6 +24,8 @@
   let activeTab = "compass";
   let shaNonce = 0;
   let probeAbort = null;
+  // Phase 5：历法刻漏定时器只在抽屉打开期间存活，关闭即销毁（零空转）。
+  let epochTimer = null;
 
   function $(id) {
     return document.getElementById(id);
@@ -189,6 +191,17 @@
     });
   }
 
+  function startEpochTimer() {
+    if (epochTimer !== null) return;
+    epochTimer = window.setInterval(updateEpochNow, 1000);
+  }
+
+  function stopEpochTimer() {
+    if (epochTimer === null) return;
+    window.clearInterval(epochTimer);
+    epochTimer = null;
+  }
+
   function open(tab) {
     const workbench = $("brass-workbench");
     const backdrop = $("brass-tools-backdrop");
@@ -202,6 +215,8 @@
     switchTab(tab || activeTab);
     renderModeButtons();
     updateEpochNow();
+    // 抽屉真正可见时才让刻漏开始走字，关闭后立刻停摆。
+    startEpochTimer();
     renderProbeFallback();
     const close = $("btn-close-brass-workbench");
     if (close) window.setTimeout(function () { close.focus(); }, 80);
@@ -212,6 +227,7 @@
     const backdrop = $("brass-tools-backdrop");
     if (!workbench || !backdrop) return;
     isOpen = false;
+    stopEpochTimer();
     if (probeAbort) {
       probeAbort.abort();
       probeAbort = null;
@@ -479,7 +495,7 @@
     updateEpochNow();
     renderModeButtons();
     renderProbeFallback();
-    window.setInterval(updateEpochNow, 1000);
+    // Phase 5：init() 不再无条件启动 1s 定时器；刻漏随抽屉开合挂载 / 销毁。
     document.addEventListener("keydown", function (event) {
       if (!isOpen || event.key !== "Escape") return;
       event.preventDefault();
@@ -518,6 +534,8 @@
     FALLBACK,
     getState: function () {
       return { isOpen: isOpen, activeTab: activeTab, activeMode: activeMode };
-    }
+    },
+    // Phase 5：供验收断言「打开启动 / 关闭清理」。
+    hasEpochTimer: function () { return epochTimer !== null; }
   };
 });

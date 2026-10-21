@@ -7,16 +7,19 @@
   "use strict";
 
   // 全局应用状态
+  // Phase 5：3D 书架视图已移除，画布只剩两种形态 —— 书本目录（grid）与穹顶星图（star-map）。
+  // `archiveView` 是唯一真源；`mynav_arch_view` 仍是持久化键，以保持既有本地数据兼容。
+  const STORED_ARCHIVE_VIEW = window.NavStorage
+    ? window.NavStorage.get("mynav_arch_view", "grid")
+    : "grid";
   const state = {
     activeCategory: "all", // 'all' | 'favorites' | 'frequent' | categoryId
     searchQuery: "",
-    viewMode: window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid",
-    archiveView: "grid"
+    archiveView: STORED_ARCHIVE_VIEW === "star-map" ? "star-map" : "grid"
   };
 
   // DOM 节点引用
   const dom = {
-    viewBtn: document.getElementById("btn-view-toggle"),
     themeBtn: document.getElementById("btn-theme-toggle"),
     searchInput: document.getElementById("archive-search-input"),
     searchClearBtn: document.getElementById("btn-clear-search"),
@@ -35,16 +38,6 @@
   const AGENT_PROBE_URL = "http://***REMOVED***:8008/#/";
   const RECENT_DESK_DAYS = 7;
   const RECENT_DESK_LIMIT = 6;
-  const LOCAL_ICON_IDS = new Set([
-    "ai-chatgpt", "ai-claude", "ai-deepseek-platform", "ai-deepseek", "ai-gemini",
-    "ai-hark", "ai-muse", "dev-caniuse", "dev-cloudflare", "dev-github", "dev-mdn",
-    "dev-stackoverflow", "dev-vercel", "learn-bilibili", "learn-cnki",
-    "learn-ecut-ehall", "learn-ecut", "learn-juejin", "learn-runoob", "learn-sspai",
-    "tool-cobalt", "tool-icon-icons", "tool-notion", "tool-processon", "tool-tinypng",
-    "tool-yuque"
-  ]);
-  let archiveViewBeforeShelf = "grid";
-
   // ==========================================================================
   // 工具函数 (Utilities)
   // ==========================================================================
@@ -80,19 +73,6 @@
     }
   }
 
-  // 切换视图模式按钮状态更新
-  function updateViewButton() {
-    if (!dom.viewBtn) dom.viewBtn = document.getElementById("btn-view-toggle");
-    if (!dom.viewBtn) return;
-    const isShelf = state.viewMode === "shelf";
-    const iconSpan = dom.viewBtn.querySelector(".view-icon");
-    const labelSpan = dom.viewBtn.querySelector(".view-label");
-    if (iconSpan) iconSpan.textContent = isShelf ? "⊞" : "🏛";
-    if (labelSpan) labelSpan.textContent = isShelf ? "网格" : "书架";
-    dom.viewBtn.setAttribute("title", isShelf ? "切换为期刊网格视图" : "切换为 3D 藏书馆书架视图");
-    dom.viewBtn.setAttribute("aria-label", isShelf ? "切换为期刊网格视图" : "切换为 3D 藏书馆书架视图");
-  }
-
   function updateArchiveViewSwitcher() {
     const inStarMap = state.archiveView === "star-map";
     document.querySelectorAll("[data-archive-view]").forEach(function (button) {
@@ -116,20 +96,23 @@
     if (state.archiveView === "star-map") {
       window.NavStarMap && window.NavStarMap.close && window.NavStarMap.close();
     }
+    state.archiveView = next;
+    if (window.NavStorage) window.NavStorage.set("mynav_arch_view", next);
+    updateArchiveViewSwitcher();
     if (next === "grid") {
-      if (state.viewMode === "shelf") {
-        state.viewMode = archiveViewBeforeShelf || "grid";
-        updateViewButton();
-      }
-      state.archiveView = "grid";
-      updateArchiveViewSwitcher();
       renderContent();
       return state.archiveView;
     }
-    archiveViewBeforeShelf = state.viewMode;
-    state.archiveView = "star-map";
-    updateArchiveViewSwitcher();
     renderStarMapView();
+    return state.archiveView;
+  }
+
+  // Phase 5：`v` 键与「视图切换」快捷动作的唯一入口 —— 书本目录 ⟷ 穹顶星图。
+  function toggleArchiveView() {
+    if (window.NavSortable && window.NavSortable.isArrangeMode()) {
+      window.NavSortable.exitArrangeMode();
+    }
+    setArchiveView(state.archiveView === "star-map" ? "grid" : "star-map");
     return state.archiveView;
   }
 
@@ -577,10 +560,6 @@
     const domain = extractDomain(site.url);
     const name = siteName(site);
     const description = siteDescription(site);
-    const notes = window.NavLedger && typeof window.NavLedger.getMarginalia === "function"
-      ? window.NavLedger.getMarginalia(site.id)
-      : (site.notes || "");
-    const subLinks = Array.isArray(site.subLinks) ? site.subLinks.slice(0, 4) : [];
     const emblemText = escapeHtml(site.icon || name.slice(0, 2));
     const rawTag = Array.isArray(site.tags) && site.tags[0] ? site.tags[0] : "典藏";
     const firstTag = (query && window.NavSearch)
@@ -607,30 +586,21 @@
       ? window.NavSanctum.shouldSeal(site)
       : site.category === "social" &&
         document.documentElement.getAttribute("data-focus-lock") === "true";
-    const subLinksHtml = subLinks.map(function (link) {
-      return [
-        "<button type=\"button\" class=\"marginalia-sublink\" data-marginalia-sublink=\"",
-        escapeHtml(link.url), "\" title=\"", escapeHtml(link.url), "\">",
-        escapeHtml(link.label || "子路由"), " <span aria-hidden=\"true\">↗</span></button>"
-      ].join("");
-    }).join("");
     const stampText = stat && stat.count > 0
       ? `调阅 ${stat.count} 次 · 末次 ${formatLedgerMonthDay(stat.lastVisited)}`
       : "";
-    // Only request icon files that actually exist. Unknown/custom cards keep
-    // their typographic emblem and never generate 404 noise.
-    const primaryIcon = site.favicon
-      ? site.favicon
-      : (LOCAL_ICON_IDS.has(site.id) ? `icons/${encodeURIComponent(site.id)}.png` : "");
-    const iconImg = primaryIcon
+    // One resolver for every surface. It prefers the checked-in catalogue,
+    // leaves private hosts entirely local, and gives future remote entries a
+    // no-CORS image-provider chain.
+    const iconAttributes = window.NavSchema && typeof window.NavSchema.iconAttributes === "function"
+      ? window.NavSchema.iconAttributes(site)
+      : "";
+    const iconImg = iconAttributes
       ? `<img
                 class="emblem-img"
-                src="${escapeHtml(primaryIcon)}"
+                ${iconAttributes}
                 loading="lazy"
                 alt=""
-                width="20"
-                height="20"
-                onerror="this.remove();"
               >`
       : "";
     const marginaliaTriggerHtml = (buttonClass, label) => `
@@ -773,6 +743,28 @@
             <h3>${escapeHtml(name)}</h3>
             <span>№ ${indexStr}</span>
           </div>
+        </section>
+      </article>
+    `;
+  }
+
+  // Phase 5：卡片背面批注正文（编辑器 + 子路由 + 印章）不再随首屏 36 张卡预渲染。
+  // 首屏只留 .card-marginalia 外壳，用户首次翻开背面时才按需填充。
+  function createMarginaliaBodyHtml(site, indexStr) {
+    const name = siteName(site);
+    const notes = window.NavLedger && typeof window.NavLedger.getMarginalia === "function"
+      ? window.NavLedger.getMarginalia(site.id)
+      : (site.notes || "");
+    const subLinks = Array.isArray(site.subLinks) ? site.subLinks.slice(0, 4) : [];
+    const stat = window.NavLedger ? window.NavLedger.getStat(site.id) : null;
+    const subLinksHtml = subLinks.map(function (link) {
+      return [
+        "<button type=\"button\" class=\"marginalia-sublink\" data-marginalia-sublink=\"",
+        escapeHtml(link.url), "\" title=\"", escapeHtml(link.url), "\">",
+        escapeHtml(link.label || "子路由"), " <span aria-hidden=\"true\">↗</span></button>"
+      ].join("");
+    }).join("");
+    return `
           <div class="marginalia-note-block">
             <div class="marginalia-section-label">馆主批注 <button type="button" class="marginalia-edit" data-marginalia-edit aria-label="编辑批注">✎</button></div>
             <p class="marginalia-note-text" data-marginalia-note-text>${notes ? escapeHtml(notes) : "<span class=\"marginalia-placeholder\">双击此处或点铅笔，写下私人评注与使用备忘。</span>"}</p>
@@ -794,10 +786,25 @@
           <footer class="marginalia-stamp">
             <span>累计调阅 ${stat ? stat.count : 0} 次</span>
             <span>${stat && stat.lastVisited ? "末次 " + formatLedgerMonthDay(stat.lastVisited) : "尚未开卷"}</span>
-          </footer>
-        </section>
-      </article>
-    `;
+          </footer>`;
+  }
+
+  /**
+   * Phase 5：按需填充某张卡片背面的批注 DOM（幂等）。
+   * 首次翻开背面时调用一次，之后直接复用已建节点。
+   */
+  function hydrateMarginaliaPanel(card) {
+    if (!card) return null;
+    const panel = card.querySelector(".card-marginalia");
+    if (!panel) return null;
+    if (panel.dataset.marginaliaHydrated === "true") return panel;
+    const siteId = card.getAttribute("data-site-id");
+    const site = getSiteById(siteId);
+    if (!site) return panel;
+    const indexStr = card.getAttribute("data-call-number") || getCallNumber(site, 0);
+    panel.insertAdjacentHTML("beforeend", createMarginaliaBodyHtml(site, indexStr));
+    panel.dataset.marginaliaHydrated = "true";
+    return panel;
   }
 
   // 生成专栏板块
@@ -953,13 +960,10 @@
           ? potentialHtml
           : createSearchEmptyStateHtml(query, allSites);
       } else {
-        if (state.viewMode === "shelf" && window.NavBookshelf) {
-          dom.contentArea.innerHTML = window.NavBookshelf.renderSearchShelf(matches, query);
-        } else {
-          dom.contentArea.innerHTML = createMatchedGridHtml(matches, query);
-        }
+        dom.contentArea.innerHTML = createMatchedGridHtml(matches, query);
         dom.contentArea.insertAdjacentHTML("beforeend", potentialHtml);
       }
+      bindRenderedIconFallbacks();
       return;
     }
 
@@ -979,33 +983,23 @@
           "viewAll"
         );
       } else {
-        if (state.viewMode === "shelf" && window.NavBookshelf) {
-          dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
-            "私人典藏集",
-            "BOOKMARKS",
-            "保存在当前浏览器本地的精选书签",
-            favSites,
-            "",
-            "favorites"
-          );
-        } else {
-          const cardsHtml = favSites.map((site, idx) =>
-            createEntryCardHtml(site, idx, "", favSites.length)
-          ).join("");
-          dom.contentArea.innerHTML = createSectionHtml(
-            "私人典藏集",
-            "BOOKMARKS",
-            "保存在当前浏览器本地的精选书签",
-            favSites.length,
-            cardsHtml,
-            "",
-            "favorites"
-          );
-        }
+        const cardsHtml = favSites.map((site, idx) =>
+          createEntryCardHtml(site, idx, "", favSites.length)
+        ).join("");
+        dom.contentArea.innerHTML = createSectionHtml(
+          "私人典藏集",
+          "BOOKMARKS",
+          "保存在当前浏览器本地的精选书签",
+          favSites.length,
+          cardsHtml,
+          "",
+          "favorites"
+        );
       }
       if (window.NavSortable && window.NavSortable.isArrangeMode()) {
         window.NavSortable.refreshCardAttributes();
       }
+      bindRenderedIconFallbacks();
       return;
     }
 
@@ -1025,33 +1019,23 @@
             清空案头记录
           </button>
         `;
-        if (state.viewMode === "shelf" && window.NavBookshelf) {
-          dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
-            "常驻案头 (高频访问)",
-            "DESK",
-            "手动典藏 + 近 7 天借阅频次 Top 6",
-            freqSites,
-            clearActionHtml,
-            "frequent"
-          );
-        } else {
-          const cardsHtml = freqSites.map((site, idx) =>
-            createEntryCardHtml(site, idx, "", freqSites.length)
-          ).join("");
-          dom.contentArea.innerHTML = createSectionHtml(
-            "常驻案头 (高频访问)",
-            "DESK",
-            "手动典藏 + 近 7 天借阅频次 Top 6",
-            freqSites.length,
-            cardsHtml,
-            clearActionHtml,
-            "frequent"
-          );
-        }
+        const cardsHtml = freqSites.map((site, idx) =>
+          createEntryCardHtml(site, idx, "", freqSites.length)
+        ).join("");
+        dom.contentArea.innerHTML = createSectionHtml(
+          "常驻案头 (高频访问)",
+          "DESK",
+          "手动典藏 + 近 7 天借阅频次 Top 6",
+          freqSites.length,
+          cardsHtml,
+          clearActionHtml,
+          "frequent"
+        );
       }
       if (window.NavSortable && window.NavSortable.isArrangeMode()) {
         window.NavSortable.refreshCardAttributes();
       }
+      bindRenderedIconFallbacks();
       return;
     }
 
@@ -1062,16 +1046,6 @@
       const shadowSites = window.NavSanctum && window.NavSanctum.isShadow && window.NavSanctum.isShadow()
         ? getShadowSites()
         : [];
-      // 书架视图渲染全馆各层
-      if (state.viewMode === "shelf" && window.NavBookshelf) {
-        const rawFavSites = allSites.filter(site => window.NavFavorites && window.NavFavorites.has(site.id));
-        const favSites = window.NavSortable ? window.NavSortable.sortSites("favorites", rawFavSites) : rawFavSites;
-        const freqSites = getDeskSites(allSites);
-
-        dom.contentArea.innerHTML = window.NavBookshelf.renderAllShelves(allSites, categories, favSites, freqSites);
-        return;
-      }
-
       // 网格视图渲染全馆板块
       const sectionsHtml = [];
       const cataloguedIds = new Set();
@@ -1132,6 +1106,7 @@
       if (window.NavSortable && window.NavSortable.isArrangeMode()) {
         window.NavSortable.refreshCardAttributes();
       }
+      bindRenderedIconFallbacks();
       return;
     }
 
@@ -1150,32 +1125,28 @@
         "viewAll"
       );
     } else {
-      if (state.viewMode === "shelf" && window.NavBookshelf) {
-        dom.contentArea.innerHTML = window.NavBookshelf.renderSingleShelf(
-          currentCategory.name,
-          currentCategory.code || "SEC",
-          currentCategory.desc,
-          catSites,
-          "",
-          currentCategory.id
-        );
-      } else {
-        const cards = catSites.map((site, idx) =>
-          createEntryCardHtml(site, idx, "", catSites.length)
-        ).join("");
-        dom.contentArea.innerHTML = createSectionHtml(
-          currentCategory.name,
-          currentCategory.code || "SEC",
-          currentCategory.desc,
-          catSites.length,
-          cards,
-          "",
-          currentCategory.id
-        );
-      }
+      const cards = catSites.map((site, idx) =>
+        createEntryCardHtml(site, idx, "", catSites.length)
+      ).join("");
+      dom.contentArea.innerHTML = createSectionHtml(
+        currentCategory.name,
+        currentCategory.code || "SEC",
+        currentCategory.desc,
+        catSites.length,
+        cards,
+        "",
+        currentCategory.id
+      );
     }
     if (window.NavSortable && window.NavSortable.isArrangeMode()) {
       window.NavSortable.refreshCardAttributes();
+    }
+    bindRenderedIconFallbacks();
+  }
+
+  function bindRenderedIconFallbacks() {
+    if (window.NavSchema && typeof window.NavSchema.bindIconFallbacks === "function") {
+      window.NavSchema.bindIconFallbacks(dom.contentArea);
     }
   }
 
@@ -1411,6 +1382,11 @@
       }
 
       // 5.12 藏书票批注层：关闭 / 编辑 / 保存 / 子路由
+      // Phase 5：背面 DOM 懒构建 —— 任何背面操作前先按需填充（幂等）。
+      const marginaliaHost = e.target.closest(".entry-card");
+      if (marginaliaHost && e.target.closest(".card-marginalia")) {
+        hydrateMarginaliaPanel(marginaliaHost);
+      }
       const marginaliaClose = e.target.closest("[data-marginalia-close]");
       if (marginaliaClose) {
         e.preventDefault();
@@ -1449,6 +1425,7 @@
         if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
           window.NavMarginalia.flip(cardForFlip.getAttribute("data-site-id"));
         } else {
+          hydrateMarginaliaPanel(cardForFlip);
           cardForFlip.classList.toggle("is-flipped");
         }
         return;
@@ -1605,6 +1582,7 @@
           if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
             window.NavMarginalia.flip(siteId);
           } else {
+            hydrateMarginaliaPanel(card);
             card.classList.toggle("is-flipped");
           }
           return;
@@ -1615,6 +1593,7 @@
           if (window.NavMarginalia && typeof window.NavMarginalia.flip === "function") {
             window.NavMarginalia.flip(siteId);
           } else {
+            hydrateMarginaliaPanel(card);
             card.classList.toggle("is-flipped");
           }
           return;
@@ -1640,36 +1619,16 @@
       if (edit) edit.click();
     });
 
-    // 5.9 视图模式切换 (网格 ⟷ 3D 书架)
-    const viewBtn = dom.viewBtn || document.getElementById("btn-view-toggle");
-    if (viewBtn) {
-      dom.viewBtn = viewBtn;
-      viewBtn.addEventListener("click", function () {
-        if (state.archiveView === "star-map") {
-          state.archiveView = "grid";
-          updateArchiveViewSwitcher();
-        }
-        if (window.NavSortable && window.NavSortable.isArrangeMode()) {
-          window.NavSortable.exitArrangeMode();
-        }
-        state.viewMode = state.viewMode === "grid" ? "shelf" : "grid";
-        if (window.NavStorage) {
-          window.NavStorage.set("mynav_arch_view", state.viewMode);
-        }
-        updateViewButton();
-        renderContent();
-      });
-    }
+    // 5.9 Phase 5：3D 书架按钮已移除，视图切换改由画布顶部的
+    // 「书本目录 / 穹顶星图」双段开关与 `v` 快捷键统一驱动（见 setArchiveView）。
 
     // 6. 整理书架与拖拽排序控制
     const arrangeToggleBtn = document.getElementById("btn-arrange-toggle");
     if (arrangeToggleBtn) {
       arrangeToggleBtn.addEventListener("click", function () {
-        if (state.viewMode === "shelf") {
-          state.viewMode = "grid";
-          if (window.NavStorage) window.NavStorage.set("mynav_arch_view", "grid");
-          updateViewButton();
-          renderContent();
+        // 整理模式只对卡片网格有意义；若正停在星图，先回到书本目录。
+        if (state.archiveView === "star-map") {
+          setArchiveView("grid");
         }
         if (window.NavSortable) window.NavSortable.toggleArrangeMode();
       });
@@ -1705,11 +1664,197 @@
   }
 
   // ==========================================================================
-  // 系统启动装配 (Bootstrap)
+  // 系统启动装配 (Bootstrap) —— Phase 5 两段式空闲启动 (Two-Stage Idle Boot)
   // ==========================================================================
+  //
+  // Stage 1（Critical Sync）：主题、典藏、访问、结界、星轨、排序 + 首屏渲染，
+  //   必须同步执行，36 张卡片在第一帧就完成绘制，杜绝「载入中… · 0 卷」。
+  // Stage 2（Deferred Idle）：所有隐藏弹窗 / 抽屉 / 次要模块推迟到空闲帧，
+  //   把首屏主线程还给排版与绘制。
+  //
+  // 竞态防线：`flushIdleBoot()` 可在空闲回调触发前立即同步冲刷 Stage 2；
+  // 任何在 Stage 2 完成前发生的用户按键 / 打开动作都会先调用它。
+
+  let stage2Done = false;
+  let stage2Promise = null;
+  let stage2Resolve = null;
+  let idleHandle = null;
+  let idleFallbackTimer = null;
+
+  function scheduleIdleBoot(fn) {
+    if (typeof window.requestIdleCallback === "function") {
+      idleHandle = window.requestIdleCallback(fn, { timeout: 250 });
+    } else {
+      idleFallbackTimer = window.setTimeout(fn, 16);
+    }
+  }
+
+  function cancelIdleBoot() {
+    if (idleHandle !== null && typeof window.cancelIdleCallback === "function") {
+      window.cancelIdleCallback(idleHandle);
+    }
+    idleHandle = null;
+    if (idleFallbackTimer !== null) {
+      window.clearTimeout(idleFallbackTimer);
+    }
+    idleFallbackTimer = null;
+  }
+
+  // Stage 2 的模块清单：全部是隐藏浮层或纯键盘钩子，首屏不可见。
+  // 顺序保持与历史一致，便于回归对照。
+  function runStage2() {
+    // 2.5 专属数字藏书票 (Ex Libris)
+    if (window.NavExLibris) {
+      safeInit("NavExLibris", function () { window.NavExLibris.init(); });
+    }
+    // 2.8 文化手记与金石印章
+    if (window.NavLore) {
+      safeInit("NavLore", function () { window.NavLore.init(); });
+    }
+    // 2.9 A1/A2/A8 纯前端效率模块
+    if (window.NavCommands) {
+      safeInit("NavCommands", function () { window.NavCommands.init(); });
+    }
+    // 卡片背面批注委托（薄壳，Stage 1 已渲染外壳）
+    if (window.NavMarginalia) {
+      safeInit("NavMarginalia", function () { window.NavMarginalia.init(); });
+    }
+    if (window.NavUncatalogued) {
+      safeInit("NavUncatalogued", function () { window.NavUncatalogued.init(); });
+    }
+    if (window.NavSnippets) {
+      safeInit("NavSnippets", function () { window.NavSnippets.init(); });
+    }
+    if (window.NavFolioKeys) {
+      safeInit("NavFolioKeys", function () {
+        window.NavFolioKeys.init({
+          onOpenNumber: function (code) {
+            const site = getRawSites().find(function (site, index) {
+              return getCallNumber(site, index) === code;
+            });
+            if (!site) return null;
+            return { site: site, callNumber: code };
+          },
+          onRandom: openRandom,
+          onCategorySwitch: function (tabIndex) {
+            const tab = dom.tabsRail.querySelectorAll(".index-tab-item")[tabIndex];
+            if (tab) switchCategory(tab.getAttribute("data-cat-target"), { focusTab: false });
+          }
+        });
+      });
+    }
+    if (window.NavSerendipity) {
+      safeInit("NavSerendipity", function () { window.NavSerendipity.init(); });
+    }
+    if (window.NavAstronomy) {
+      safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });
+    }
+    if (window.NavSoundscape) {
+      safeInit("NavSoundscape", function () { window.NavSoundscape.init(); });
+    }
+    if (window.NavBrassTools) {
+      safeInit("NavBrassTools", function () { window.NavBrassTools.init(); });
+    }
+    if (window.NavAlmanac) {
+      safeInit("NavAlmanac", function () { window.NavAlmanac.init(); });
+      safeInit("NavAlmanacRefresh", function () { window.NavAlmanac.refresh(); });
+    }
+    // Phase 4A：D1 守馆人 AI（司天监终端）与 A5/C4 星轨探针与遥测机关台。
+    // Phase 4B：C2 观星晨报、D5 网页琥珀、A6/C5 飞鸽传书、D7 联邦寻星镜。
+    // 附加模块的初始化必须与主画布渲染隔离：任何单个模块抛异常都不得中断
+    // 卡片渲染与事件绑定，否则整座藏书馆会退化为「载入中… · 0 卷」。
+    if (window.NavLibrarian) {
+      safeInit("NavLibrarian", function () { window.NavLibrarian.init(); });
+    }
+    if (window.NavTelemetry) {
+      safeInit("NavTelemetry", function () { window.NavTelemetry.init(); });
+    }
+    if (window.NavEphemeris) {
+      safeInit("NavEphemeris", function () { window.NavEphemeris.init(); });
+    }
+    if (window.NavAmber) {
+      safeInit("NavAmber", function () { window.NavAmber.init(); });
+    }
+    if (window.NavCourier) {
+      safeInit("NavCourier", function () { window.NavCourier.init(); });
+    }
+    if (window.NavFederation) {
+      safeInit("NavFederation", function () { window.NavFederation.init(); });
+    }
+    // 部分模块在 init 中自我注册到 NavApp；这里统一回填，保证引用永远可用。
+    syncModuleRefs();
+  }
+
+  function syncModuleRefs() {
+    if (!window.NavApp) return;
+    const refs = {
+      ExLibris: window.NavExLibris,
+      Lore: window.NavLore,
+      Commands: window.NavCommands,
+      Uncatalogued: window.NavUncatalogued,
+      Snippets: window.NavSnippets,
+      Serendipity: window.NavSerendipity,
+      Astronomy: window.NavAstronomy,
+      Soundscape: window.NavSoundscape,
+      BrassTools: window.NavBrassTools,
+      Almanac: window.NavAlmanac,
+      StarMap: window.NavStarMap,
+      Librarian: window.NavLibrarian,
+      Telemetry: window.NavTelemetry,
+      Ephemeris: window.NavEphemeris,
+      Amber: window.NavAmber,
+      Courier: window.NavCourier,
+      Federation: window.NavFederation
+    };
+    Object.keys(refs).forEach(function (key) {
+      if (refs[key]) window.NavApp[key] = refs[key];
+    });
+  }
+
+  function finishStage2() {
+    if (stage2Done) return;
+    stage2Done = true;
+    cancelIdleBoot();
+    runStage2();
+    if (typeof window.__BOOT_TIMING__ === "object" && window.__BOOT_TIMING__) {
+      window.__BOOT_TIMING__.stage2At = Math.round(performance.now() * 100) / 100;
+    }
+    if (stage2Resolve) {
+      stage2Resolve({ stage: 2, done: true });
+      stage2Resolve = null;
+    }
+    window.dispatchEvent(new CustomEvent("mynav-stage2-ready"));
+  }
+
+  // 竞态防线：任何首屏外的按键 / 打开动作都可以先同步冲刷 Stage 2。
+  function flushIdleBoot() {
+    if (!stage2Done) finishStage2();
+    return stage2Done;
+  }
+
+  // Stage 2 的 Promise 一经创建就是稳定引用：无论何时调用 whenReady()，
+  // 拿到的永远是同一个 Promise，便于缓存与比对。
+  function whenReady() {
+    if (stage2Promise) return stage2Promise;
+    if (stage2Done) {
+      stage2Promise = Promise.resolve({ stage: 2, done: true });
+      return stage2Promise;
+    }
+    stage2Promise = new Promise(function (resolve) {
+      stage2Resolve = resolve;
+    });
+    return stage2Promise;
+  }
 
   function init() {
-    // 1. 初始化独立子模块
+    window.__BOOT_TIMING__ = {
+      stage1Start: Math.round(performance.now() * 100) / 100,
+      stage1End: null,
+      stage2At: null
+    };
+
+    // ---------------------------------------------------------------- Stage 1
+    // 首屏立即同步执行：这些模块决定 36 张卡片能否在第一帧画出来。
     if (window.NavTheme) window.NavTheme.init(dom.themeBtn);
     if (window.NavFavorites) window.NavFavorites.init();
     if (window.NavVisits) window.NavVisits.init();
@@ -1718,8 +1863,12 @@
         return site.id;
       }));
     }
-
-    // 2. 初始化书架整理与拖动排序模块
+    if (window.NavSanctum) {
+      safeInit("NavSanctum", function () { window.NavSanctum.init(); });
+    }
+    if (window.NavConstellations) {
+      safeInit("NavConstellations", function () { window.NavConstellations.init(); });
+    }
     if (window.NavSortable) {
       window.NavSortable.init({
         isSearchActive: () => Boolean(state.searchQuery.trim()),
@@ -1729,24 +1878,18 @@
       });
     }
 
-    // 2.5 初始化专属数字藏书票模块 (Ex Libris)
-    if (window.NavExLibris) {
-      window.NavExLibris.init();
-    }
+    // 刊头信息（首屏可见）
+    if (dom.mastheadDate) dom.mastheadDate.textContent = formatEditorialDate();
+    if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
 
-    // 2.6 初始化 3D 藏书馆书架事件委托 (一次性绑定)
-    if (window.NavBookshelf && dom.contentArea) {
-      window.NavBookshelf.bindInteractions(dom.contentArea);
-    }
-
-    // 2.7 初始化全站键盘无障碍漫游与微交互控制模块
-    state.archiveView = "grid";
+    // 视图状态与快捷键（快捷键是首屏交互，必须同步就位；
+    // 其内部通过 flushIdleBoot 保证 Stage 2 未完成时零竞态）。
     updateArchiveViewSwitcher();
     if (window.NavShortcuts) {
       window.NavShortcuts.init({
-        getViewMode: () => state.viewMode,
         isArrangeMode: () => Boolean(window.NavSortable && window.NavSortable.isArrangeMode()),
         getAllSites: () => getRawSites(),
+        beforeAction: flushIdleBoot,
         onSearchFocus: () => {
           if (dom.searchInput) {
             dom.searchInput.focus();
@@ -1765,23 +1908,11 @@
           }
         },
         onViewToggle: () => {
-          if (window.NavSortable && window.NavSortable.isArrangeMode()) {
-            window.NavSortable.exitArrangeMode();
-          }
-          if (state.archiveView === "star-map") {
-            state.archiveView = "grid";
-            updateArchiveViewSwitcher();
-          }
-          state.viewMode = state.viewMode === "grid" ? "shelf" : "grid";
-          if (window.NavStorage) {
-            window.NavStorage.set("mynav_arch_view", state.viewMode);
-          }
-          updateViewButton();
-          renderContent();
+          const next = toggleArchiveView();
           window.NavShortcuts.showToast(
-            state.viewMode === "shelf" ? "已切换至 3D 藏书馆书架" : "已切换至期刊网格视图",
-            "按 v 随时往复切换",
-            state.viewMode === "shelf" ? "🏛" : "⊞"
+            next === "star-map" ? "已切换至穹顶星图" : "已切换至书本目录",
+            "按 v 在书本目录 ⟷ 穹顶星图之间往复",
+            next === "star-map" ? "🌌" : "📖"
           );
         },
         onThemeToggle: () => {
@@ -1840,92 +1971,27 @@
           const allSites = getRawSites();
           const targetSite = allSites.find(s => s.id === siteId);
           if (targetSite && window.NavExLibris) {
+            flushIdleBoot();
             window.NavExLibris.open(targetSite);
           }
         }
       });
     }
 
-    // 2.8 初始化文化手记与金石印章模块 (Phase 8)
-    if (window.NavLore) {
-      window.NavLore.init();
-    }
-
-    // 2.9 A1/A2/A8 纯前端效率模块
-    if (window.NavCommands) {
-      window.NavCommands.init();
-    }
-    if (window.NavMarginalia) {
-      window.NavMarginalia.init();
-    }
-    if (window.NavUncatalogued) {
-      window.NavUncatalogued.init();
-    }
-    if (window.NavSnippets) {
-      window.NavSnippets.init();
-    }
-    if (window.NavConstellations) {
-      window.NavConstellations.init();
-    }
-    if (window.NavSanctum) {
-      window.NavSanctum.init();
-    }
-    if (window.NavFolioKeys) {
-      window.NavFolioKeys.init({
-        onOpenNumber: function (code) {
-          const site = getRawSites().find(function (site, index) {
-            return getCallNumber(site, index) === code;
-          });
-          if (!site) return null;
-          return { site: site, callNumber: code };
-        },
-        onRandom: openRandom,
-        onCategorySwitch: function (tabIndex) {
-          const tab = dom.tabsRail.querySelectorAll(".index-tab-item")[tabIndex];
-          if (tab) switchCategory(tab.getAttribute("data-cat-target"), { focusTab: false });
-        }
-      });
-    }
-    if (window.NavSerendipity) {
-      window.NavSerendipity.init();
-    }
-    if (window.NavAstronomy) {
-      window.NavAstronomy.init();
-    }
-    if (window.NavSoundscape) {
-      window.NavSoundscape.init();
-    }
-    if (window.NavBrassTools) {
-      window.NavBrassTools.init();
-    }
-    if (window.NavAlmanac) {
-      window.NavAlmanac.init();
-    }
-    // Phase 4A：D1 守馆人 AI（司天监终端）与 A5/C4 星轨探针与遥测机关台。
-    // 附加模块的初始化必须与主画布渲染隔离：任何单个模块抛异常都不得中断
-    // 卡片渲染与事件绑定，否则整座藏书馆会退化为「载入中… · 0 卷」。
-    safeInit("NavLibrarian", function () { window.NavLibrarian.init(); });
-    safeInit("NavTelemetry", function () { window.NavTelemetry.init(); });
-    // Phase 4B：C2 观星晨报、D5 网页琥珀、A6/C5 飞鸽传书、D7 联邦寻星镜。
-    // 同样经 safeInit 隔离：任一模块初始化失败都不得影响 36 张卡片的渲染。
-    safeInit("NavEphemeris", function () { window.NavEphemeris.init(); });
-    safeInit("NavAmber", function () { window.NavAmber.init(); });
-    safeInit("NavCourier", function () { window.NavCourier.init(); });
-    safeInit("NavFederation", function () { window.NavFederation.init(); });
-
-    // 3. 装配刊头信息
-    if (dom.mastheadDate) dom.mastheadDate.textContent = formatEditorialDate();
-    if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
-
-    // 4. 初始渲染与事件绑定
-    dom.viewBtn = document.getElementById("btn-view-toggle");
-    updateViewButton();
+    // 首屏渲染：36 张卡片在第一帧完成绘制。
     renderIndexTabs();
     renderContent();
     bindEvents();
     updateOverridesNote();
 
-    // 5. 挂载全局刷新方法并监听修改层变化事件
+    // 首屏一落定就装好竞态闸门：空闲回调之前到来的按键 / 点击会同步冲刷 Stage 2。
+    installBootGate();
+
+    if (window.__BOOT_TIMING__) {
+      window.__BOOT_TIMING__.stage1End = Math.round(performance.now() * 100) / 100;
+    }
+
+    // 挂载全局刷新方法并监听修改层变化事件
     window.NavApp = {
       refresh() {
         if (dom.mastheadCount) dom.mastheadCount.textContent = `全馆典藏 ${getRawSites().length} 卷`;
@@ -1939,7 +2005,6 @@
         return {
           activeCategory: state.activeCategory,
           searchQuery: state.searchQuery,
-          viewMode: state.viewMode,
           archiveView: state.archiveView
         };
       },
@@ -1955,23 +2020,19 @@
       getUncataloguedMatches: getUncataloguedMatches,
       getShadowSites: getShadowSites,
       getSiteById: getSiteById,
-      Astronomy: window.NavAstronomy || null,
-      Soundscape: window.NavSoundscape || null,
-      BrassTools: window.NavBrassTools || null,
-      Almanac: window.NavAlmanac || null,
-      StarMap: window.NavStarMap || null,
-      Librarian: window.NavLibrarian || null,
-      Telemetry: window.NavTelemetry || null,
-      Ephemeris: window.NavEphemeris || null,
-      Amber: window.NavAmber || null,
-      Courier: window.NavCourier || null,
-      Federation: window.NavFederation || null,
       setArchiveView: setArchiveView,
+      toggleArchiveView: toggleArchiveView,
+      hydrateMarginalia: hydrateMarginaliaPanel,
       openSubLink: openSubLink,
       switchCategory: switchCategory,
       resetSearch: resetSearch,
-      recordSiteAccess: recordSiteAccess
+      recordSiteAccess: recordSiteAccess,
+      // Phase 5：两段式启动的公开契约。
+      whenReady: whenReady,
+      flushIdleBoot: flushIdleBoot,
+      isStage2Ready: function () { return stage2Done; }
     };
+    syncModuleRefs();
 
     window.addEventListener("nav-overrides-changed", function () {
       if (window.NavApp && typeof window.NavApp.refresh === "function") {
@@ -1980,6 +2041,7 @@
     });
     window.addEventListener("mynav-ledger-changed", function () {
       if (state.activeCategory === "frequent") renderContent();
+      if (!stage2Done) return; // 账本事件早于 Stage 2 时不必惊动尚未挂载的模块
       if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") {
         window.NavAlmanac.refresh();
       }
@@ -1991,9 +2053,46 @@
       }
       updateBadges();
     });
-    if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") {
-      window.NavAlmanac.refresh();
-    }
+
+    // ---------------------------------------------------------------- Stage 2
+    scheduleIdleBoot(finishStage2);
+  }
+
+  // ==========================================================================
+  // Stage 2 竞态闸门 (Boot race gate)
+  // ==========================================================================
+  //
+  // 为什么必须用 window + 捕获阶段：
+  //   brass-tools / snippets / uncatalogued / ephemeris / lore 等 Stage 2 模块
+  //   各自在 init() 里向 document 冒泡阶段注册自己的 keydown 监听。若用户在
+  //   空闲回调之前按 T / S / U / M / c，事件会先被 Stage 1 的监听处理，等到达
+  //   document 时才轮到 —— 而那时模块还没绑定，按键就丢了。
+  //   在 window 捕获阶段抢在所有人之前同步冲刷 Stage 2，按键便永不落空。
+  const BOOT_GATE_KEYS = new Set([
+    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "m", "M", "v", "V", "f", "F"
+  ]);
+
+  function isEditableTarget(target) {
+    if (!target) return false;
+    const tag = target.tagName ? target.tagName.toLowerCase() : "";
+    return tag === "input" || tag === "textarea" || tag === "select" ||
+      target.isContentEditable === true ||
+      (typeof target.getAttribute === "function" && target.getAttribute("contenteditable") === "true");
+  }
+
+  function installBootGate() {
+    window.addEventListener("keydown", function (event) {
+      if (stage2Done) return;                 // 已就绪，零开销
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isEditableTarget(event.target)) return;
+      if (!BOOT_GATE_KEYS.has(event.key)) return;
+      flushIdleBoot();
+    }, true);
+
+    // 指针同样会打向 Stage 2 才绑定的入口（工具尺 / 秘卷 / 待编目匣 ...）。
+    window.addEventListener("pointerdown", function () {
+      if (!stage2Done) flushIdleBoot();
+    }, true);
   }
 
   // 更新页脚未导出修改小提示

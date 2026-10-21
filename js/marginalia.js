@@ -41,6 +41,16 @@
     if (!card) return false;
     const next = typeof force === "boolean" ? force : !card.classList.contains("is-flipped");
     if (next) closeAll(card);
+    // Phase 5：背面批注 DOM 是懒构建的 —— 首次翻开时才填充（幂等）。
+    if (next && window.NavApp && typeof window.NavApp.hydrateMarginalia === "function") {
+      try {
+        window.NavApp.hydrateMarginalia(card);
+      } catch (error) {
+        if (window.console && typeof window.console.warn === "function") {
+          window.console.warn("[mynav] 批注面填充失败，已隔离：", error);
+        }
+      }
+    }
     card.classList.toggle("is-flipped", next);
     const panel = card.querySelector(".card-marginalia");
     if (panel) panel.setAttribute("aria-hidden", next ? "false" : "true");

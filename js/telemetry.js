@@ -741,7 +741,8 @@
     autoProbeEnabled = config.autoProbe !== false;
     injectProbes();
     observeContent();
-    renderDeck();
+    // Phase 5：机关台内部面板（3 台仪表）不再在 init 时预拼装，
+    // 首次 openDeck() 时才按需构建；关闭后保留节点复用。
     scheduleAutoProbe();
     if (window.NavApp && !window.NavApp.Telemetry) {
       window.NavApp.Telemetry = api;

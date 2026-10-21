@@ -1,8 +1,8 @@
 /**
  * Compatibility facade for the existing visit API.
  * All telemetry now lives in MYNAV_LEDGER_V2 (js/ledger.js), while callers
- * such as bookshelf.js, contextmenu.js and shortcuts.js keep their old
- * interface and therefore do not double-write separate storage keys.
+ * such as contextmenu.js and shortcuts.js keep their old interface and
+ * therefore do not double-write separate storage keys.
  */
 
 (function (root, factory) {

@@ -515,10 +515,11 @@
 
       case "arrange-order":
         if (window.NavSortable) {
+          // Phase 5：3D 书架视图已移除。整理模式只作用于卡片网格，
+          // 若正停在穹顶星图则先回到书本目录。
           const curView = window.NavStorage ? window.NavStorage.get("mynav_arch_view", "grid") : "grid";
-          if (curView === "shelf") {
-            const viewBtn = document.getElementById("btn-view-toggle");
-            if (viewBtn) viewBtn.click();
+          if (curView === "star-map" && window.NavApp && typeof window.NavApp.setArchiveView === "function") {
+            window.NavApp.setArchiveView("grid");
           }
           window.NavSortable.setArrangeMode(true);
           showToast("已开启书架整理", "拖动卡片调整顺序，按顶部「完成」保存", "🔀");
