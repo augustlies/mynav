@@ -340,7 +340,7 @@ headedBoot（headless:false 真实浏览器）
 
 全量回归
   cards=36  uniqueCallNumbers=36  uniqueCardIds=36  errors=[]
-  ***REMOVED*** 口令 ✅  非输入态 ? 打开快捷键指南且不触发司天监/晨报 ✅
+  XXXXXXX 口令 ✅  非输入态 ? 打开快捷键指南且不触发司天监/晨报 ✅
   待编目匣 420px（含飞鸽入口）✅  活字秘卷 4 张 ✅  暗月/考场 ✅
   恒星时 ✅  白噪音 ✅  黄铜工具尺（Base64/SHA-256）✅
   月相编年史 28 格/28 SVG ✅  穹顶星图 hub=5 planet=36 ✅

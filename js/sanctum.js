@@ -2,7 +2,7 @@
  * Module: D2 twin sanctums — shadow moon and focus lock.
  *
  * /shadow is deliberately handled after commands and after the hidden
- * ***REMOVED*** probe route. Nothing in this module can intercept that secret.
+ * probe route. Nothing in this module can intercept that secret.
  */
 
 (function (root, factory) {

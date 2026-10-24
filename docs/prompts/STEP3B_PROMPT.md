@@ -12,7 +12,7 @@
 ---
 
 ## 🚨 零容忍红线
-1. **全量回归 100% 绿灯**：隐藏口令 `***REMOVED***`、全局唯一索书号（`uniqueCallNumbers === 36`）、待编目匣、活字秘卷、暗月结界、考场封条、天文日晷、白噪音与黄铜工具尺，以及 5 个断点零横向溢出绝不可退化！
+1. **全量回归 100% 绿灯**：隐藏口令 `XXXXXXX`、全局唯一索书号（`uniqueCallNumbers === 36`）、待编目匣、活字秘卷、暗月结界、考场封条、天文日晷、白噪音与黄铜工具尺，以及 5 个断点零横向溢出绝不可退化！
 2. **Canvas 算力守恒**：穹顶引力星图（C6）的 `requestAnimationFrame` 循环**仅在星图视图激活时运行**；一旦切回「书本目录」视图或页面隐藏，必须立即停止动画循环，保证零后台 CPU 占用。
 
 ---
@@ -64,7 +64,7 @@
 ## ✅ 验收与自动化测试要求（Playwright & Node）
 1. 更新 `TODO.md`，将 Phase 3B 的 D4 与 C6 打勾 `[x]`（至此 Phase 0 ~ Phase 3 全部完成！）。
 2. 编写并运行 `artifacts/visual-qa/phase03b/acceptance.js` 与 `shots.js`：
-   - **全量回归**：确保 Phase 1 / Phase 2 / Phase 3A 核心断言（`***REMOVED***` 口令、`uniqueCallNumbers === 36`、待编目匣、活字秘卷、暗月/考场模式、恒星时、白噪音、黄铜工具尺、5 断点零横向溢出）100% 通过。
+   - **全量回归**：确保 Phase 1 / Phase 2 / Phase 3A 核心断言（`XXXXXXX` 口令、`uniqueCallNumbers === 36`、待编目匣、活字秘卷、暗月/考场模式、恒星时、白噪音、黄铜工具尺、5 断点零横向溢出）100% 通过。
    - **D4 编年史验证**：
      - 断言 `.almanac-chronicle` 包含 28 个日期月相格（内含 SVG）。
      - 调用 `NavApp.openSite()` 后，断言今日格子的调阅计数增加且月相等级更新。

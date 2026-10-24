@@ -328,11 +328,12 @@
     },
 
     /**
-     * 特工暗号彩蛋探测 (***REMOVED*** 唤起哪吒探针面板)
+     * 特工暗号彩蛋探测 (暗号唤起探针面板；暗号存于本机 localStorage 的 MYNAV_AGENT_CODE)
      */
     isAgentCode(query) {
       if (!query) return false;
-      return String(query).trim() === "***REMOVED***";
+      const code = localStorage.getItem("MYNAV_AGENT_CODE") || "";
+      return code !== "" && String(query).trim() === code;
     },
 
     // 辅助工具方法暴露
