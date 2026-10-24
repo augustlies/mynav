@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
-  <link rel="stylesheet" href="styles.css?v=4.2.0">
+  <link rel="stylesheet" href="styles.css?v=4.3.0-batch1a">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <div id="particles-bg" class="particles-bg" aria-hidden="true"></div>
 
   <div class="archive-wrapper">
-    <!-- 顶部通栏：仅保留品牌与工具操作 -->
+    <!-- 顶部通栏：只保留品牌与主题切换，其余馆务入口下沉到页尾馆务索引 -->
     <header class="top-colophon-bar" role="banner">
       <div class="colophon-left">
         <button type="button" id="btn-colophon-mark" class="btn-colophon-badge" title="查阅馆长手记与建馆理念 (按 c 键)" aria-label="查阅馆长手记">
@@ -23,65 +23,6 @@
         <span class="colophon-sub-title">个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
-        <!-- Phase 3A：D6 白噪音天文台 -->
-        <button
-          type="button"
-          id="btn-soundscape-toggle"
-          class="theme-switch-btn soundscape-switch-btn"
-          data-state="off"
-          aria-pressed="false"
-          aria-label="开启白噪音天文台"
-          title="寂静（/sound 开启）"
-        >
-          <span class="soundscape-icon" aria-hidden="true">𝄞</span>
-          <span class="soundscape-label">寂静</span>
-        </button>
-        <!-- Phase 2：活字秘卷与双生结界 -->
-        <button
-          type="button"
-          id="btn-snippets-entry"
-          class="theme-switch-btn snippets-switch-btn"
-          aria-label="打开活字秘卷匣 (S)"
-          title="活字秘卷匣 (S)"
-        >
-          <span class="snippets-icon" aria-hidden="true">📜</span>
-          <span class="snippets-label">秘卷</span>
-        </button>
-        <button
-          type="button"
-          id="btn-shadow-toggle"
-          class="theme-switch-btn shadow-switch-btn"
-          aria-label="切换暗月密室 (/shadow)"
-          title="暗月密室 (/shadow)"
-        >
-          <span class="shadow-icon" aria-hidden="true">☾</span>
-          <span class="shadow-label">暗月</span>
-        </button>
-        <button
-          type="button"
-          id="btn-focus-toggle"
-          class="theme-switch-btn focus-switch-btn"
-          aria-label="切换考场结界 (/focus)"
-          title="考场结界 (/focus)"
-        >
-          <span class="focus-icon" aria-hidden="true">⌛</span>
-          <span class="focus-label">结界</span>
-        </button>
-        <!-- Phase 5：3D 书架视图已移除。画布视图切换改由
-             「书本目录 / 穹顶星图」双段开关（data-archive-view）与 v 键驱动。 -->
-
-        <!-- 整理书架模式开关按钮 -->
-        <button
-          type="button"
-          id="btn-arrange-toggle"
-          class="theme-switch-btn arrange-switch-btn"
-          aria-label="整理书架：调整卡片排序"
-          title="整理书架 (拖动排序)"
-        >
-          <span class="arrange-icon" aria-hidden="true">✥</span>
-          <span class="arrange-label">整理</span>
-        </button>
-
         <!-- 典雅双色与自然时序主题切换按钮 -->
         <button
           type="button"
@@ -92,74 +33,6 @@
         >
           <span class="theme-icon" aria-hidden="true">◐</span>
           <span class="theme-label">自动</span>
-        </button>
-
-        <!-- 键盘漫游指南开关按钮 -->
-        <button
-          type="button"
-          id="btn-shortcuts-toggle"
-          class="theme-switch-btn shortcuts-switch-btn"
-          aria-label="查看全站键盘漫游指南 (?)"
-          title="键盘漫游指南 (?)"
-        >
-          <span class="shortcuts-icon" aria-hidden="true">⌨</span>
-          <span class="shortcuts-label">指南</span>
-        </button>
-        <!-- A8：随机开卷 -->
-        <button
-          type="button"
-          id="btn-random-open"
-          class="theme-switch-btn random-switch-btn"
-          aria-label="今日开卷：从全馆随机抽一卷 (R)"
-          title="今日开卷 · 随机寻星 (R)"
-        >
-          <span class="random-icon" aria-hidden="true">✦</span>
-          <span class="random-label">随机开卷</span>
-          <kbd class="header-key">R</kbd>
-        </button>
-        <!-- Phase 4B · C2：观星台晨报 -->
-        <button
-          type="button"
-          id="btn-ephemeris-entry"
-          class="theme-switch-btn ephemeris-switch-btn"
-          aria-label="展开观星台晨报 (M)"
-          title="观星台晨报 (M · /morning)"
-        >
-          <span class="ephemeris-icon" aria-hidden="true">🗞️</span>
-          <span class="ephemeris-label">观星晨报</span>
-        </button>
-        <!-- Phase 4B · A6/C5：飞鸽传书与 Notion 同步桥 -->
-        <button
-          type="button"
-          id="btn-courier-entry"
-          class="theme-switch-btn courier-switch-btn"
-          aria-label="打开飞鸽传书与 Notion 同步台 (/ingest)"
-          title="飞鸽传书 · 盖章入馆 (/ingest · /notion)"
-        >
-          <span class="courier-icon" aria-hidden="true">🕊️</span>
-          <span class="courier-label">飞鸽</span>
-        </button>
-        <!-- Phase 4B · D7：联邦星图寻星镜 -->
-        <button
-          type="button"
-          id="btn-federation-entry"
-          class="theme-switch-btn federation-switch-btn"
-          aria-label="打开邻近星系寻星镜 (/telescope)"
-          title="寻星镜 · 馆际互借 (/telescope · /federation)"
-        >
-          <span class="federation-icon" aria-hidden="true">🔭</span>
-          <span class="federation-label">寻星镜</span>
-        </button>
-        <!-- 云同步登录按钮 -->
-        <button
-          type="button"
-          id="btn-cloud-sync"
-          class="theme-switch-btn cloud-sync-btn"
-          aria-label="云同步：登录以同步收藏与记录"
-          title="云同步 (登录)"
-        >
-          <span class="cloud-icon" aria-hidden="true">☁</span>
-          <span class="cloud-label">云</span>
         </button>
       </div>
     </header>
@@ -212,18 +85,6 @@
             <span class="uncatalogued-meta">PROMPT · S</span>
           </button>
 
-          <!-- B2：待编目匣入口，抽屉由 js/uncatalogued.js 接管 -->
-          <button
-            type="button"
-            id="btn-uncatalogued-entry"
-            class="spine-uncatalogued-entry"
-            title="打开待编目匣 (U)"
-          >
-            <span class="uncatalogued-glyph" aria-hidden="true">⌘</span>
-            <span class="uncatalogued-label">待编目匣</span>
-            <span class="uncatalogued-meta"><span id="uncatalogued-entry-count">00</span> · U</span>
-          </button>
-
           <!-- Phase 3A：D3 黄铜工具尺（桌面书脊入口） -->
           <button
             type="button"
@@ -252,15 +113,6 @@
 
       <section class="folio-main" aria-label="馆藏检索与典藏目录">
         <header class="folio-search-bar" aria-label="馆藏检索">
-          <div class="folio-view-switcher" role="group" aria-label="典藏视图">
-            <button type="button" id="btn-catalog-view" class="folio-view-btn is-active" data-archive-view="grid" aria-pressed="true" title="书本目录视图">
-              <span aria-hidden="true">📖</span><span>书本目录</span>
-            </button>
-            <span class="folio-view-divider" aria-hidden="true">|</span>
-            <button type="button" id="btn-star-map-view" class="folio-view-btn" data-archive-view="star-map" aria-pressed="false" title="穹顶星图视图 (G)">
-              <span aria-hidden="true">🌌</span><span>穹顶星图</span>
-            </button>
-          </div>
           <div class="archive-search-section">
             <div class="search-box-frame">
               <span class="search-glyph" aria-hidden="true">§</span>
@@ -352,7 +204,180 @@
               </footer>
             </section>
           </div>
-          <div class="folio-search-meta">
+        </header>
+
+        <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
+          <div class="arrange-toolbar-content">
+            <span class="arrange-tip">
+              <strong class="arrange-badge">整理模式</strong>
+              <span>拖拽卡片调整排序，或按空格选中后用方向键移动，松手自动记住顺序</span>
+            </span>
+            <div class="arrange-actions">
+              <button type="button" id="btn-reset-order" class="btn-arrange-action" title="恢复为默认排列顺序">恢复默认顺序</button>
+              <button type="button" id="btn-finish-arrange" class="btn-arrange-action btn-arrange-primary" title="完成并退出整理模式 (Esc)">完成 (Esc)</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="search-status-bar" class="search-status-bar" style="display: none;">
+          <span id="search-status-text"></span>
+          <button type="button" id="btn-reset-filter" class="btn-reset-filter">重置检索</button>
+        </div>
+
+        <main class="archive-main-area" id="archive-content-area" role="main">
+          <!-- 动态排版渲染区域 -->
+        </main>
+        <section id="star-map-container" class="star-map-container" aria-label="穹顶知识关系星图" hidden></section>
+        <section id="almanac-chronicle" class="almanac-chronicle" aria-labelledby="almanac-title" hidden>
+          <div class="almanac-chronicle-slot"></div>
+        </section>
+
+        <!-- Batch 1A · 馆务索引：低频入口与辅助面板统一下沉到卡片之后 -->
+        <section class="footer-utility-rack" aria-label="馆务索引">
+          <div class="footer-utility-heading">
+            <span class="footer-utility-kicker">BACK MATTER · 馆务索引</span>
+            <p>检索与分类留在此页；低频馆务、视图切换与星图工具集中在此，按需展开。</p>
+          </div>
+
+          <div class="folio-view-switcher footer-view-switcher" role="group" aria-label="典藏视图">
+            <button type="button" id="btn-catalog-view" class="folio-view-btn is-active" data-archive-view="grid" aria-pressed="true" title="书本目录视图">
+              <span aria-hidden="true">📖</span><span>书本目录</span>
+            </button>
+            <span class="folio-view-divider" aria-hidden="true">|</span>
+            <button type="button" id="btn-star-map-view" class="folio-view-btn" data-archive-view="star-map" aria-pressed="false" title="穹顶星图视图 (G)">
+              <span aria-hidden="true">🌌</span><span>穹顶星图</span>
+            </button>
+          </div>
+
+          <div class="footer-utility-actions" role="group" aria-label="馆务与工具">
+            <!-- Phase 3A：D6 白噪音天文台 -->
+            <button
+              type="button"
+              id="btn-soundscape-toggle"
+              class="theme-switch-btn soundscape-switch-btn"
+              data-state="off"
+              aria-pressed="false"
+              aria-label="开启白噪音天文台"
+              title="寂静（/sound 开启）"
+            >
+              <span class="soundscape-icon" aria-hidden="true">𝄞</span>
+              <span class="soundscape-label">寂静</span>
+            </button>
+            <!-- Phase 2：活字秘卷与双生结界 -->
+            <button
+              type="button"
+              id="btn-snippets-entry"
+              class="theme-switch-btn snippets-switch-btn"
+              aria-label="打开活字秘卷匣 (S)"
+              title="活字秘卷匣 (S)"
+            >
+              <span class="snippets-icon" aria-hidden="true">📜</span>
+              <span class="snippets-label">秘卷</span>
+            </button>
+            <button
+              type="button"
+              id="btn-uncatalogued-entry"
+              class="theme-switch-btn spine-uncatalogued-entry footer-utility-btn"
+              title="打开待编目匣 (U)"
+            >
+              <span class="uncatalogued-glyph" aria-hidden="true">⌘</span>
+              <span class="uncatalogued-label">待编目匣</span>
+              <span class="uncatalogued-meta"><span id="uncatalogued-entry-count">00</span> · U</span>
+            </button>
+            <button
+              type="button"
+              id="btn-shadow-toggle"
+              class="theme-switch-btn shadow-switch-btn"
+              aria-label="切换暗月密室 (/shadow)"
+              title="暗月密室 (/shadow)"
+            >
+              <span class="shadow-icon" aria-hidden="true">☾</span>
+              <span class="shadow-label">暗月</span>
+            </button>
+            <button
+              type="button"
+              id="btn-focus-toggle"
+              class="theme-switch-btn focus-switch-btn"
+              aria-label="切换考场结界 (/focus)"
+              title="考场结界 (/focus)"
+            >
+              <span class="focus-icon" aria-hidden="true">⌛</span>
+              <span class="focus-label">结界</span>
+            </button>
+            <button
+              type="button"
+              id="btn-arrange-toggle"
+              class="theme-switch-btn arrange-switch-btn"
+              aria-label="整理书架：调整卡片排序"
+              title="整理书架 (拖动排序)"
+            >
+              <span class="arrange-icon" aria-hidden="true">✥</span>
+              <span class="arrange-label">整理</span>
+            </button>
+            <button
+              type="button"
+              id="btn-shortcuts-toggle"
+              class="theme-switch-btn shortcuts-switch-btn"
+              aria-label="查看全站键盘漫游指南 (?)"
+              title="键盘漫游指南 (?)"
+            >
+              <span class="shortcuts-icon" aria-hidden="true">⌨</span>
+              <span class="shortcuts-label">指南</span>
+            </button>
+            <button
+              type="button"
+              id="btn-random-open"
+              class="theme-switch-btn random-switch-btn"
+              aria-label="今日开卷：从全馆随机抽一卷 (R)"
+              title="今日开卷 · 随机寻星 (R)"
+            >
+              <span class="random-icon" aria-hidden="true">✦</span>
+              <span class="random-label">随机开卷</span>
+              <kbd class="header-key">R</kbd>
+            </button>
+            <button
+              type="button"
+              id="btn-ephemeris-entry"
+              class="theme-switch-btn ephemeris-switch-btn"
+              aria-label="展开观星台晨报 (M)"
+              title="观星台晨报 (M · /morning)"
+            >
+              <span class="ephemeris-icon" aria-hidden="true">🗞️</span>
+              <span class="ephemeris-label">观星晨报</span>
+            </button>
+            <button
+              type="button"
+              id="btn-courier-entry"
+              class="theme-switch-btn courier-switch-btn"
+              aria-label="打开飞鸽传书与 Notion 同步台 (/ingest)"
+              title="飞鸽传书 · 盖章入馆 (/ingest · /notion)"
+            >
+              <span class="courier-icon" aria-hidden="true">🕊️</span>
+              <span class="courier-label">飞鸽</span>
+            </button>
+            <button
+              type="button"
+              id="btn-federation-entry"
+              class="theme-switch-btn federation-switch-btn"
+              aria-label="打开邻近星系寻星镜 (/telescope)"
+              title="寻星镜 · 馆际互借 (/telescope · /federation)"
+            >
+              <span class="federation-icon" aria-hidden="true">🔭</span>
+              <span class="federation-label">寻星镜</span>
+            </button>
+            <button
+              type="button"
+              id="btn-cloud-sync"
+              class="theme-switch-btn cloud-sync-btn"
+              aria-label="云同步：登录以同步收藏与记录"
+              title="云同步 (登录)"
+            >
+              <span class="cloud-icon" aria-hidden="true">☁</span>
+              <span class="cloud-label">云</span>
+            </button>
+          </div>
+
+          <div class="footer-utility-filters">
             <span>寻书镜</span>
             <div class="search-quick-hooks" role="group" aria-label="典藏快捷筛选">
               <button
@@ -381,6 +406,7 @@
               <button type="button" class="almanac-window-btn" data-almanac-window="old" aria-pressed="false">⌛ 尘封往昔</button>
             </div>
           </div>
+
           <div class="mobile-phase3-actions" role="group" aria-label="移动端 Phase 3A 快捷入口">
             <button type="button" id="btn-uncatalogued-mobile" class="mobile-phase3-btn">
               <span aria-hidden="true">⌘</span> 待编目
@@ -400,58 +426,35 @@
               <span aria-hidden="true">🔭</span> 寻星镜
             </button>
           </div>
-        </header>
 
-        <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
-
-        <!-- Phase 4A · A5/C4 司天监遥测机关台 -->
-        <section id="telemetry-deck" class="telemetry-deck" aria-label="司天监遥测机关台">
-          <div class="telemetry-deck-bar">
-            <span class="telemetry-deck-kicker">OBSERVATORY TELEMETRY · 司天监遥测机关台</span>
-            <div class="telemetry-deck-bar-actions">
-              <button
-                type="button"
-                id="btn-telemetry-probe"
-                class="telemetry-bar-btn"
-                title="巡检星轨：探测全部馆藏卡片连通性与 Δt 延迟"
-              >📡 巡检星轨</button>
-              <button
-                type="button"
-                id="btn-telemetry-toggle"
-                class="telemetry-bar-btn telemetry-bar-btn--toggle"
-                aria-expanded="false"
-                aria-controls="telemetry-deck-body"
-                title="展开 / 收起遥测机关台"
-              >⚙ 机关台</button>
-            </div>
+          <div class="footer-observatory">
+            <span class="footer-observatory-label">星群连珠 · 悬停高亮，点击并发开卷</span>
+            <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
           </div>
-          <div id="telemetry-deck-body" class="telemetry-deck-body" hidden></div>
-        </section>
 
-        <div id="arrange-toolbar" class="arrange-toolbar" style="display: none;">
-          <div class="arrange-toolbar-content">
-            <span class="arrange-tip">
-              <strong class="arrange-badge">整理模式</strong>
-              <span>拖拽卡片调整排序，或按空格选中后用方向键移动，松手自动记住顺序</span>
-            </span>
-            <div class="arrange-actions">
-              <button type="button" id="btn-reset-order" class="btn-arrange-action" title="恢复为默认排列顺序">恢复默认顺序</button>
-              <button type="button" id="btn-finish-arrange" class="btn-arrange-action btn-arrange-primary" title="完成并退出整理模式 (Esc)">完成 (Esc)</button>
+          <!-- Phase 4A · A5/C4 司天监遥测机关台：默认不占版面，/ping 或机关台按需展开 -->
+          <section id="telemetry-deck" class="telemetry-deck" aria-label="司天监遥测机关台">
+            <div class="telemetry-deck-bar">
+              <span class="telemetry-deck-kicker">OBSERVATORY TELEMETRY · 司天监遥测机关台</span>
+              <div class="telemetry-deck-bar-actions">
+                <button
+                  type="button"
+                  id="btn-telemetry-probe"
+                  class="telemetry-bar-btn"
+                  title="巡检星轨：探测全部馆藏卡片连通性与 Δt 延迟"
+                >📡 巡检星轨</button>
+                <button
+                  type="button"
+                  id="btn-telemetry-toggle"
+                  class="telemetry-bar-btn telemetry-bar-btn--toggle"
+                  aria-expanded="false"
+                  aria-controls="telemetry-deck-body"
+                  title="展开 / 收起遥测机关台"
+                >⚙ 机关台</button>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div id="search-status-bar" class="search-status-bar" style="display: none;">
-          <span id="search-status-text"></span>
-          <button type="button" id="btn-reset-filter" class="btn-reset-filter">重置检索</button>
-        </div>
-
-        <main class="archive-main-area" id="archive-content-area" role="main">
-          <!-- 动态排版渲染区域 -->
-        </main>
-        <section id="star-map-container" class="star-map-container" aria-label="穹顶知识关系星图" hidden></section>
-        <section id="almanac-chronicle" class="almanac-chronicle" aria-labelledby="almanac-title" hidden>
-          <div class="almanac-chronicle-slot"></div>
+            <div id="telemetry-deck-body" class="telemetry-deck-body" hidden></div>
+          </section>
         </section>
 
         <footer class="colophon-footer" role="contentinfo">
