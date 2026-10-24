@@ -34,8 +34,12 @@
     randomBtn: document.getElementById("btn-random-open")
   };
 
-  const AGENT_SECRET_CODE = "***REMOVED***";
-  const AGENT_PROBE_URL = "http://***REMOVED***:8008/#/";
+  // 隐藏探针入口：暗号与地址不再写死在源码中，改为从本机 localStorage 读取。
+  // 在站点页面控制台执行一次即可启用：
+  //   localStorage.setItem("MYNAV_AGENT_CODE", "你的暗号")
+  //   localStorage.setItem("MYNAV_PROBE_URL", "你的探针地址")
+  const AGENT_SECRET_CODE = localStorage.getItem("MYNAV_AGENT_CODE") || "";
+  const AGENT_PROBE_URL = localStorage.getItem("MYNAV_PROBE_URL") || "";
   const RECENT_DESK_DAYS = 7;
   const RECENT_DESK_LIMIT = 6;
   // ==========================================================================
@@ -435,7 +439,7 @@
   }
 
   function isSecretCode(query) {
-    return String(query || "").trim() === AGENT_SECRET_CODE;
+    return AGENT_SECRET_CODE !== "" && String(query || "").trim() === AGENT_SECRET_CODE;
   }
 
   function setSearchValue(value) {
@@ -479,7 +483,7 @@
       if (event.stopPropagation) event.stopPropagation();
     }
     resetSearch({ render: true, focus: false });
-    window.open(AGENT_PROBE_URL, "_blank");
+    if (AGENT_PROBE_URL) window.open(AGENT_PROBE_URL, "_blank");
   }
 
   // Central Enter route. The hidden probe code is checked before any
@@ -1266,12 +1270,12 @@
       renderContent();
     });
 
-    // 1.1 特工暗号彩蛋 (***REMOVED*** 直达哪吒探针面板)
+    // 1.1 特工暗号彩蛋 (暗号 直达哪吒探针面板)
     function handleAgentEasterEgg(e) {
       const input = dom.searchInput || document.getElementById("archive-search-input");
       if (!input) return false;
       const rawVal = (input.value || "").trim();
-      if (rawVal === AGENT_SECRET_CODE) {
+      if (rawVal !== "" && rawVal === AGENT_SECRET_CODE) {
         openAgentProbe(e);
         return true;
       }
@@ -1290,7 +1294,7 @@
           }
           if (window.NavSanctum && window.NavSanctum.isShadow && window.NavSanctum.isShadow()) {
             // Allow Esc to leave the shadow reading mode without touching
-            // the hidden ***REMOVED*** probe route.
+            // the hidden 暗号 probe route.
             window.NavSanctum.setShadow(false);
           }
           return;
@@ -1306,7 +1310,7 @@
       "submit",
       function (e) {
         const input = dom.searchInput || document.getElementById("archive-search-input");
-        if (input && (input.value || "").trim() === AGENT_SECRET_CODE) {
+        if (input && (input.value || "").trim() !== "" && (input.value || "").trim() === AGENT_SECRET_CODE) {
           if (handleAgentEasterEgg(e)) {
             return;
           }
