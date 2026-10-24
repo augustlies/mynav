@@ -13,8 +13,8 @@
 
 ## 零容忍红线
 
-1. **Phase 0 / Phase 1 全部回归通过**：`***REMOVED***` 隐藏口令、`NavApp.openSite()` 统一记账、36 张卡片索书号唯一、1440/899/768/390/375 各断点无横向溢出。
-2. **口令顺序不可变**：搜索 Enter 路由必须先判 `***REMOVED***`，再判 `/shadow`、`/focus` 等 Phase 2 命令。任何新模块不得在捕获阶段抢先吞掉隐藏口令。
+1. **Phase 0 / Phase 1 全部回归通过**：`XXXXXXX` 隐藏口令、`NavApp.openSite()` 统一记账、36 张卡片索书号唯一、1440/899/768/390/375 各断点无横向溢出。
+2. **口令顺序不可变**：搜索 Enter 路由必须先判 `XXXXXXX`，再判 `/shadow`、`/focus` 等 Phase 2 命令。任何新模块不得在捕获阶段抢先吞掉隐藏口令。
 3. **访问记账只有一个入口**：卡片、子路由、待编目链接、秘卷 AI 携卷、星群预设和随机开卷都必须经 `NavApp.openSite()`；不得在业务模块里平行维护第二套访问计数。
 4. **正式/候选分流不可泄漏**：`getRawSites()` 只返回 `status === "catalogued"` 且 `visibility !== "shadow"` 的条目；待编目候选绝不混入默认「全部藏目」流。
 5. **移动端无横向溢出**：抽屉 `<=640px` 使用 `100vw`，桌面保持 `420px`；任何新增浮层、星座扣、工具按钮都不能撑破视口。
@@ -63,7 +63,7 @@
 
 ### 5. [D2] 双生结界（`js/sanctum.js`）
 
-- `/shadow` / 自定义暗语切换暗月密室，但必须完全保留 `***REMOVED***` 跳转。
+- `/shadow` / 自定义暗语切换暗月密室，但必须完全保留 `XXXXXXX` 跳转。
 - 激活：`<html data-sanctum="shadow">`，背景 `#07060E`，点缀冷银与 `#9E3B42`，星盘逆时针 `180deg`，左上馆名变为 `EX LIBRIS · 暗月卷宗`。
 - 仅展示 `visibility: "shadow"` 私密卡片；默认预置 2 张 `example.com` 占位卷宗供验收。新建/编辑卡片需支持勾选 `仅暗月密室可见`。
 - 再输一次 `/shadow` 返回表世界；`Esc` 也可退出暗月阅读态，不得影响原有隐藏口令。
@@ -122,7 +122,7 @@
 2. `U` 打开抽屉，新增 `TMP-01`（含 `whySaved`）；主画布仍为 36 张；搜索 `whySaved` 关键词出现潜在匹配区块；点击 `授予藏书票`（mock `prompt("1")`）后清空搜索，主画布 37 张且正式索书号无重复。
 3. 点击秘卷复制内容（mock `clipboard.writeText`）并显示 DeepSeek / ChatGPT / Gemini / Claude 菜单；点击 AI 按钮经 `NavApp.openSite()` 发起 URL。
 4. `/shadow` 往返切换：`data-sanctum`、馆名与恰好 2 张 shadow 卡片正确；`/focus` 往返切换：`data-focus-lock`、5 张社交封条与计时器正确。
-5. `***REMOVED***` 仍打开 `http://***REMOVED***:8008/#/`。
+5. `XXXXXXX` 仍打开 `http://203.0.113.10:8008/#/`。
 6. 1440px 与 390px 均为横向溢出 0；桌面抽屉 420px、移动抽屉 100vw。
 7. 尘封：只写 `ledger.firstSeenAt["ai-claude"] = 61 天前`、清空该站点 access entry、`dustResetAt = 0`，重载后 `.card--dusty` 存在。
 8. 可选用 `window.__MYNAV_FORCE_SEALED_RANDOM__ = true` 验证 90 天封存随机分支。

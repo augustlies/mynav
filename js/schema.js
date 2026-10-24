@@ -112,7 +112,7 @@
     const octets = ipv4.slice(1).map(Number);
     if (octets.some((part) => part < 0 || part > 255)) return true;
     // Any literal IPv4 address is a self-hosted service, never a brand we can
-    // look up safely. Public addresses like the ***REMOVED*** probe must not
+    // look up safely. Public addresses like the 203.0.113.10 probe must not
     // leak to favicon providers either.
     return true;
   }
