@@ -13,6 +13,7 @@
  *   lore        馆长手记（刊头 / c）、首次输入检索词（彩蛋）、空闲时补渲染刊头印章
  *   cloudsync   云同步按钮；本机已登录（存有口令）时空闲加载以保持后台同步
  *   exlibris    藏书票（卡片按钮 / e）
+ *   serendipity 今日开卷转盘（按钮 / R / /random）
  *   particles   背景粒子：首屏渲染完成后空闲加载；减弱动效 / 省流量时不加载
  *
  * 契约：触发前只有这里注册的轻量壳；第一次点击 / 按键不会被吞掉 ——
@@ -41,6 +42,7 @@
     lore: { src: "js/lore.js?v=1.7.0", global: "NavLore", ref: "Lore", init: true },
     cloudsync: { src: "js/cloud-sync.js?v=1.7.0", global: "NavCloudSync", ref: "CloudSync" },
     exlibris: { src: "js/exlibris.js?v=1.7.0", global: "NavExLibris", ref: "ExLibris", init: true },
+    serendipity: { src: "js/serendipity.js?v=4.2.0", global: "NavSerendipity", ref: "Serendipity", init: true },
     particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" }
   };
 

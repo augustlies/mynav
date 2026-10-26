@@ -10897,6 +10897,15 @@ html[data-theme="light"] { color-scheme: light; }
   transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
 }
 
+/* 原 .folio-view-btn 在窄屏有更小的字号与内边距：抽屉里统一成同一套选项按钮。 */
+.hall-drawer .hall-options .hall-opt {
+  min-height: 30px;
+  padding: 4px 11px;
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
 .hall-options .hall-opt:hover,
 .hall-options .hall-opt:focus-visible {
   border-color: var(--accent-brass);

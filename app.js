@@ -425,13 +425,17 @@
     const index = orderedSites.findIndex(function (site) { return site.id === selected.id; });
     const callNumber = getCallNumber(selected, index >= 0 ? index : 0);
 
-    if (window.NavSerendipity) {
+    const show = function () {
+      if (!window.NavSerendipity) return;
       if (typeof window.NavSerendipity.spinAndOpen === "function") {
         window.NavSerendipity.spinAndOpen(selected, callNumber);
       } else {
         window.NavSerendipity.open(selected, callNumber);
       }
-    }
+    };
+    // Batch 2：今日开卷的转盘弹窗（serendipity.js）按需加载。
+    if (window.NavSerendipity || !window.NavLazy) show();
+    else withLazy("serendipity", show);
     return { site: selected, callNumber: callNumber };
   }
 
@@ -1803,9 +1807,6 @@
           }
         });
       });
-    }
-    if (window.NavSerendipity) {
-      safeInit("NavSerendipity", function () { window.NavSerendipity.init(); });
     }
     if (window.NavAstronomy) {
       safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });

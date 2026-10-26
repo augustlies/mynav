@@ -5,12 +5,12 @@
  * - /api/ 与跨站请求：一律不经手（云同步、探针、守馆人照常走网络）
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "66f8986bc6";
+const CACHE_VERSION = "b4e2dfb75a";
 const PRECACHE = [
   "./",
   "./index.html",
   "./404.html",
-  "./styles.css?v=5.0.0-batch2",
+  "./styles.css?v=5.0.1-batch2",
   "./favicon.svg",
   "./data.js?v=1.8.0",
   "./js/lazy.js?v=5.0.0",
@@ -30,13 +30,12 @@ const PRECACHE = [
   "./js/commands.js?v=5.0.0",
   "./js/hall.js?v=5.0.0",
   "./js/folio-keys.js?v=2.0.0",
-  "./js/serendipity.js?v=4.2.0",
   "./js/marginalia.js?v=2.0.0",
   "./js/uncatalogued.js?v=4.2.0",
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.0",
   "./js/probe.js?v=5.0.0",
-  "./app.js?v=5.0.0",
+  "./app.js?v=5.0.1",
   "./js/librarian.js?v=4.2.0",
   "./js/star-map.js?v=4.2.0",
   "./js/contextmenu.js?v=1.7.0",
@@ -48,6 +47,7 @@ const PRECACHE = [
   "./js/lore.js?v=1.7.0",
   "./js/cloud-sync.js?v=1.7.0",
   "./js/exlibris.js?v=1.7.0",
+  "./js/serendipity.js?v=4.2.0",
   "./js/particles-bg.js?v=5.0.0",
   "./icons/ai-chatgpt.png",
   "./icons/ai-claude.png",
