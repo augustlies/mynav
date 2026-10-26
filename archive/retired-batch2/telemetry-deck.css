@@ -1,0 +1,252 @@
+/* Archived from styles.css in Phase 5 · Batch 2 (retired). Restore by appending back to styles.css. */
+/* --------------------------------------------------------------------------
+   Phase 4A · C4 司天监遥测机关台（.telemetry-deck）
+   -------------------------------------------------------------------------- */
+
+.telemetry-deck {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: 2px 0 10px;
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent-brass);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 44%, transparent), transparent 68%),
+    var(--bg-page);
+  overflow-x: hidden;
+}
+
+.telemetry-deck:has(.telemetry-deck-body[hidden]) {
+  border-left-color: var(--border-hairline);
+  background: transparent;
+}
+
+.telemetry-deck:has(.telemetry-deck-body[hidden]) .telemetry-deck-kicker {
+  color: var(--text-faint);
+  opacity: 0.82;
+}
+
+.telemetry-deck-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 7px 11px;
+}
+
+.telemetry-deck-kicker {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetry-deck-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.telemetry-bar-btn {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.telemetry-bar-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.telemetry-bar-btn--toggle[aria-expanded="true"] {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.telemetry-deck-body {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 11px 11px;
+  border-top: 1px dashed var(--border-hairline);
+  overflow-x: hidden;
+}
+
+.telemetry-deck-body[hidden] {
+  display: none;
+}
+
+.telemetry-deck-instruments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding-top: 10px;
+}
+
+.telemetry-instrument {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 10px 11px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 28%, var(--border-hairline));
+  background:
+    radial-gradient(circle at 90% 14%, color-mix(in srgb, var(--accent-brass) 9%, transparent), transparent 42%),
+    color-mix(in srgb, var(--bg-page) 74%, transparent);
+}
+
+.telemetry-instrument::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dotted color-mix(in srgb, var(--accent-brass) 26%, transparent);
+  pointer-events: none;
+}
+
+.telemetry-instrument-label {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.telemetry-instrument-value {
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-instrument-note {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.telemetry-instrument-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.telemetry-instrument-btn {
+  padding: 2px 7px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  cursor: pointer;
+}
+
+.telemetry-instrument-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.telemetry-brass-lever {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transform-origin: 18% 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.telemetry-brass-lever:hover {
+  background: color-mix(in srgb, var(--accent-brass) 16%, transparent);
+}
+
+.telemetry-lever-glyph {
+  display: inline-block;
+  font-size: 0.6875rem;
+  transform-origin: 50% 60%;
+}
+
+.telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
+  animation: brassLeverPull 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.telemetry-brass-lever.is-pulled {
+  background: color-mix(in srgb, var(--accent-brass) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-brass) 44%, transparent);
+}
+
+.telemetry-deck-summary {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dotted var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+.telemetry-deck {
+    margin: 2px 0 8px;
+  }
+
+.telemetry-deck-instruments {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+.telemetry-deck-bar,
+  .telemetry-deck-body {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+.telemetry-deck-kicker {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 390px) {
+.telemetry-deck-bar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+.telemetry-bar-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
+    animation: none;
+  }
+}

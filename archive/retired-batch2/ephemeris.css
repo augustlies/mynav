@@ -1,0 +1,521 @@
+/* Archived from styles.css in Phase 5 · Batch 2 (retired). Restore by appending back to styles.css. */
+.footer-utility-actions .ephemeris-switch-btn {
+  min-width: 0;
+  padding-inline: 9px;
+}
+
+.footer-utility-actions .ephemeris-label {
+  display: inline;
+}
+
+/* ==========================================================================
+   Phase 4B · C2 观星台晨报 / D5 网页琥珀 / A6·C5 飞鸽传书 / D7 联邦寻星镜
+   全部新增选择器均带 ephemeris- / amber- / courier- / federation- 前缀，
+   与 Phase 0–4A 既有样式零冲突；仅复用设计令牌，不覆盖任何旧规则。
+   ========================================================================== */
+
+.ephemeris-switch-btn .ephemeris-icon {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+body.ephemeris-open {
+  overflow: hidden;
+}
+
+.ephemeris-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(10, 9, 7, 0.6);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.ephemeris-backdrop[hidden],
+.ephemeris-modal[hidden] {
+  display: none;
+}
+
+.ephemeris-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 330;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+.ephemeris-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 100%);
+  max-height: min(90dvh, 900px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 30%, transparent), transparent 220px),
+    var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ephemeris-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 20%, transparent);
+  pointer-events: none;
+}
+
+.ephemeris-masthead {
+  flex: 0 0 auto;
+  padding: 20px 26px 12px;
+  text-align: center;
+}
+
+.ephemeris-masthead-rule {
+  height: 3px;
+  border-top: 1px solid var(--text-main);
+  border-bottom: 1px solid var(--text-main);
+  opacity: 0.55;
+}
+
+.ephemeris-masthead-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0 4px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ephemeris-flag {
+  flex: 1 1 auto;
+  text-align: center;
+  color: var(--accent-brass);
+}
+
+.ephemeris-title {
+  margin: 4px 0 2px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  color: var(--text-main);
+}
+
+.ephemeris-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.ephemeris-divider {
+  color: var(--accent-brass);
+  opacity: 0.7;
+}
+
+.ephemeris-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0 2px;
+}
+
+.ephemeris-column-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ephemeris-column-switch button {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.ephemeris-column-switch button:hover {
+  color: var(--text-main);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-column-switch button.is-active {
+  color: var(--bg-page);
+  border-color: var(--accent-brass);
+  background: var(--accent-brass);
+}
+
+.ephemeris-toolbar-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.ephemeris-source-status {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.05em;
+}
+
+.ephemeris-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.ephemeris-close:hover {
+  color: var(--text-main);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.ephemeris-column {
+  min-width: 0;
+  padding: 16px 22px 20px;
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.ephemeris-column:nth-child(2n) {
+  border-right: 0;
+}
+
+.ephemeris-column:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.ephemeris-column-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-bottom: 8px;
+}
+
+.ephemeris-column-code {
+  grid-column: 1 / -1;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.ephemeris-column-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+}
+
+.ephemeris-column-count {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+}
+
+.ephemeris-column-rule {
+  height: 2px;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--text-main);
+  border-bottom: 1px solid var(--text-main);
+  opacity: 0.32;
+}
+
+.ephemeris-bulletin {
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px dotted var(--border-hairline);
+}
+
+.ephemeris-bulletin:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ephemeris-bulletin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.ephemeris-kicker {
+  color: var(--accent-stamp);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ephemeris-source {
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.ephemeris-bulletin-title {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.ephemeris-bulletin-summary {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  line-height: 1.72;
+  text-align: justify;
+}
+
+.ephemeris-bulletin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.ephemeris-bulletin-tags span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+}
+
+.ephemeris-bulletin-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ephemeris-source-link {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.ephemeris-source-link:hover {
+  border-bottom-color: var(--accent-brass);
+}
+
+.ephemeris-source-link.is-muted {
+  color: var(--text-faint);
+}
+
+.ephemeris-capture {
+  min-height: 26px;
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 52%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.ephemeris-capture:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-brass) 12%, transparent);
+  border-color: var(--accent-brass);
+}
+
+.ephemeris-capture.is-captured,
+.ephemeris-capture:disabled {
+  border-color: var(--border-hairline);
+  color: var(--text-faint);
+  cursor: default;
+  opacity: 0.85;
+}
+
+.ephemeris-bulletin.is-captured .ephemeris-bulletin-title {
+  color: var(--text-muted);
+}
+
+.ephemeris-column-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.ephemeris-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 26px 14px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.ephemeris-action-btn {
+  min-height: 30px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.ephemeris-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+@media (max-width: 900px) {
+.ephemeris-modal {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+.ephemeris-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+
+.ephemeris-masthead {
+    padding: 16px 16px 10px;
+  }
+
+.ephemeris-title {
+    font-size: 1.55rem;
+    letter-spacing: 0.16em;
+    text-indent: 0.16em;
+  }
+
+.ephemeris-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+.ephemeris-column,
+  .ephemeris-column:nth-child(2n) {
+    border-right: 0;
+  }
+
+.ephemeris-column {
+    padding: 14px 16px 16px;
+  }
+
+.ephemeris-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+.ephemeris-masthead-meta {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 10px;
+  }
+
+.ephemeris-flag {
+    order: -1;
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+.ephemeris-toolbar {
+    justify-content: flex-start;
+  }
+
+.ephemeris-toolbar-end {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+.ephemeris-column-switch {
+    gap: 3px;
+  }
+
+.ephemeris-column-switch button {
+    padding: 3px 7px;
+    font-size: 0.64rem;
+  }
+}
+
+@media (max-width: 420px) {
+.ephemeris-sheet::before {
+    inset: 6px;
+  }
+
+.ephemeris-subtitle {
+    font-size: 0.64rem;
+  }
+
+.ephemeris-body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.ephemeris-sheet {
+    animation: none;
+  }
+}

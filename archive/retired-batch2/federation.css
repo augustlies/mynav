@@ -1,0 +1,483 @@
+/* Archived from styles.css in Phase 5 · Batch 2 (retired). Restore by appending back to styles.css. */
+.footer-utility-actions .federation-switch-btn {
+  min-width: 0;
+  padding-inline: 9px;
+}
+
+.footer-utility-actions .federation-label {
+  display: inline;
+}
+
+.federation-switch-btn .federation-icon {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+body.federation-open {
+  overflow: hidden;
+}
+
+.federation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 380;
+  background: rgba(8, 10, 14, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.federation-backdrop[hidden],
+.federation-modal[hidden] {
+  display: none;
+}
+
+.federation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.federation-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(900px, 100%);
+  max-height: min(90dvh, 900px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background: var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.federation-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.federation-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.federation-head h2 {
+  margin: 5px 0 6px;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+}
+
+.federation-lede {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  line-height: 1.72;
+}
+
+.federation-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.federation-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-rail {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 10px 24px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-bottom: 1px solid var(--border-hairline);
+  scrollbar-width: thin;
+}
+
+.federation-node-btn {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 168px;
+  padding: 8px 11px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.federation-node-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-node-btn.is-active {
+  border-color: var(--accent-brass);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--accent-brass) 9%, transparent);
+  color: var(--text-main);
+}
+
+.federation-node-code {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.12em;
+}
+
+.federation-node-name {
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.federation-node-count {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.federation-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 24px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.federation-node-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.federation-head-main h3 {
+  margin: 3px 0 2px;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+}
+
+.federation-motto {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+
+.federation-head-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  text-align: right;
+}
+
+.federation-endpoint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.federation-field {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.federation-field span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.federation-field input {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.federation-field input:focus-visible {
+  outline: 2px solid var(--accent-brass);
+  outline-offset: 1px;
+}
+
+.federation-btn {
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.federation-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.federation-btn--ghost {
+  border-style: dashed;
+}
+
+.federation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.federation-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-surface);
+  transition: border-color var(--transition-fast), transform var(--transition-normal);
+}
+
+.federation-card:hover {
+  border-color: var(--accent-brass);
+  transform: translateY(-1px);
+}
+
+.federation-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.federation-callsign {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+}
+
+.federation-category {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.federation-card-title {
+  margin: 0 0 5px;
+  font-family: var(--font-serif);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.federation-card-title a {
+  color: var(--text-main);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.federation-card-title a:hover {
+  color: var(--accent-brass);
+  border-bottom-color: var(--accent-brass);
+}
+
+.federation-card-desc {
+  flex: 1 1 auto;
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  line-height: 1.66;
+}
+
+.federation-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+
+.federation-card-tags span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+}
+
+.federation-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.federation-borrow {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 55%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.federation-borrow:hover {
+  background: var(--accent-brass);
+  color: var(--bg-page);
+}
+
+.federation-borrow.is-borrowed {
+  border-color: var(--border-hairline);
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.federation-local-mark {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+}
+
+.federation-empty {
+  margin: 0;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  font-style: italic;
+}
+
+.federation-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-hairline);
+}
+
+.federation-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.federation-stat strong {
+  color: var(--accent-brass);
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+.federation-modal {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+.federation-sheet {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+
+.federation-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.federation-head,
+.federation-rail,
+.federation-body,
+.federation-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.federation-foot {
+    justify-content: flex-start;
+  }
+
+.federation-head-meta {
+    flex-direction: row;
+    gap: 10px;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+.federation-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+.federation-endpoint-row .federation-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.federation-sheet {
+    animation: none;
+  }
+}
+
+.federation-card-head {
+  align-items: center;
+}
+
+.federation-card-icon {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+  margin-right: auto;
+}

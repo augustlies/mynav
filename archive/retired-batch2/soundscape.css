@@ -1,0 +1,61 @@
+/* Archived from styles.css in Phase 5 · Batch 2 (retired). Restore by appending back to styles.css. */
+/* ==========================================================================
+   Phase 3A · A7 astronomy, D6 soundscape, D3 brass instruments
+   ========================================================================== */
+
+.soundscape-switch-btn {
+  position: relative;
+}
+
+.soundscape-switch-btn .soundscape-icon {
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.soundscape-switch-btn[data-state="active"],
+.soundscape-switch-btn[data-state="pending"] {
+  color: var(--accent-brass);
+}
+
+.soundscape-switch-btn[data-state="active"] .soundscape-icon {
+  animation: soundscapeBrassBreath 3.2s ease-in-out infinite;
+}
+
+.soundscape-switch-btn[data-state="pending"] {
+  opacity: 0.78;
+}
+
+.soundscape-switch-btn[data-state="active"]::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 30%, transparent);
+  opacity: 0.6;
+  pointer-events: none;
+  animation: soundscapeBrassRing 3.2s ease-in-out infinite;
+}
+
+@keyframes soundscapeBrassBreath {
+  0%, 100% { opacity: 0.62; text-shadow: 0 0 0 transparent; }
+  50% { opacity: 1; text-shadow: 0 0 9px color-mix(in srgb, var(--accent-brass) 48%, transparent); }
+}
+
+@keyframes soundscapeBrassRing {
+  0%, 100% { opacity: 0.25; transform: scale(0.94); }
+  50% { opacity: 0.68; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+.soundscape-switch-btn .soundscape-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.soundscape-switch-btn[data-state="active"] .soundscape-icon,
+  .soundscape-switch-btn[data-state="active"]::before {
+    animation: none;
+  }
+}

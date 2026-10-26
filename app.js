@@ -1753,9 +1753,6 @@
     if (window.NavAstronomy) {
       safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });
     }
-    if (window.NavSoundscape) {
-      safeInit("NavSoundscape", function () { window.NavSoundscape.init(); });
-    }
     if (window.NavBrassTools) {
       safeInit("NavBrassTools", function () { window.NavBrassTools.init(); });
     }
@@ -1770,20 +1767,16 @@
     if (window.NavLibrarian) {
       safeInit("NavLibrarian", function () { window.NavLibrarian.init(); });
     }
-    if (window.NavTelemetry) {
-      safeInit("NavTelemetry", function () { window.NavTelemetry.init(); });
-    }
-    if (window.NavEphemeris) {
-      safeInit("NavEphemeris", function () { window.NavEphemeris.init(); });
+    // Batch 2：A5 探针从 telemetry.js 拆为 js/probe.js（NavTelemetry 为别名）；
+    // C2 晨报 / C4 机关台 / D6 白噪音 / D7 寻星镜 已下线（archive/retired-batch2/）。
+    if (window.NavProbe) {
+      safeInit("NavProbe", function () { window.NavProbe.init(); });
     }
     if (window.NavAmber) {
       safeInit("NavAmber", function () { window.NavAmber.init(); });
     }
     if (window.NavCourier) {
       safeInit("NavCourier", function () { window.NavCourier.init(); });
-    }
-    if (window.NavFederation) {
-      safeInit("NavFederation", function () { window.NavFederation.init(); });
     }
     // 部分模块在 init 中自我注册到 NavApp；这里统一回填，保证引用永远可用。
     syncModuleRefs();
@@ -1799,16 +1792,14 @@
       Snippets: window.NavSnippets,
       Serendipity: window.NavSerendipity,
       Astronomy: window.NavAstronomy,
-      Soundscape: window.NavSoundscape,
       BrassTools: window.NavBrassTools,
       Almanac: window.NavAlmanac,
       StarMap: window.NavStarMap,
       Librarian: window.NavLibrarian,
-      Telemetry: window.NavTelemetry,
-      Ephemeris: window.NavEphemeris,
+      Telemetry: window.NavProbe,
+      Probe: window.NavProbe,
       Amber: window.NavAmber,
-      Courier: window.NavCourier,
-      Federation: window.NavFederation
+      Courier: window.NavCourier
     };
     Object.keys(refs).forEach(function (key) {
       if (refs[key]) window.NavApp[key] = refs[key];
@@ -2067,13 +2058,13 @@
   // ==========================================================================
   //
   // 为什么必须用 window + 捕获阶段：
-  //   brass-tools / snippets / uncatalogued / ephemeris / lore 等 Stage 2 模块
+  //   brass-tools / snippets / uncatalogued / lore 等 Stage 2 模块
   //   各自在 init() 里向 document 冒泡阶段注册自己的 keydown 监听。若用户在
   //   空闲回调之前按 T / S / U / M / c，事件会先被 Stage 1 的监听处理，等到达
   //   document 时才轮到 —— 而那时模块还没绑定，按键就丢了。
   //   在 window 捕获阶段抢在所有人之前同步冲刷 Stage 2，按键便永不落空。
   const BOOT_GATE_KEYS = new Set([
-    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "m", "M", "v", "V", "f", "F"
+    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "v", "V", "f", "F"
   ]);
 
   function isEditableTarget(target) {

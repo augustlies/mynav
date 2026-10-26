@@ -241,7 +241,7 @@
   // 会落到 Stage 2 模块上的按键（指南 / 手记 / 秘卷 / 工具尺 / 晨报 / 印画 ...）。
   // j/k/h/l/方向键等纯导航键不在此列，保持零额外开销。
   const FLUSH_BOOT_KEYS = new Set([
-    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "m", "M", "v", "V", "f", "F"
+    "?", "c", "C", "s", "S", "t", "T", "u", "U", "e", "E", "v", "V", "f", "F"
   ]);
 
   function isAnyModalOpen() {
@@ -253,12 +253,11 @@
     const snippetsModal = document.getElementById("snippets-modal");
     const uncataloguedDrawer = document.getElementById("uncatalogued-drawer");
     const brassWorkbench = document.getElementById("brass-workbench");
-    // Phase 4B：晨报 / 琥珀拓片 / 飞鸽传书 / 寻星镜 同属模态浮层，
+    // Phase 4B：琥珀拓片 / 飞鸽传书 同属模态浮层；Batch 2：馆务抽屉同理。
     // 打开时必须让出全局按键（j/k/h/l 等）给浮层自身的交互。
-    const ephemerisModal = document.getElementById("ephemeris-modal");
     const amberModal = document.getElementById("amber-modal");
     const courierModal = document.getElementById("courier-modal");
-    const federationModal = document.getElementById("federation-modal");
+    const hallDrawer = document.getElementById("hall-drawer");
     return (
       (shortcutsModal && shortcutsModal.style.display !== "none") ||
       (bookplateModal && bookplateModal.style.display !== "none") ||
@@ -268,10 +267,9 @@
       (snippetsModal && snippetsModal.style.display !== "none") ||
       (uncataloguedDrawer && !uncataloguedDrawer.hidden) ||
       (brassWorkbench && !brassWorkbench.hidden) ||
-      (ephemerisModal && !ephemerisModal.hidden) ||
       (amberModal && !amberModal.hidden) ||
       (courierModal && !courierModal.hidden) ||
-      (federationModal && !federationModal.hidden)
+      (hallDrawer && !hallDrawer.hidden)
     );
   }
 

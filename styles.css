@@ -3277,7 +3277,6 @@ html {
   }
 }
 
-
 /* --------------------------------------------------------------------------
    13. 书架整理与拖动排序专属设计 (Arrange Shelf & Drag-and-Drop)
    -------------------------------------------------------------------------- */
@@ -4415,18 +4414,14 @@ body.modal-open {
   letter-spacing: 0.04em;
 }
 
-.footer-utility-actions .ephemeris-switch-btn,
 .footer-utility-actions .courier-switch-btn,
-.footer-utility-actions .federation-switch-btn,
 .footer-utility-actions .shortcuts-switch-btn,
 .footer-utility-actions .cloud-sync-btn {
   min-width: 0;
   padding-inline: 9px;
 }
 
-.footer-utility-actions .ephemeris-label,
 .footer-utility-actions .courier-label,
-.footer-utility-actions .federation-label,
 .footer-utility-actions .shortcuts-label,
 .footer-utility-actions .cloud-label {
   display: inline;
@@ -7613,56 +7608,8 @@ body.modal-open {
   color: var(--color-accent-hover);
 }
 
-/* ==========================================================================
-   Phase 3A · A7 astronomy, D6 soundscape, D3 brass instruments
-   ========================================================================== */
-
 .mobile-phase3-actions {
   display: none;
-}
-
-.soundscape-switch-btn {
-  position: relative;
-}
-
-.soundscape-switch-btn .soundscape-icon {
-  color: var(--accent-brass);
-  font-family: var(--font-serif);
-  font-size: 0.95rem;
-  line-height: 1;
-}
-
-.soundscape-switch-btn[data-state="active"],
-.soundscape-switch-btn[data-state="pending"] {
-  color: var(--accent-brass);
-}
-
-.soundscape-switch-btn[data-state="active"] .soundscape-icon {
-  animation: soundscapeBrassBreath 3.2s ease-in-out infinite;
-}
-
-.soundscape-switch-btn[data-state="pending"] {
-  opacity: 0.78;
-}
-
-.soundscape-switch-btn[data-state="active"]::before {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1px solid color-mix(in srgb, var(--accent-brass) 30%, transparent);
-  opacity: 0.6;
-  pointer-events: none;
-  animation: soundscapeBrassRing 3.2s ease-in-out infinite;
-}
-
-@keyframes soundscapeBrassBreath {
-  0%, 100% { opacity: 0.62; text-shadow: 0 0 0 transparent; }
-  50% { opacity: 1; text-shadow: 0 0 9px color-mix(in srgb, var(--accent-brass) 48%, transparent); }
-}
-
-@keyframes soundscapeBrassRing {
-  0%, 100% { opacity: 0.25; transform: scale(0.94); }
-  50% { opacity: 0.68; transform: scale(1); }
 }
 
 .spine-brass-entry {
@@ -8113,10 +8060,6 @@ body.modal-open {
     border-top: 0;
   }
 
-  .soundscape-switch-btn .soundscape-label {
-    display: none;
-  }
-
   .brass-workbench {
     width: 100vw;
   }
@@ -8200,10 +8143,6 @@ body.modal-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .soundscape-switch-btn[data-state="active"] .soundscape-icon,
-  .soundscape-switch-btn[data-state="active"]::before {
-    animation: none;
-  }
 
   .brass-workbench {
     animation: none;
@@ -9896,225 +9835,19 @@ html[data-librarian="open"] .search-glyph {
   align-self: center;
 }
 
-/* --------------------------------------------------------------------------
-   Phase 4A · C4 司天监遥测机关台（.telemetry-deck）
-   -------------------------------------------------------------------------- */
-.telemetry-deck {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  margin: 2px 0 10px;
-  border: 1px solid var(--border-hairline);
-  border-left: 2px solid var(--accent-brass);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 44%, transparent), transparent 68%),
-    var(--bg-page);
-  overflow-x: hidden;
-}
-
-.telemetry-deck:has(.telemetry-deck-body[hidden]) {
-  border-left-color: var(--border-hairline);
-  background: transparent;
-}
-
-.telemetry-deck:has(.telemetry-deck-body[hidden]) .telemetry-deck-kicker {
-  color: var(--text-faint);
-  opacity: 0.82;
-}
-
-.telemetry-deck-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 7px 11px;
-}
-
-.telemetry-deck-kicker {
-  min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.telemetry-deck-bar-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.telemetry-bar-btn {
-  flex-shrink: 0;
-  padding: 3px 9px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.telemetry-bar-btn:hover {
-  border-color: var(--accent-brass);
-  color: var(--accent-brass);
-}
-
-.telemetry-bar-btn--toggle[aria-expanded="true"] {
-  border-color: var(--accent-brass);
-  color: var(--accent-brass);
-}
-
-.telemetry-deck-body {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  padding: 0 11px 11px;
-  border-top: 1px dashed var(--border-hairline);
-  overflow-x: hidden;
-}
-
-.telemetry-deck-body[hidden] {
-  display: none;
-}
-
-.telemetry-deck-instruments {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  padding-top: 10px;
-}
-
 /* 古典仪器表盘：外圈细线 + 内嵌刻度 */
-.telemetry-instrument {
-  position: relative;
-  display: grid;
-  gap: 3px;
-  box-sizing: border-box;
-  min-width: 0;
-  padding: 10px 11px 11px;
-  border: 1px solid color-mix(in srgb, var(--accent-brass) 28%, var(--border-hairline));
-  background:
-    radial-gradient(circle at 90% 14%, color-mix(in srgb, var(--accent-brass) 9%, transparent), transparent 42%),
-    color-mix(in srgb, var(--bg-page) 74%, transparent);
-}
-
-.telemetry-instrument::after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1px dotted color-mix(in srgb, var(--accent-brass) 26%, transparent);
-  pointer-events: none;
-}
-
-.telemetry-instrument-label {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-}
-
-.telemetry-instrument-value {
-  color: var(--text-main);
-  font-family: var(--font-serif);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.telemetry-instrument-note {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-.telemetry-instrument-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 3px;
-}
-
-.telemetry-instrument-btn {
-  padding: 2px 7px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  cursor: pointer;
-}
-
-.telemetry-instrument-btn:hover {
-  border-color: var(--accent-brass);
-  color: var(--accent-brass);
-}
 
 /* 「黄铜扳手」机关拨片：机械拨动动画 */
-.telemetry-brass-lever {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border: 1px solid var(--accent-brass);
-  background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  cursor: pointer;
-  transform-origin: 18% 50%;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.telemetry-brass-lever:hover {
-  background: color-mix(in srgb, var(--accent-brass) 16%, transparent);
-}
-
-.telemetry-lever-glyph {
-  display: inline-block;
-  font-size: 0.6875rem;
-  transform-origin: 50% 60%;
-}
 
 /* 拨动中：快速左右扳动 */
-.telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
-  animation: brassLeverPull 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
 
 /* 已触发：落位并留一枚黄铜压痕 */
-.telemetry-brass-lever.is-pulled {
-  background: color-mix(in srgb, var(--accent-brass) 20%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-brass) 44%, transparent);
-}
 
 @keyframes brassLeverPull {
   0% { transform: rotate(0deg); }
   28% { transform: rotate(-38deg); }
   62% { transform: rotate(22deg); }
   100% { transform: rotate(0deg); }
-}
-
-.telemetry-deck-summary {
-  margin-top: 8px;
-  padding-top: 7px;
-  border-top: 1px dotted var(--border-hairline);
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.05em;
-  overflow-wrap: anywhere;
 }
 
 /* --------------------------------------------------------------------------
@@ -10182,13 +9915,6 @@ html[data-librarian="open"] .search-glyph {
     grid-column: 1 / -1;
   }
 
-  .telemetry-deck {
-    margin: 2px 0 8px;
-  }
-
-  .telemetry-deck-instruments {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 640px) {
@@ -10228,16 +9954,6 @@ html[data-librarian="open"] .search-glyph {
     padding-right: 14px;
   }
 
-  .telemetry-deck-bar,
-  .telemetry-deck-body {
-    padding-left: 9px;
-    padding-right: 9px;
-  }
-
-  .telemetry-deck-kicker {
-    flex: 1 1 100%;
-    white-space: normal;
-  }
 }
 
 @media (max-width: 390px) {
@@ -10260,45 +9976,21 @@ html[data-librarian="open"] .search-glyph {
     text-align: center;
   }
 
-  .telemetry-deck-bar-actions {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .telemetry-bar-btn {
-    flex: 1 1 auto;
-    text-align: center;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card-star-probe,
   .card-star-probe.is-online,
   .card-star-probe.is-probing,
-  .librarian-parchment-folio,
-  .telemetry-brass-lever.is-pulling .telemetry-lever-glyph {
+  .librarian-parchment-folio {
     animation: none;
   }
 }
 
-
-
-
-
-
-
-/* ==========================================================================
-   Phase 4B · C2 观星台晨报 / D5 网页琥珀 / A6·C5 飞鸽传书 / D7 联邦寻星镜
-   全部新增选择器均带 ephemeris- / amber- / courier- / federation- 前缀，
-   与 Phase 0–4A 既有样式零冲突；仅复用设计令牌，不覆盖任何旧规则。
-   ========================================================================== */
-
 /* --------------------------------------------------------------------------
    4B.1 顶栏入口与移动端入口
    -------------------------------------------------------------------------- */
-.ephemeris-switch-btn .ephemeris-icon,
-.courier-switch-btn .courier-icon,
-.federation-switch-btn .federation-icon {
+.courier-switch-btn .courier-icon {
   font-family: var(--font-serif);
   font-size: 0.9rem;
   line-height: 1;
@@ -10346,418 +10038,14 @@ html[data-librarian="open"] .search-glyph {
   background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
 }
 
-body.ephemeris-open,
 body.amber-open,
-body.courier-open,
-body.federation-open {
+body.courier-open {
   overflow: hidden;
 }
 
 /* --------------------------------------------------------------------------
    4B.2 C2 · 观星台晨报（古典双栏铅字）
    -------------------------------------------------------------------------- */
-.ephemeris-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 320;
-  background: rgba(10, 9, 7, 0.6);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-}
-
-.ephemeris-backdrop[hidden],
-.ephemeris-modal[hidden] {
-  display: none;
-}
-
-.ephemeris-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 330;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 22px;
-}
-
-.ephemeris-sheet {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: min(1100px, 100%);
-  max-height: min(90dvh, 900px);
-  overflow: hidden;
-  border: 1px solid var(--border-card);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 30%, transparent), transparent 220px),
-    var(--bg-page);
-  box-shadow: var(--shadow-modal);
-  animation: modalScaleUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.ephemeris-sheet::before {
-  content: "";
-  position: absolute;
-  inset: 9px;
-  border: 1px solid color-mix(in srgb, var(--accent-brass) 20%, transparent);
-  pointer-events: none;
-}
-
-.ephemeris-masthead {
-  flex: 0 0 auto;
-  padding: 20px 26px 12px;
-  text-align: center;
-}
-
-.ephemeris-masthead-rule {
-  height: 3px;
-  border-top: 1px solid var(--text-main);
-  border-bottom: 1px solid var(--text-main);
-  opacity: 0.55;
-}
-
-.ephemeris-masthead-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 0 4px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.ephemeris-flag {
-  flex: 1 1 auto;
-  text-align: center;
-  color: var(--accent-brass);
-}
-
-.ephemeris-title {
-  margin: 4px 0 2px;
-  font-family: var(--font-serif);
-  font-size: clamp(1.7rem, 4vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-indent: 0.28em;
-  color: var(--text-main);
-}
-
-.ephemeris-subtitle {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-}
-
-.ephemeris-divider {
-  color: var(--accent-brass);
-  opacity: 0.7;
-}
-
-.ephemeris-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0 2px;
-}
-
-.ephemeris-column-switch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.ephemeris-column-switch button {
-  min-height: 28px;
-  padding: 3px 10px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
-}
-
-.ephemeris-column-switch button:hover {
-  color: var(--text-main);
-  border-color: var(--accent-brass);
-}
-
-.ephemeris-column-switch button.is-active {
-  color: var(--bg-page);
-  border-color: var(--accent-brass);
-  background: var(--accent-brass);
-}
-
-.ephemeris-toolbar-end {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.ephemeris-source-status {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.05em;
-}
-
-.ephemeris-close {
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.ephemeris-close:hover {
-  color: var(--text-main);
-  border-color: var(--accent-brass);
-}
-
-.ephemeris-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border-top: 1px solid var(--border-hairline);
-  border-bottom: 1px solid var(--border-hairline);
-}
-
-.ephemeris-column {
-  min-width: 0;
-  padding: 16px 22px 20px;
-  border-right: 1px solid var(--border-hairline);
-  border-bottom: 1px solid var(--border-hairline);
-}
-
-.ephemeris-column:nth-child(2n) {
-  border-right: 0;
-}
-
-.ephemeris-column:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  border-right: 0;
-}
-
-.ephemeris-column-head {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 2px 10px;
-  margin-bottom: 8px;
-}
-
-.ephemeris-column-code {
-  grid-column: 1 / -1;
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.16em;
-}
-
-.ephemeris-column-head h2 {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  letter-spacing: 0.12em;
-}
-
-.ephemeris-column-count {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-}
-
-.ephemeris-column-rule {
-  height: 2px;
-  margin-bottom: 12px;
-  border-top: 1px solid var(--text-main);
-  border-bottom: 1px solid var(--text-main);
-  opacity: 0.32;
-}
-
-.ephemeris-bulletin {
-  padding: 0 0 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px dotted var(--border-hairline);
-}
-
-.ephemeris-bulletin:last-child {
-  border-bottom: 0;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.ephemeris-bulletin-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 3px;
-}
-
-.ephemeris-kicker {
-  color: var(--accent-stamp);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.ephemeris-source {
-  color: var(--text-faint);
-  font-family: var(--font-serif);
-  font-size: 0.58rem;
-  font-style: italic;
-  white-space: nowrap;
-}
-
-.ephemeris-bulletin-title {
-  margin: 0 0 4px;
-  font-family: var(--font-serif);
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--text-main);
-}
-
-.ephemeris-bulletin-summary {
-  margin: 0 0 6px;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.76rem;
-  line-height: 1.72;
-  text-align: justify;
-}
-
-.ephemeris-bulletin-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 7px;
-}
-
-.ephemeris-bulletin-tags span {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.04em;
-}
-
-.ephemeris-bulletin-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.ephemeris-source-link {
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.ephemeris-source-link:hover {
-  border-bottom-color: var(--accent-brass);
-}
-
-.ephemeris-source-link.is-muted {
-  color: var(--text-faint);
-}
-
-.ephemeris-capture {
-  min-height: 26px;
-  padding: 2px 9px;
-  border: 1px solid color-mix(in srgb, var(--accent-brass) 52%, transparent);
-  background: transparent;
-  color: var(--accent-brass);
-  font-family: var(--font-serif);
-  font-size: 0.62rem;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.ephemeris-capture:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-brass) 12%, transparent);
-  border-color: var(--accent-brass);
-}
-
-.ephemeris-capture.is-captured,
-.ephemeris-capture:disabled {
-  border-color: var(--border-hairline);
-  color: var(--text-faint);
-  cursor: default;
-  opacity: 0.85;
-}
-
-.ephemeris-bulletin.is-captured .ephemeris-bulletin-title {
-  color: var(--text-muted);
-}
-
-.ephemeris-column-empty {
-  margin: 0;
-  color: var(--text-faint);
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  font-style: italic;
-}
-
-.ephemeris-foot {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 26px 14px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.08em;
-}
-
-.ephemeris-action-btn {
-  min-height: 30px;
-  padding: 4px 12px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.68rem;
-  cursor: pointer;
-}
-
-.ephemeris-action-btn:hover {
-  border-color: var(--accent-brass);
-  color: var(--text-main);
-}
 
 /* --------------------------------------------------------------------------
    4B.3 D5 · 卡片琥珀徽章与碑拓阅览室
@@ -11433,453 +10721,25 @@ body.federation-open {
 /* --------------------------------------------------------------------------
    4B.5 D7 · 邻近星系寻星镜
    -------------------------------------------------------------------------- */
-.federation-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 380;
-  background: rgba(8, 10, 14, 0.62);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-}
-
-.federation-backdrop[hidden],
-.federation-modal[hidden] {
-  display: none;
-}
-
-.federation-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 390;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.federation-sheet {
-  display: flex;
-  flex-direction: column;
-  width: min(900px, 100%);
-  max-height: min(90dvh, 900px);
-  overflow: hidden;
-  border: 1px solid var(--border-card);
-  background: var(--bg-page);
-  box-shadow: var(--shadow-modal);
-  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.federation-head {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 20px 24px 14px;
-  border-bottom: 1px solid var(--border-hairline);
-}
-
-.federation-kicker {
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.16em;
-}
-
-.federation-head h2 {
-  margin: 5px 0 6px;
-  font-family: var(--font-serif);
-  font-size: 1.3rem;
-  letter-spacing: 0.08em;
-}
-
-.federation-lede {
-  max-width: 58ch;
-  margin: 0;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.74rem;
-  line-height: 1.72;
-}
-
-.federation-close {
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  cursor: pointer;
-}
-
-.federation-close:hover {
-  border-color: var(--accent-brass);
-  color: var(--text-main);
-}
-
-.federation-rail {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 6px;
-  padding: 10px 24px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  border-bottom: 1px solid var(--border-hairline);
-  scrollbar-width: thin;
-}
-
-.federation-node-btn {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 168px;
-  padding: 8px 11px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.federation-node-btn:hover {
-  border-color: var(--accent-brass);
-  color: var(--text-main);
-}
-
-.federation-node-btn.is-active {
-  border-color: var(--accent-brass);
-  border-left-width: 3px;
-  background: color-mix(in srgb, var(--accent-brass) 9%, transparent);
-  color: var(--text-main);
-}
-
-.federation-node-code {
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.46rem;
-  letter-spacing: 0.12em;
-}
-
-.federation-node-name {
-  font-family: var(--font-serif);
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
-}
-
-.federation-node-count {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-}
-
-.federation-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 14px 24px 18px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.federation-node-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 10px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border-hairline);
-}
-
-.federation-head-main h3 {
-  margin: 3px 0 2px;
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-  letter-spacing: 0.05em;
-}
-
-.federation-motto {
-  margin: 0;
-  color: var(--text-faint);
-  font-family: var(--font-serif);
-  font-size: 0.64rem;
-  font-style: italic;
-  letter-spacing: 0.06em;
-}
-
-.federation-head-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  text-align: right;
-}
-
-.federation-endpoint-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.federation-field {
-  display: flex;
-  flex: 1 1 260px;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.federation-field span {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.08em;
-}
-
-.federation-field input {
-  width: 100%;
-  padding: 7px 9px;
-  border: 1px solid var(--border-hairline);
-  background: var(--bg-surface);
-  color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-}
-
-.federation-field input:focus-visible {
-  outline: 2px solid var(--accent-brass);
-  outline-offset: 1px;
-}
-
-.federation-btn {
-  min-height: 32px;
-  padding: 5px 11px;
-  border: 1px solid var(--border-hairline);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.federation-btn:hover {
-  border-color: var(--accent-brass);
-  color: var(--text-main);
-}
-
-.federation-btn--ghost {
-  border-style: dashed;
-}
-
-.federation-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
-}
-
-.federation-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 12px 13px;
-  border: 1px solid var(--border-card);
-  background: var(--bg-surface);
-  transition: border-color var(--transition-fast), transform var(--transition-normal);
-}
-
-.federation-card:hover {
-  border-color: var(--accent-brass);
-  transform: translateY(-1px);
-}
-
-.federation-card-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.federation-callsign {
-  color: var(--accent-brass);
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.1em;
-}
-
-.federation-category {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.48rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.federation-card-title {
-  margin: 0 0 5px;
-  font-family: var(--font-serif);
-  font-size: 0.86rem;
-  line-height: 1.4;
-}
-
-.federation-card-title a {
-  color: var(--text-main);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.federation-card-title a:hover {
-  color: var(--accent-brass);
-  border-bottom-color: var(--accent-brass);
-}
-
-.federation-card-desc {
-  flex: 1 1 auto;
-  margin: 0 0 8px;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.7rem;
-  line-height: 1.66;
-}
-
-.federation-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 9px;
-}
-
-.federation-card-tags span {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.48rem;
-}
-
-.federation-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: auto;
-}
-
-.federation-borrow {
-  min-height: 28px;
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--accent-brass) 55%, transparent);
-  background: transparent;
-  color: var(--accent-brass);
-  font-family: var(--font-serif);
-  font-size: 0.64rem;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.federation-borrow:hover {
-  background: var(--accent-brass);
-  color: var(--bg-page);
-}
-
-.federation-borrow.is-borrowed {
-  border-color: var(--border-hairline);
-  color: var(--text-faint);
-  cursor: default;
-}
-
-.federation-local-mark {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-}
-
-.federation-empty {
-  margin: 0;
-  color: var(--text-faint);
-  font-family: var(--font-serif);
-  font-size: 0.74rem;
-  font-style: italic;
-}
-
-.federation-foot {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border-hairline);
-}
-
-.federation-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-}
-
-.federation-stat strong {
-  color: var(--accent-brass);
-  font-weight: 500;
-}
 
 /* --------------------------------------------------------------------------
    4B.6 窄屏适配（<= 900 / <= 640 / <= 420）
    -------------------------------------------------------------------------- */
 @media (max-width: 900px) {
-  .ephemeris-modal,
   .amber-modal,
-  .courier-modal,
-  .federation-modal {
+  .courier-modal {
     padding: 10px;
     align-items: flex-end;
   }
 
-  .ephemeris-sheet,
   .amber-stone,
-  .courier-sheet,
-  .federation-sheet {
+  .courier-sheet {
     width: 100%;
     max-height: calc(100dvh - 20px);
   }
 
-  .ephemeris-masthead {
-    padding: 16px 16px 10px;
-  }
-
-  .ephemeris-title {
-    font-size: 1.55rem;
-    letter-spacing: 0.16em;
-    text-indent: 0.16em;
-  }
-
-  .ephemeris-body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .ephemeris-column,
-  .ephemeris-column:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .ephemeris-column {
-    padding: 14px 16px 16px;
-  }
-
-  .ephemeris-foot,
   .amber-foot,
-  .courier-foot,
-  .federation-foot {
+  .courier-foot {
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -11889,18 +10749,13 @@ body.federation-open {
   .amber-foot,
   .courier-head,
   .courier-body,
-  .courier-foot,
-  .federation-head,
-  .federation-rail,
-  .federation-body,
-  .federation-foot {
+  .courier-foot {
     padding-left: 16px;
     padding-right: 16px;
   }
 
   .amber-foot-actions,
-  .courier-foot,
-  .federation-foot {
+  .courier-foot {
     justify-content: flex-start;
   }
 
@@ -11908,48 +10763,9 @@ body.federation-open {
     flex: 1 1 100%;
   }
 
-  .federation-head-meta {
-    flex-direction: row;
-    gap: 10px;
-    text-align: left;
-  }
 }
 
 @media (max-width: 640px) {
-  .ephemeris-masthead-meta {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 4px 10px;
-  }
-
-  .ephemeris-flag {
-    order: -1;
-    flex: 1 1 100%;
-    text-align: center;
-  }
-
-  .ephemeris-toolbar {
-    justify-content: flex-start;
-  }
-
-  .ephemeris-toolbar-end {
-    width: 100%;
-    margin-left: 0;
-    justify-content: space-between;
-  }
-
-  .ephemeris-column-switch {
-    gap: 3px;
-  }
-
-  .ephemeris-column-switch button {
-    padding: 3px 7px;
-    font-size: 0.64rem;
-  }
-
-  .federation-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .courier-bookmarklet-rail {
     flex-direction: column;
@@ -11961,8 +10777,7 @@ body.federation-open {
     text-align: center;
   }
 
-  .courier-sync-actions .courier-btn,
-  .federation-endpoint-row .federation-btn {
+  .courier-sync-actions .courier-btn {
     flex: 1 1 auto;
     text-align: center;
   }
@@ -11978,18 +10793,10 @@ body.federation-open {
 }
 
 @media (max-width: 420px) {
-  .ephemeris-sheet::before,
   .amber-stone::before {
     inset: 6px;
   }
 
-  .ephemeris-subtitle {
-    font-size: 0.64rem;
-  }
-
-  .ephemeris-body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -11997,10 +10804,8 @@ body.federation-open {
     animation: none;
   }
 
-  .ephemeris-sheet,
   .amber-stone,
-  .courier-sheet,
-  .federation-sheet {
+  .courier-sheet {
     animation: none;
   }
 }
@@ -12095,18 +10900,6 @@ body.federation-open {
   height: 24px;
   padding: 3px;
   border-radius: 5px;
-}
-
-.federation-card-head {
-  align-items: center;
-}
-
-.federation-card-icon {
-  width: 24px;
-  height: 24px;
-  padding: 3px;
-  border-radius: 5px;
-  margin-right: auto;
 }
 
 .librarian-card-open {

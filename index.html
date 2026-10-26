@@ -269,19 +269,6 @@
           </div>
 
           <div class="footer-utility-actions" role="group" aria-label="馆务与工具">
-            <!-- Phase 3A：D6 白噪音天文台 -->
-            <button
-              type="button"
-              id="btn-soundscape-toggle"
-              class="theme-switch-btn soundscape-switch-btn"
-              data-state="off"
-              aria-pressed="false"
-              aria-label="开启白噪音天文台"
-              title="寂静（/sound 开启）"
-            >
-              <span class="soundscape-icon" aria-hidden="true">𝄞</span>
-              <span class="soundscape-label">寂静</span>
-            </button>
             <!-- Phase 2：活字秘卷与双生结界 -->
             <button
               type="button"
@@ -356,16 +343,6 @@
             </button>
             <button
               type="button"
-              id="btn-ephemeris-entry"
-              class="theme-switch-btn ephemeris-switch-btn"
-              aria-label="展开观星台晨报 (M)"
-              title="观星台晨报 (M · /morning)"
-            >
-              <span class="ephemeris-icon" aria-hidden="true">🗞️</span>
-              <span class="ephemeris-label">观星晨报</span>
-            </button>
-            <button
-              type="button"
               id="btn-courier-entry"
               class="theme-switch-btn courier-switch-btn"
               aria-label="打开飞鸽传书与 Notion 同步台 (/ingest)"
@@ -373,16 +350,6 @@
             >
               <span class="courier-icon" aria-hidden="true">🕊️</span>
               <span class="courier-label">飞鸽</span>
-            </button>
-            <button
-              type="button"
-              id="btn-federation-entry"
-              class="theme-switch-btn federation-switch-btn"
-              aria-label="打开邻近星系寻星镜 (/telescope)"
-              title="寻星镜 · 馆际互借 (/telescope · /federation)"
-            >
-              <span class="federation-icon" aria-hidden="true">🔭</span>
-              <span class="federation-label">寻星镜</span>
             </button>
             <button
               type="button"
@@ -435,14 +402,8 @@
             </button>
           </div>
           <div class="mobile-phase4b-actions" role="group" aria-label="移动端 Phase 4B 快捷入口">
-            <button type="button" id="btn-ephemeris-mobile" class="mobile-phase3-btn">
-              <span aria-hidden="true">🗞️</span> 晨报
-            </button>
             <button type="button" id="btn-courier-mobile" class="mobile-phase3-btn">
               <span aria-hidden="true">🕊️</span> 飞鸽
-            </button>
-            <button type="button" id="btn-federation-mobile" class="mobile-phase3-btn">
-              <span aria-hidden="true">🔭</span> 寻星镜
             </button>
           </div>
 
@@ -451,29 +412,6 @@
             <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
           </div>
 
-          <!-- Phase 4A · A5/C4 司天监遥测机关台：默认不占版面，/ping 或机关台按需展开 -->
-          <section id="telemetry-deck" class="telemetry-deck" aria-label="司天监遥测机关台">
-            <div class="telemetry-deck-bar">
-              <span class="telemetry-deck-kicker">OBSERVATORY TELEMETRY · 司天监遥测机关台</span>
-              <div class="telemetry-deck-bar-actions">
-                <button
-                  type="button"
-                  id="btn-telemetry-probe"
-                  class="telemetry-bar-btn"
-                  title="巡检星轨：探测全部馆藏卡片连通性与 Δt 延迟"
-                >📡 巡检星轨</button>
-                <button
-                  type="button"
-                  id="btn-telemetry-toggle"
-                  class="telemetry-bar-btn telemetry-bar-btn--toggle"
-                  aria-expanded="false"
-                  aria-controls="telemetry-deck-body"
-                  title="展开 / 收起遥测机关台"
-                >⚙ 机关台</button>
-              </div>
-            </div>
-            <div id="telemetry-deck-body" class="telemetry-deck-body" hidden></div>
-          </section>
         </section>
 
         <footer class="colophon-footer" role="contentinfo">
@@ -488,10 +426,7 @@
               <span><kbd class="kbd-tag">U</kbd> 待编目匣</span>
               <span><kbd class="kbd-tag">S</kbd> 活字秘卷</span>
               <span><kbd class="kbd-tag">T</kbd> 黄铜工具尺</span>
-              <span><kbd class="kbd-tag">M</kbd> 观星晨报</span>
               <span><kbd class="kbd-tag">/ingest</kbd> 飞鸽传书</span>
-              <span><kbd class="kbd-tag">/telescope</kbd> 寻星镜</span>
-              <span><kbd class="kbd-tag">/sound</kbd> 白噪音天文台</span>
               <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
               <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
               <span><kbd class="kbd-tag">f</kbd> 典藏</span>
@@ -511,54 +446,6 @@
     </div>
   </div>
 
-  <!-- Phase 4B · C2 观星简报台 · Daily Ephemeris -->
-  <div id="ephemeris-backdrop" class="ephemeris-backdrop" hidden></div>
-  <section
-    id="ephemeris-modal"
-    class="ephemeris-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="ephemeris-title"
-    aria-hidden="true"
-    hidden
-  >
-    <div class="ephemeris-sheet">
-      <header class="ephemeris-masthead">
-        <div class="ephemeris-masthead-rule" aria-hidden="true"></div>
-        <div class="ephemeris-masthead-meta">
-          <span id="ephemeris-volume" class="ephemeris-volume">VOL. 2026 · 第 001 期</span>
-          <span class="ephemeris-flag">THE OBSERVATORY MORNING POST</span>
-          <span id="ephemeris-stamp" class="ephemeris-stamp"></span>
-        </div>
-        <h2 id="ephemeris-title" class="ephemeris-title">观星台晨报</h2>
-        <div class="ephemeris-subtitle">
-          <span id="ephemeris-date">—</span>
-          <span class="ephemeris-divider">·</span>
-          <span>司天监 · 晨间星历简报</span>
-          <span class="ephemeris-divider">·</span>
-          <span>第 <b id="ephemeris-total">00</b> 则 · <span id="ephemeris-range">0–0</span></span>
-        </div>
-        <div class="ephemeris-masthead-rule" aria-hidden="true"></div>
-        <div class="ephemeris-toolbar">
-          <div class="ephemeris-column-switch" role="group" aria-label="晨报分栏">
-            <button type="button" data-ephemeris-column-btn="all" class="is-active" aria-pressed="true">全版</button>
-            <button type="button" data-ephemeris-column-btn="ai" aria-pressed="false">AI 思考</button>
-            <button type="button" data-ephemeris-column-btn="workshop" aria-pressed="false">工程工坊</button>
-            <button type="button" data-ephemeris-column-btn="study" aria-pressed="false">深度研习</button>
-          </div>
-          <div class="ephemeris-toolbar-end">
-            <span id="ephemeris-source-status" class="ephemeris-source-status" aria-live="polite">内置确定性星历 · 离线可读</span>
-            <button type="button" id="btn-close-ephemeris" class="ephemeris-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
-          </div>
-        </div>
-      </header>
-      <div id="ephemeris-body" class="ephemeris-body" aria-live="polite"></div>
-      <footer class="ephemeris-foot">
-        <span>EX LIBRIS · DAILY EPHEMERIS · 铅字双栏 · 离线可读</span>
-        <button type="button" id="btn-dismiss-ephemeris" class="ephemeris-action-btn">收卷归馆 (Esc)</button>
-      </footer>
-    </div>
-  </section>
 
   <!-- Phase 4B · D5 网页琥珀 · 碑拓阅览室 -->
   <div id="amber-backdrop" class="amber-backdrop" hidden></div>
@@ -676,51 +563,6 @@
     </div>
   </section>
 
-  <!-- Phase 4B · D7 邻近星系 · 寻星镜 -->
-  <div id="federation-backdrop" class="federation-backdrop" hidden></div>
-  <section
-    id="federation-modal"
-    class="federation-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="federation-title"
-    aria-hidden="true"
-    hidden
-  >
-    <div class="federation-sheet">
-      <header class="federation-head">
-        <div class="federation-head-main">
-          <span class="federation-kicker">INTERLIBRARY LOAN · TELESCOPE</span>
-          <h2 id="federation-title">邻近星系 · 寻星镜</h2>
-          <p class="federation-lede">
-            浏览友馆公开馆藏，点 [ ✦ 拓印入馆 ] 即可抄入本馆待编目匣。
-            本馆清单仅含 <strong>public</strong> 卷，暗月私密卡永不外泄。
-          </p>
-        </div>
-        <button type="button" id="btn-close-federation" class="federation-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
-      </header>
-
-      <div id="federation-rail" class="federation-rail" role="group" aria-label="联邦星系节点"></div>
-
-      <div class="federation-body">
-        <div id="federation-node-head" class="federation-node-head"></div>
-        <div class="federation-endpoint-row">
-          <label class="federation-field">
-            <span>外部 /public-collection.json 地址</span>
-            <input type="url" id="federation-endpoint" placeholder="public-collection.json">
-          </label>
-          <button type="button" id="btn-federation-fetch" class="federation-btn">🔭 接入</button>
-          <button type="button" id="btn-federation-export" class="federation-btn federation-btn--ghost">💾 导出本馆清单</button>
-        </div>
-        <div id="federation-list" class="federation-list" aria-live="polite"></div>
-      </div>
-
-      <footer class="federation-foot">
-        <div id="federation-footer" class="federation-status" aria-live="polite"></div>
-        <button type="button" id="btn-dismiss-federation" class="federation-btn federation-btn--ghost">收卷 (Esc)</button>
-      </footer>
-    </div>
-  </section>
 
   <!-- 藏书票印画模态展示层 (Ex Libris Modal) -->
   <div id="bookplate-modal" class="bookplate-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="bookplate-modal-title">
@@ -861,10 +703,6 @@
               <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">T</kbd></div>
                 <div class="shortcut-desc">拉开「黄铜工具尺 · 炼金实验台」</div>
-              </li>
-              <li>
-                <div class="shortcut-keys"><kbd class="kbd-badge">/sound</kbd></div>
-                <div class="shortcut-desc">开启 / 关闭白噪音天文台</div>
               </li>
               <li>
                 <div class="shortcut-keys"><kbd class="kbd-badge">Alt</kbd> + 点击卡片</div>
@@ -1257,7 +1095,6 @@
   <script src="js/theme.js?v=1.7.0" defer></script>
   <script src="js/particles-bg.js?v=1.7.0" defer></script>
   <script src="js/astronomy.js?v=3.0.0" defer></script>
-  <script src="js/soundscape.js?v=3.0.0" defer></script>
   <script src="js/brass-tools.js?v=3.0.0" defer></script>
   <script src="js/favorites.js?v=1.7.0" defer></script>
   <script src="js/visits.js?v=2.0.0" defer></script>
@@ -1278,11 +1115,9 @@
   <script src="js/almanac.js?v=3.1.0" defer></script>
   <script src="js/star-map.js?v=4.2.0" defer></script>
   <script src="js/librarian.js?v=4.2.0" defer></script>
-  <script src="js/telemetry.js?v=4.1.0" defer></script>
-  <script src="js/ephemeris.js?v=4.1.0" defer></script>
+  <script src="js/probe.js?v=5.0.0" defer></script>
   <script src="js/amber.js?v=4.1.0" defer></script>
   <script src="js/courier.js?v=4.2.0" defer></script>
-  <script src="js/federation.js?v=4.2.0" defer></script>
   <script src="js/lore.js?v=1.7.0" defer></script>
   <script src="js/contextmenu.js?v=1.7.0" defer></script>
   <script src="js/cloud-sync.js?v=1.7.0" defer></script>

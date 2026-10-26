@@ -5,7 +5,7 @@
  * - /api/ 与跨站请求：一律不经手（云同步、探针、守馆人照常走网络）
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "5c7c676b40";
+const CACHE_VERSION = "78c27e0ee7";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -20,7 +20,6 @@ const PRECACHE = [
   "./js/theme.js?v=1.7.0",
   "./js/particles-bg.js?v=1.7.0",
   "./js/astronomy.js?v=3.0.0",
-  "./js/soundscape.js?v=3.0.0",
   "./js/brass-tools.js?v=3.0.0",
   "./js/favorites.js?v=1.7.0",
   "./js/visits.js?v=2.0.0",
@@ -41,11 +40,9 @@ const PRECACHE = [
   "./js/almanac.js?v=3.1.0",
   "./js/star-map.js?v=4.2.0",
   "./js/librarian.js?v=4.2.0",
-  "./js/telemetry.js?v=4.1.0",
-  "./js/ephemeris.js?v=4.1.0",
+  "./js/probe.js?v=5.0.0",
   "./js/amber.js?v=4.1.0",
   "./js/courier.js?v=4.2.0",
-  "./js/federation.js?v=4.2.0",
   "./js/lore.js?v=1.7.0",
   "./js/contextmenu.js?v=1.7.0",
   "./js/cloud-sync.js?v=1.7.0",

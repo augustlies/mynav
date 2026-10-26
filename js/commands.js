@@ -169,22 +169,6 @@
         }
       },
       {
-        id: "sound",
-        command: "/sound",
-        label: "开启 / 关闭白噪音天文台",
-        hint: "Soundscape",
-        run: function () {
-          if (window.NavSoundscape && typeof window.NavSoundscape.toggle === "function") {
-            window.NavSoundscape.toggle();
-            notify(
-              window.NavSoundscape.isActive() ? "听风 · 鸣" : "白噪音天文台已寂静",
-              window.NavSoundscape.isActive() ? "深空底噪与星轨脉冲已展开" : "环境声场已收起",
-              "𝄞"
-            );
-          }
-        }
-      },
-      {
         id: "tools",
         command: "/tools",
         label: "拉开黄铜工具尺 · 炼金实验台",
@@ -258,32 +242,6 @@
             // runs never fan out into 36 cross-origin requests.
             const mock = Boolean(options && options.mock);
             window.NavTelemetry.probeAll({ mock: mock });
-            if (typeof window.NavTelemetry.openDeck === "function") window.NavTelemetry.openDeck();
-          }
-        }
-      },
-      // Phase 4B · C2 观星台晨报
-      {
-        id: "morning",
-        code: "C2",
-        command: "/morning",
-        label: "展开《观星台晨报》· 古典双栏铅字",
-        hint: "Daily Ephemeris",
-        run: function () {
-          if (window.NavEphemeris && typeof window.NavEphemeris.open === "function") {
-            window.NavEphemeris.open();
-          }
-        }
-      },
-      {
-        id: "ephemeris",
-        code: "C2",
-        command: "/ephemeris",
-        label: "展开《观星台晨报》· 古典双栏铅字",
-        hint: "Daily Ephemeris",
-        run: function () {
-          if (window.NavEphemeris && typeof window.NavEphemeris.open === "function") {
-            window.NavEphemeris.open();
           }
         }
       },
@@ -325,31 +283,6 @@
           }
         }
       },
-      // Phase 4B · D7 联邦星图
-      {
-        id: "telescope",
-        code: "D7",
-        command: "/telescope",
-        label: "邻近星系 · 寻星镜馆际互借",
-        hint: "Federation",
-        run: function () {
-          if (window.NavFederation && typeof window.NavFederation.open === "function") {
-            window.NavFederation.open();
-          }
-        }
-      },
-      {
-        id: "federation",
-        code: "D7",
-        command: "/federation",
-        label: "邻近星系 · 寻星镜馆际互借",
-        hint: "Federation",
-        run: function () {
-          if (window.NavFederation && typeof window.NavFederation.open === "function") {
-            window.NavFederation.open();
-          }
-        }
-      }
     ];
   }
 
