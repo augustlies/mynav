@@ -1,0 +1,361 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「amber」模块一起载入（从 styles.css 拆出）。 */
+body.amber-open {
+  overflow: hidden;
+}
+
+.card-amber-badge {
+  /* 徽章以「底部封条」形式占满卡片下缘：绝对定位的浮动角标会压住
+     .card-bottom-actions 的 № 号与 ↗ 跳转符（实测重叠 16px）。 */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-surface) 94%, var(--accent-brass));
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.45);
+  transition: opacity var(--transition-normal), transform var(--transition-normal), background-color var(--transition-fast);
+}
+
+.card-amber-badge.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  animation: amberBadgePulse 3.4s ease-in-out infinite;
+}
+
+.card-amber-badge.is-visible.is-sealed {
+  animation: none;
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 18%, var(--bg-surface));
+}
+
+.card-amber-badge:hover {
+  background: var(--accent-brass);
+  color: var(--bg-page);
+}
+
+.entry-card.card--amber-offline {
+  padding-bottom: 34px;
+}
+
+.folio-main .card--slip.card--amber-offline {
+  padding-bottom: 0;
+  min-height: 92px;
+}
+
+.folio-main .card--slip .card-amber-badge {
+  padding: 3px 5px;
+  font-size: 0.54rem;
+}
+
+@keyframes amberBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-brass) 34%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-brass) 0%, transparent); }
+}
+
+.marginalia-amber-block {
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px dotted var(--border-hairline);
+}
+
+.marginalia-amber-btn {
+  margin-top: 5px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 50%, transparent);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.64rem;
+  cursor: pointer;
+}
+
+.marginalia-amber-btn:hover {
+  background: color-mix(in srgb, var(--accent-brass) 12%, transparent);
+}
+
+.amber-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 340;
+  background: rgba(12, 10, 8, 0.66);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.amber-backdrop[hidden],
+.amber-modal[hidden] {
+  display: none;
+}
+
+.amber-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.amber-stone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: min(88dvh, 820px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 62%, transparent);
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent-brass) 12%, transparent), transparent 70%),
+    repeating-linear-gradient(96deg, color-mix(in srgb, var(--text-main) 4%, transparent) 0 2px, transparent 2px 7px),
+    var(--bg-page);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.amber-stone::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 34%, transparent);
+  pointer-events: none;
+}
+
+.amber-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.amber-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.amber-head h2 {
+  margin: 5px 0 3px;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+}
+
+.amber-meta {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+}
+
+.amber-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.amber-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.amber-body {
+  /* 碑拓正文自行滚动，批注与时光机入口始终可见：
+     整块滚动会把 Wayback 按钮推到折线以下（实测 900px 视口不可见）。 */
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px 24px;
+  overflow: hidden;
+}
+
+.amber-note-block {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  margin-bottom: 0;
+  border-left: 2px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 7%, transparent);
+}
+
+.amber-note-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+}
+
+.amber-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.amber-snapshot {
+  flex: 1 1 auto;
+  min-height: 120px;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 40%, transparent);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.amber-wayback {
+  display: inline-block;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-top: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--accent-brass);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.amber-wayback:hover {
+  background: color-mix(in srgb, var(--accent-brass) 14%, transparent);
+}
+
+.amber-foot {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 24px max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-hairline);
+}
+
+.amber-status {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+}
+
+.amber-foot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.amber-action-btn {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.66rem;
+  cursor: pointer;
+}
+
+.amber-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--text-main);
+}
+
+.amber-action-btn--ghost {
+  border-style: dashed;
+}
+
+@media (max-width: 900px) {
+.amber-modal {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+.amber-stone {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+
+.amber-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.amber-head,
+.amber-body,
+.amber-foot {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.amber-foot-actions {
+    justify-content: flex-start;
+  }
+
+.amber-status {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 640px) {
+.amber-foot-actions {
+    width: 100%;
+  }
+
+.amber-action-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+.amber-stone::before {
+    inset: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.card-amber-badge.is-visible {
+    animation: none;
+  }
+
+.amber-stone {
+    animation: none;
+  }
+}

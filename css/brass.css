@@ -1,0 +1,387 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「brass」模块一起载入（从 styles.css 拆出）。 */
+.brass-tools-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(10, 9, 7, 0.52);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.brass-tools-backdrop[hidden],
+.brass-workbench[hidden] {
+  display: none;
+}
+
+.brass-workbench {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 310;
+  display: flex;
+  flex-direction: column;
+  width: min(600px, 100vw);
+  height: 100dvh;
+  border-left: 1px solid var(--accent-brass);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--bg-page) 96%, transparent), color-mix(in srgb, var(--bg-subtle) 94%, transparent)),
+    repeating-linear-gradient(90deg, transparent 0 47px, color-mix(in srgb, var(--accent-brass) 8%, transparent) 47px 48px);
+  box-shadow: -28px 0 70px -28px rgba(0, 0, 0, 0.72);
+  animation: brassDrawerIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brass-workbench::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 26%, transparent);
+  pointer-events: none;
+}
+
+.brass-workbench-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 25px 26px 17px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.brass-workbench-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.brass-workbench-header h2 {
+  margin-top: 5px;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 1.55rem;
+  font-weight: 600;
+}
+
+.brass-workbench-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.brass-workbench-close:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.brass-workbench-tabs {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.brass-workbench-tabs button {
+  min-height: 46px;
+  border: 0;
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.brass-workbench-tabs button:last-child {
+  border-right: 0;
+}
+
+.brass-workbench-tabs button.is-active {
+  border-bottom-color: var(--accent-brass);
+  color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 7%, transparent);
+}
+
+.brass-workbench-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 26px 26px;
+}
+
+.brass-panel[hidden] {
+  display: none;
+}
+
+.brass-panel-intro {
+  margin-bottom: 17px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border-hairline);
+}
+
+.brass-panel-code {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.brass-panel-intro p {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.brass-dial-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.brass-dial {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  padding: 15px 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 44%, var(--border-hairline));
+  border-radius: 50% / 18%;
+  background:
+    radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--accent-brass) 13%, transparent), transparent 34%),
+    color-mix(in srgb, var(--bg-surface) 72%, transparent);
+}
+
+.brass-dial::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  bottom: 8px;
+  width: 56px;
+  height: 18px;
+  opacity: 0.42;
+  background: repeating-linear-gradient(90deg, var(--accent-brass) 0 1px, transparent 1px 6px);
+}
+
+.brass-dial-label {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.brass-dial strong {
+  align-self: end;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.brass-panel-actions,
+.brass-cipher-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.brass-action {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+}
+
+.brass-action:hover,
+.brass-action-primary {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.brass-action-primary {
+  background: color-mix(in srgb, var(--accent-brass) 7%, transparent);
+}
+
+.brass-status {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  line-height: 1.55;
+}
+
+.brass-status.is-error {
+  color: var(--accent-stamp);
+}
+
+.brass-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.brass-mode-row button {
+  min-height: 28px;
+  padding: 3px 9px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+}
+
+.brass-mode-row button.is-active {
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 8%, transparent);
+  color: var(--accent-brass);
+}
+
+.brass-field {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.brass-field > span {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.07em;
+}
+
+.brass-field textarea,
+.brass-field input {
+  width: 100%;
+  border: 1px solid var(--border-card);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--bg-surface) 78%, transparent);
+  color: var(--text-main);
+  padding: 9px 10px;
+  font: 0.6875rem/1.6 var(--font-mono);
+  resize: vertical;
+}
+
+.brass-field textarea:focus,
+.brass-field input:focus {
+  outline: 0;
+  border-color: var(--accent-brass);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-brass) 12%, transparent);
+}
+
+.brass-cipher-actions {
+  margin-top: 0;
+  margin-bottom: 11px;
+}
+
+.brass-clock-now {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 40%, var(--border-hairline));
+  background: color-mix(in srgb, var(--bg-surface) 62%, transparent);
+}
+
+.brass-clock-now strong {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.brass-conversion-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 8px;
+  margin-top: 12px;
+}
+
+.brass-conversion-grid .brass-action {
+  align-self: end;
+  margin-bottom: 10px;
+}
+
+.brass-hash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.brass-workbench-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 26px;
+  border-top: 1px solid var(--border-hairline);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="dark"] .brass-workbench {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, #111925 96%, transparent), color-mix(in srgb, #0d141e 95%, transparent)),
+    repeating-linear-gradient(90deg, transparent 0 47px, color-mix(in srgb, var(--accent-brass) 5%, transparent) 47px 48px);
+}
+
+@media (max-width: 640px) {
+.brass-workbench {
+    width: 100vw;
+  }
+
+.brass-workbench-header,
+  .brass-workbench-body,
+  .brass-workbench-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.brass-workbench-tabs button {
+    padding: 4px;
+    font-size: 0.6875rem;
+  }
+
+.brass-conversion-grid {
+    grid-template-columns: 1fr;
+  }
+
+.brass-conversion-grid .brass-action {
+    justify-self: start;
+    margin-top: 0;
+  }
+
+.brass-hash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.brass-workbench {
+    animation: none;
+  }
+}

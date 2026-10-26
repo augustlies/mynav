@@ -1,0 +1,664 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「librarian」模块一起载入（从 styles.css 拆出）。 */
+.librarian-parchment-folio {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 16px;
+  left: 0;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 100%;
+  max-height: min(62vh, 560px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--border-medium);
+  border-top: 2px solid var(--accent-brass);
+  /* The sheet overlays live cards, so the paper base must be fully opaque;
+     only the wash and ruling layers carry transparency. */
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-subtle) 56%, transparent), transparent 42%),
+    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in srgb, var(--border-hairline) 62%, transparent) 25px 26px),
+    var(--bg-surface);
+  box-shadow: 0 22px 48px -20px rgba(0, 0, 0, 0.62), var(--shadow-lift);
+  animation: librarianFolioUnfurl 0.26s var(--transition-normal);
+}
+
+.librarian-parchment-folio.is-flip-up {
+  top: auto;
+  bottom: calc(100% + 5px);
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 2px solid var(--accent-brass);
+}
+
+.librarian-parchment-folio[hidden] {
+  display: none;
+}
+
+.librarian-parchment-folio::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 22%, transparent);
+  pointer-events: none;
+}
+
+@keyframes librarianFolioUnfurl {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.librarian-folio-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 11px 13px 9px;
+  border-bottom: 1px dashed var(--border-hairline);
+}
+
+.librarian-mode-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--accent-brass);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+}
+
+.librarian-mode-badge[data-librarian-mode="!"] {
+  border-color: var(--accent-stamp);
+  color: var(--accent-stamp);
+}
+
+.librarian-folio-kicker {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-folio-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.librarian-head-btn {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.librarian-head-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.librarian-head-btn--close {
+  width: 24px;
+  padding: 3px 0;
+  text-align: center;
+}
+
+.librarian-folio-output {
+  position: relative;
+  z-index: 1;
+  /* min-height: 0 lets the scroll area give way inside the flex column so the
+     max-height cap actually binds and the action rail stays visible. */
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 14px 4px;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  /* The annotation scrolls on its own instead of being squeezed under the
+     recommendation strip: long answers stay readable, the rail stays reachable. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.librarian-para {
+  margin-bottom: 9px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.librarian-para:last-child {
+  margin-bottom: 0;
+}
+
+.librarian-para--hint {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.librarian-code {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 8px 0;
+  padding: 9px 11px;
+  overflow-x: auto;
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--bg-page) 88%, transparent);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+}
+
+.librarian-code code {
+  font-family: inherit;
+}
+
+.librarian-folio-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  flex-shrink: 0;
+  gap: 7px;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 10px 14px 4px;
+  border-top: 1px dashed var(--border-hairline);
+  margin-top: 8px;
+}
+
+.librarian-folio-cards[hidden] {
+  display: none;
+}
+
+.librarian-folio-cards {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 46%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.librarian-card-slip {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px 10px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 34%, transparent);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.librarian-card-slip:hover {
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--bg-subtle) 52%, transparent);
+}
+
+.librarian-card-stamp {
+  justify-self: start;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 42%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+}
+
+.librarian-card-slip[data-librarian-status="uncatalogued"] .librarian-card-stamp {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent-stamp) 52%, transparent);
+  color: var(--accent-stamp);
+}
+
+.librarian-card-open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.librarian-card-number {
+  color: var(--card-index-ink);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+}
+
+.librarian-card-title {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-card-open:hover .librarian-card-title {
+  color: var(--accent-brass);
+}
+
+.librarian-card-host {
+  grid-column: 2 / 3;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.librarian-card-arrow {
+  grid-row: 1 / 3;
+  grid-column: 3 / 4;
+  align-self: center;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  opacity: 0.72;
+}
+
+.librarian-card-reason {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  font-style: italic;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.librarian-card-crown {
+  justify-self: start;
+  padding: 2px 7px;
+  border: 1px dashed color-mix(in srgb, var(--accent-stamp) 52%, transparent);
+  background: transparent;
+  color: var(--accent-stamp);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  cursor: pointer;
+}
+
+.librarian-card-crown:hover {
+  border-style: solid;
+  color: var(--text-main);
+}
+
+.librarian-folio-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 9px 13px 11px;
+  border-top: 1px dashed var(--border-hairline);
+  margin-top: 6px;
+}
+
+.librarian-folio-status {
+  min-width: 0;
+  flex: 1 1 120px;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.librarian-folio-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.librarian-action-btn {
+  padding: 4px 9px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.librarian-action-btn:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.librarian-action-btn--codex {
+  border-color: color-mix(in srgb, var(--accent-brass) 46%, transparent);
+  color: var(--accent-brass);
+}
+
+.librarian-action-btn--ghost {
+  border-color: transparent;
+  color: var(--text-faint);
+}
+
+html[data-librarian="open"] .search-box-frame {
+  border-color: var(--accent-brass);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-brass) 14%, transparent);
+}
+
+html[data-librarian="open"] .search-glyph {
+  color: var(--accent-brass);
+}
+
+.librarian-config-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 20px;
+  background: rgba(8, 7, 11, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.librarian-config-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(560px, 100%);
+  max-width: 100%;
+  max-height: min(84dvh, 680px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--border-card);
+  border-top: 2px solid var(--accent-brass);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.librarian-config-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 13px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.librarian-config-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.librarian-config-head h2 {
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+}
+
+.librarian-config-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.librarian-config-body {
+  display: grid;
+  gap: 10px;
+  padding: 15px 20px 6px;
+}
+
+.librarian-config-note {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.librarian-config-note code {
+  padding: 1px 4px;
+  background: color-mix(in srgb, var(--bg-subtle) 68%, transparent);
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.librarian-config-field {
+  display: grid;
+  gap: 4px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+}
+
+.librarian-config-field em {
+  color: var(--accent-stamp);
+  font-style: italic;
+}
+
+.librarian-config-field input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-page);
+  color: var(--text-main);
+  font: 0.75rem/1.45 var(--font-mono);
+}
+
+.librarian-config-field input:focus {
+  outline: 0;
+  border-color: var(--accent-brass);
+}
+
+.librarian-config-status {
+  min-height: 1.2em;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.librarian-config-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px 16px;
+}
+
+.librarian-config-btn {
+  padding: 6px 13px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.librarian-config-btn--primary {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+@media (max-width: 900px) {
+.librarian-parchment-folio {
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    max-height: min(62vh, 460px);
+  }
+
+.librarian-folio-cards {
+    grid-template-columns: 1fr;
+    max-height: 52%;
+  }
+
+.librarian-folio-cards {
+    align-content: start;
+    flex: 0 1 auto;
+    max-height: 118px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+.librarian-folio-output {
+    flex: 1 1 auto;
+    min-height: 96px;
+  }
+
+.librarian-card-slip {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 7px;
+    padding: 7px 9px;
+  }
+
+.librarian-card-stamp {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+.librarian-card-open {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+
+.librarian-card-reason {
+    grid-column: 1 / -1;
+  }
+
+.librarian-card-crown {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+/* The sheet hangs below the sticky search bar, so its cap is the room left
+     *under* that bar (roughly 200px down at 390px), not the whole viewport.
+     --librarian-folio-top is published by js/librarian.js positionFolio(). */
+
+.librarian-parchment-folio {
+    max-height: max(240px, calc(100vh - var(--librarian-folio-top, 210px) - 16px));
+  }
+
+.librarian-parchment-folio.is-flip-up {
+    max-height: max(240px, calc(var(--librarian-folio-top, 210px) - 16px));
+  }
+
+.librarian-folio-head,
+  .librarian-folio-output,
+  .librarian-folio-cards,
+  .librarian-folio-foot {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+.librarian-config-backdrop {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+.librarian-config-card {
+    width: 100%;
+    max-height: 90dvh;
+  }
+
+.librarian-config-head,
+  .librarian-config-body,
+  .librarian-config-foot {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+@media (max-width: 390px) {
+.librarian-folio-head-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+.librarian-folio-status {
+    flex: 1 1 100%;
+  }
+
+.librarian-folio-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+.librarian-action-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.librarian-parchment-folio {
+    animation: none;
+  }
+}
+
+.librarian-card-open {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+
+.librarian-card-icon {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 5px;
+  align-self: center;
+}

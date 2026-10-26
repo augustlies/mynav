@@ -19,7 +19,8 @@
  * 契约：触发前只有这里注册的轻量壳；第一次点击 / 按键不会被吞掉 ——
  * 拦下这次事件、显示加载态（aria-busy），模块就绪后原样重放一次。
  * 必须在 app.js 之前执行；模块的 init() 由这里负责（app.js Stage 2 不再初始化它们）。
- * 新增懒加载模块后请运行 `node scripts/build-sw.js`，它会读取下面的 src 列表写入离线预缓存。
+ * 各模块的样式在 css/<name>.css，随脚本并行载入（不再压在首屏的 styles.css 里）。
+ * 新增懒加载模块后请运行 `node scripts/build-sw.js`，它会读取下面的 src / css 列表写入离线预缓存。
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
@@ -31,18 +32,18 @@
   "use strict";
 
   const MODULES = {
-    librarian: { src: "js/librarian.js?v=4.2.0", global: "NavLibrarian", ref: "Librarian", init: true },
-    starmap: { src: "js/star-map.js?v=4.2.0", global: "NavStarMap", ref: "StarMap" },
-    contextmenu: { src: "js/contextmenu.js?v=1.7.0", global: "NavContextMenu", ref: "ContextMenu" },
-    courier: { src: "js/courier.js?v=5.0.0", global: "NavCourier", ref: "Courier", init: true },
-    amber: { src: "js/amber.js?v=4.1.0", global: "NavAmber", ref: "Amber", init: true, after: "syncCards" },
-    brass: { src: "js/brass-tools.js?v=3.0.0", global: "NavBrassTools", ref: "BrassTools", init: true },
-    almanac: { src: "js/almanac.js?v=3.1.0", global: "NavAlmanac", ref: "Almanac", init: true, after: "refresh" },
-    snippets: { src: "js/snippets.js?v=2.0.0", global: "NavSnippets", ref: "Snippets", init: true },
-    lore: { src: "js/lore.js?v=1.7.0", global: "NavLore", ref: "Lore", init: true },
+    librarian: { src: "js/librarian.js?v=4.2.0", css: "css/librarian.css?v=5.0.0", global: "NavLibrarian", ref: "Librarian", init: true },
+    starmap: { src: "js/star-map.js?v=4.2.0", css: "css/starmap.css?v=5.0.0", global: "NavStarMap", ref: "StarMap" },
+    contextmenu: { src: "js/contextmenu.js?v=1.7.0", css: "css/contextmenu.css?v=5.0.0", global: "NavContextMenu", ref: "ContextMenu" },
+    courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=5.0.0", global: "NavCourier", ref: "Courier", init: true },
+    amber: { src: "js/amber.js?v=4.1.0", css: "css/amber.css?v=5.0.0", global: "NavAmber", ref: "Amber", init: true, after: "syncCards" },
+    brass: { src: "js/brass-tools.js?v=3.0.0", css: "css/brass.css?v=5.0.0", global: "NavBrassTools", ref: "BrassTools", init: true },
+    almanac: { src: "js/almanac.js?v=3.1.0", css: "css/almanac.css?v=5.0.0", global: "NavAlmanac", ref: "Almanac", init: true, after: "refresh" },
+    snippets: { src: "js/snippets.js?v=2.0.0", css: "css/snippets.css?v=5.0.0", global: "NavSnippets", ref: "Snippets", init: true },
+    lore: { src: "js/lore.js?v=1.7.0", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
     cloudsync: { src: "js/cloud-sync.js?v=1.7.0", global: "NavCloudSync", ref: "CloudSync" },
-    exlibris: { src: "js/exlibris.js?v=1.7.0", global: "NavExLibris", ref: "ExLibris", init: true },
-    serendipity: { src: "js/serendipity.js?v=4.2.0", global: "NavSerendipity", ref: "Serendipity", init: true },
+    exlibris: { src: "js/exlibris.js?v=1.7.0", css: "css/exlibris.css?v=5.0.0", global: "NavExLibris", ref: "ExLibris", init: true },
+    serendipity: { src: "js/serendipity.js?v=4.2.0", css: "css/serendipity.css?v=5.0.0", global: "NavSerendipity", ref: "Serendipity", init: true },
     particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" }
   };
 
@@ -95,6 +96,20 @@
     });
   }
 
+  // 模块自带的样式（从 styles.css 拆出，减轻首屏阻塞渲染的 CSS）：与脚本并行载入。
+  function loadStyle(href) {
+    return new Promise(function (resolve) {
+      if (document.querySelector("link[data-lazy-css=\"" + href + "\"]")) { resolve(); return; }
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      link.setAttribute("data-lazy-css", href);
+      link.onload = function () { resolve(); };
+      link.onerror = function () { resolve(); }; // 样式缺失不阻断功能
+      document.head.appendChild(link);
+    });
+  }
+
   function notifyFail(name) {
     if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
       window.NavShortcuts.showToast("模块载入失败", "网络不可用且本机尚无缓存：" + name, "⚠");
@@ -106,7 +121,10 @@
     if (!spec) return Promise.reject(new Error("unknown lazy module: " + name));
     if (pending[name]) return pending[name];
     const already = Boolean(window[spec.global]);
-    pending[name] = (already ? Promise.resolve() : loadScript(spec.src))
+    pending[name] = Promise.all([
+      already ? Promise.resolve() : loadScript(spec.src),
+      spec.css ? loadStyle(spec.css) : Promise.resolve()
+    ])
       .then(whenApp)
       .then(function () {
         const mod = window[spec.global];

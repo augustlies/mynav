@@ -1,0 +1,233 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「lore」模块一起载入（从 styles.css 拆出）。 */
+@media (max-width: 640px) {
+.colophon-modal-card {
+    max-height: 88vh;
+    padding: 18px 16px;
+    margin: auto 8px;
+    border-radius: var(--radius-sm);
+  }
+
+.colophon-modal-footer {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+.colophon-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background-color: rgba(28, 29, 25, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.colophon-modal-card {
+  width: 100%;
+  max-width: 740px;
+  max-height: 90vh;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.colophon-modal-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: calc(var(--radius-md) - 4px);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.colophon-modal-header {
+  padding: 22px 28px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+}
+
+.colophon-modal-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  margin-bottom: 4px;
+}
+
+.colophon-modal-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.btn-close-colophon {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-close-colophon:hover {
+  color: var(--text-main);
+  border-color: var(--border-focus);
+  background-color: var(--bg-card);
+}
+
+.colophon-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.colophon-milestone-card {
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+}
+
+.colophon-letter-section {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 18px;
+}
+
+.colophon-section-title {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.colophon-paragraph {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-main);
+}
+
+.colophon-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+.colophon-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.colophon-pillar-card {
+  padding: 14px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.colophon-pillar-card h4 {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  color: var(--text-main);
+}
+
+.colophon-pillar-card p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.colophon-specs-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+.colophon-seal-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.colophon-seal-caption {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+}
+
+.colophon-modal-footer {
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+  gap: 16px;
+}
+
+.colophon-modal-tip {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.btn-colophon-action {
+  padding: 7px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .btn-colophon-action {
+  color: #171815;
+}
+
+.btn-colophon-action:hover {
+  background-color: var(--color-accent-hover);
+}

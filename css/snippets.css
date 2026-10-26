@@ -1,0 +1,198 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「snippets」模块一起载入（从 styles.css 拆出）。 */
+.snippets-switch-btn {
+  gap: 4px;
+}
+
+@media (max-width: 520px) {
+.snippets-switch-btn .snippets-label {
+    display: none;
+  }
+}
+
+.snippets-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.snippets-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 7, 11, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.snippets-modal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: min(82dvh, 720px);
+  overflow: hidden;
+  border: 1px solid var(--border-card);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-modal);
+  animation: modalScaleUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.snippets-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 13px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.snippets-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.snippets-modal-header h2 {
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+}
+
+.snippets-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 20px;
+  border-bottom: 1px dashed var(--border-hairline);
+  color: var(--text-faint);
+  font-size: 0.6875rem;
+}
+
+.snippets-modal-toolbar button,
+.snippet-copy,
+.snippet-actions button {
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+}
+
+.snippets-modal-toolbar button {
+  padding: 3px 8px;
+  color: var(--accent-brass);
+}
+
+.snippets-list {
+  display: grid;
+  gap: 8px;
+  padding: 14px 20px 18px;
+  overflow-y: auto;
+}
+
+.snippet-card {
+  padding: 10px 12px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 38%, transparent);
+}
+
+.snippet-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.snippet-card h3 {
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+}
+
+.snippet-actions {
+  display: flex;
+  gap: 3px;
+}
+
+.snippet-actions button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+}
+
+.snippet-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 7px 0;
+  color: var(--text-muted);
+  font: 0.75rem/1.55 var(--font-mono);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.snippet-copy {
+  padding: 3px 8px;
+  color: var(--accent-brass);
+}
+
+.snippets-copy-menu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px 14px;
+  border-top: 1px dashed var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-subtle) 46%, transparent);
+}
+
+.snippets-copy-menu[hidden] {
+  display: none;
+}
+
+.snippets-copy-label {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+}
+
+.snippet-ai-link {
+  padding: 3px 7px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  cursor: pointer;
+}
+
+.snippet-ai-link:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+@media (max-width: 520px) {
+.snippets-modal-backdrop {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+.snippets-modal-card {
+    max-height: 90dvh;
+  }
+
+.snippets-modal-header,
+  .snippets-modal-toolbar,
+  .snippets-list,
+  .snippets-copy-menu {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

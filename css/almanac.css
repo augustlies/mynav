@@ -1,0 +1,458 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「almanac」模块一起载入（从 styles.css 拆出）。 */
+.almanac-status-switch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 1px 7px;
+  margin-top: 2px;
+}
+
+.almanac-window-btn {
+  padding: 1px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.5625rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.almanac-window-btn:hover,
+.almanac-window-btn:focus-visible,
+.almanac-window-btn.is-active {
+  color: var(--accent-brass);
+}
+
+.almanac-window-btn.is-active {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.search-hook-btn--almanac {
+  color: var(--accent-brass);
+}
+
+.entry-card.almanac-day-highlight {
+  border-color: var(--accent-brass) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-brass) 42%, transparent);
+}
+
+.almanac-chronicle {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 18px 0 64px;
+  scroll-margin-top: calc(var(--header-height) + 72px);
+}
+
+.almanac-chronicle.is-star-map {
+  display: none;
+}
+
+.almanac-chronicle-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--bg-surface) 94%, transparent), color-mix(in srgb, var(--bg-subtle) 72%, transparent)),
+    repeating-linear-gradient(90deg, transparent 0 47px, color-mix(in srgb, var(--accent-brass) 5%, transparent) 47px 48px);
+}
+
+.almanac-chronicle-frame::before,
+.almanac-chronicle-frame::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.almanac-chronicle-frame::before {
+  inset: 7px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 22%, transparent);
+}
+
+.almanac-chronicle-frame::after {
+  top: -120px;
+  right: -90px;
+  width: 300px;
+  height: 300px;
+  border: 1px dotted var(--border-hairline);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.almanac-chronicle-header,
+.almanac-chronicle-body {
+  position: relative;
+  z-index: 1;
+}
+
+.almanac-chronicle-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  align-items: flex-end;
+  padding: 28px 30px 20px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.almanac-heading {
+  max-width: 610px;
+}
+
+.almanac-kicker,
+.almanac-block-label,
+.almanac-note-kicker,
+.almanac-grid-head {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+}
+
+.almanac-title {
+  margin: 5px 0 4px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.almanac-subtitle {
+  max-width: 600px;
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  line-height: 1.8;
+}
+
+.almanac-stats {
+  display: flex;
+  gap: 22px;
+  flex: 0 0 auto;
+  padding-bottom: 2px;
+}
+
+.almanac-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 58px;
+}
+
+.almanac-stats strong {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.almanac-stats span {
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.5625rem;
+}
+
+.almanac-chronicle-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 228px);
+  gap: 24px;
+  padding: 22px 30px 28px;
+}
+
+.almanac-grid-wrap {
+  min-width: 0;
+}
+
+.almanac-grid-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--text-faint);
+}
+
+.almanac-lunar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.almanac-day {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 72px;
+  padding: 6px 4px 5px;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--bg-surface) 56%, transparent);
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.almanac-day:hover,
+.almanac-day:focus-visible {
+  z-index: 1;
+  border-color: var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 8%, var(--bg-surface));
+  transform: translateY(-2px);
+  outline: 0;
+}
+
+.almanac-day.is-today {
+  border-color: color-mix(in srgb, var(--accent-brass) 60%, var(--border-hairline));
+}
+
+.almanac-day.is-selected {
+  border-color: var(--accent-brass);
+  box-shadow: inset 0 0 0 1px var(--accent-brass);
+}
+
+.almanac-day-label,
+.almanac-day-week,
+.almanac-day-count {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 0.4375rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.almanac-day-label {
+  color: var(--text-muted);
+}
+
+.almanac-day-week {
+  align-self: end;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+}
+
+.almanac-day-count {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  color: var(--accent-brass);
+  font-size: 0.5rem;
+}
+
+.almanac-moon-svg {
+  align-self: center;
+  justify-self: center;
+  width: 37px;
+  height: 37px;
+  overflow: visible;
+}
+
+.almanac-moon-svg--dark {
+  opacity: 0.25;
+}
+
+.almanac-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding-left: 18px;
+  border-left: 1px solid var(--border-hairline);
+}
+
+.almanac-window-block {
+  display: grid;
+  gap: 6px;
+}
+
+.almanac-window-list {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+}
+
+.almanac-window-list .almanac-window-btn {
+  font-size: 0.625rem;
+}
+
+.almanac-note {
+  display: grid;
+  gap: 7px;
+  min-height: 112px;
+  padding: 12px 12px 11px;
+  border: 1px dashed var(--border-hairline);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 20px, color-mix(in srgb, var(--border-hairline) 35%, transparent) 20px 21px);
+}
+
+.almanac-note-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  line-height: 1.75;
+}
+
+.almanac-note-text strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.almanac-note-text em {
+  color: var(--accent-brass);
+  font-style: normal;
+}
+
+.almanac-note-meta {
+  align-self: end;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.almanac-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+.almanac-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+@media (max-width: 1050px) {
+.almanac-chronicle-header,
+  .almanac-chronicle-body {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+.almanac-chronicle-body {
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+.almanac-chronicle {
+    padding-bottom: 44px;
+  }
+
+.almanac-chronicle-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+    padding: 22px 20px 16px;
+  }
+
+.almanac-stats {
+    gap: 18px;
+  }
+
+.almanac-chronicle-body {
+    display: block;
+    padding: 18px 20px 22px;
+  }
+
+.almanac-side-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--border-hairline);
+    border-left: 0;
+  }
+
+.almanac-legend {
+    grid-column: 1 / -1;
+  }
+
+.almanac-day {
+    min-height: 64px;
+  }
+
+.almanac-moon-svg {
+    width: 31px;
+    height: 31px;
+  }
+}
+
+@media (max-width: 640px) {
+.almanac-status-switch {
+    display: none;
+  }
+
+.almanac-lunar-grid {
+    gap: 3px;
+  }
+
+.almanac-day {
+    min-height: 56px;
+    padding: 4px 2px;
+  }
+
+.almanac-day-label,
+  .almanac-day-week {
+    font-size: 0.375rem;
+  }
+
+.almanac-day-count {
+    right: 3px;
+    bottom: 3px;
+    font-size: 0.4375rem;
+  }
+
+.almanac-moon-svg {
+    width: 27px;
+    height: 27px;
+  }
+
+.almanac-side-panel {
+    grid-template-columns: 1fr;
+  }
+
+.almanac-note {
+    min-height: 0;
+  }
+
+.almanac-legend {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 390px) {
+.almanac-chronicle-header {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+.almanac-chronicle-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+.almanac-day {
+    min-height: 52px;
+  }
+
+.almanac-moon-svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.almanac-day {
+    transition: none;
+  }
+}

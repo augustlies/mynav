@@ -1,0 +1,332 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「serendipity」模块一起载入（从 styles.css 拆出）。 */
+.today-open-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(18, 21, 18, 0.7);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  animation: modalBackdropFadeIn 0.22s ease-out;
+}
+
+.today-open-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid var(--accent-brass);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-modal);
+  animation: todayCardArrive 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.today-open-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--border-hairline);
+  pointer-events: none;
+}
+
+.today-open-card.is-turning {
+  animation: todayCardTurn 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.today-open-orbit {
+  position: absolute;
+  top: 36px;
+  right: 38px;
+  width: 180px;
+  height: 180px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  opacity: 0.4;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), var(--border-hairline) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), var(--border-hairline) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+
+.today-open-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 28px 17px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.today-open-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.13em;
+}
+
+.today-open-title {
+  margin: 4px 0 0;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.btn-close-today-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.btn-close-today-open:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.today-open-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  min-height: 300px;
+}
+
+.today-open-number-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 34px 16px 26px;
+  border-right: 1px dashed var(--border-hairline);
+}
+
+.today-open-number {
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  font-style: italic;
+  line-height: 1;
+}
+
+.today-open-rule {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(var(--border-hairline), transparent);
+}
+
+.today-open-seal {
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--accent-stamp) 55%, transparent);
+  color: var(--accent-stamp);
+  font-family: var(--font-serif);
+  font-size: 0.5625rem;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.today-open-editorial {
+  padding: 33px 42px 30px 34px;
+}
+
+.today-open-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.today-open-site-title {
+  margin: 14px 0 14px;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.today-open-desc {
+  max-width: 48ch;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  line-height: 1.9;
+}
+
+.today-open-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 22px;
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+}
+
+.today-open-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 15px 28px;
+  border-top: 1px solid var(--border-hairline);
+  background: var(--bg-subtle);
+}
+
+.btn-today-open-secondary,
+.btn-today-open-primary {
+  min-height: 38px;
+  padding: 7px 17px;
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-today-open-secondary {
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn-today-open-primary {
+  border: 1px solid var(--accent-brass);
+  background: var(--accent-brass);
+  color: var(--bg-surface);
+}
+
+.btn-today-open-secondary:hover {
+  border-color: var(--accent-brass);
+  color: var(--accent-brass);
+}
+
+.btn-today-open-primary:hover {
+  filter: brightness(1.1);
+}
+
+@media (max-width: 640px) {
+.today-open-modal-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+.today-open-card {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+  }
+
+.today-open-orbit {
+    display: none;
+  }
+
+.today-open-header {
+    padding: 19px 18px 14px;
+  }
+
+.today-open-title {
+    font-size: 1.35rem;
+  }
+
+.today-open-body {
+    grid-template-columns: 1fr;
+  }
+
+.today-open-number-rail {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-right: 0;
+    border-bottom: 1px dashed var(--border-hairline);
+  }
+
+.today-open-rule {
+    width: auto;
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, var(--border-hairline), transparent);
+  }
+
+.today-open-number {
+    font-size: 1.55rem;
+  }
+
+.today-open-editorial {
+    padding: 20px 18px 22px;
+  }
+
+.today-open-site-title {
+    margin-top: 10px;
+    font-size: 2rem;
+  }
+
+.today-open-desc {
+    font-size: 0.875rem;
+    line-height: 1.75;
+  }
+
+.today-open-footer {
+    padding: 12px 18px;
+  }
+
+.btn-today-open-secondary,
+  .btn-today-open-primary {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.today-open-card {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+.today-open-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.today-open-icon {
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.today-open-title-row .today-open-site-title {
+  min-width: 0;
+}
+
+.today-open-title-row .today-open-site-title {
+  margin: 10px 0;
+}
+
+@media (max-width: 640px) {
+.today-open-icon {
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+  }
+}

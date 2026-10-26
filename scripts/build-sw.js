@@ -19,7 +19,7 @@ for (const m of html.matchAll(/<(?:script|link)[^>]+(?:src|href)="([^"]+)"/g)) {
 // Batch 2：按需加载的模块不在 index.html 里，从 js/lazy.js 的模块表读取（带版本号的原样 URL），
 // 保证断网时第一次打开星图 / 秘卷 / 工具尺等也能从缓存载入。
 const lazySrc = fs.readFileSync(path.join(root, "js", "lazy.js"), "utf8");
-for (const m of lazySrc.matchAll(/\bsrc:\s*"([^"]+\.js(?:\?[^"]*)?)"/g)) {
+for (const m of lazySrc.matchAll(/\b(?:src|css):\s*"([^"]+\.(?:js|css)(?:\?[^"]*)?)"/g)) {
   urls.add("./" + m[1].replace(/^\.?\//, ""));
 }
 // 兜底：js/ 下实际存在、却既不在 index.html 也不在懒加载表里的脚本，打印提醒（不静默漏缓存）。

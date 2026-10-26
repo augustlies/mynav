@@ -1,0 +1,294 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「starmap」模块一起载入（从 styles.css 拆出）。 */
+.star-map-container {
+  position: relative;
+  z-index: 2;
+  min-height: 640px;
+  margin: 0;
+  padding: 0 0 48px;
+}
+
+.star-map-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-hairline);
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--accent-brass) 7%, transparent), transparent 37%),
+    linear-gradient(135deg, var(--bg-surface), var(--bg-page));
+}
+
+.star-map-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 28px 18px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.star-map-heading {
+  max-width: 650px;
+}
+
+.star-map-kicker {
+  color: var(--accent-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.star-map-title {
+  margin: 5px 0 4px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.star-map-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.6875rem;
+  line-height: 1.75;
+}
+
+.star-map-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+}
+
+.star-map-legend {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.star-map-reset {
+  padding: 4px 7px;
+  border: 1px solid var(--border-hairline);
+  background: transparent;
+  color: var(--accent-brass);
+  font-family: var(--font-serif);
+  font-size: 0.625rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.star-map-reset:hover,
+.star-map-reset:focus-visible {
+  border-color: var(--accent-brass);
+  outline: 0;
+}
+
+.star-map-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.star-filter-btn {
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.star-filter-btn:hover,
+.star-filter-btn:focus-visible,
+.star-filter-btn.is-active {
+  color: var(--accent-brass);
+  outline: 0;
+}
+
+.star-filter-btn.is-active {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.star-map-drag-hint {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--font-serif);
+  font-size: 0.5625rem;
+}
+
+.star-map-canvas-wrap {
+  position: relative;
+  min-height: 560px;
+  background:
+    linear-gradient(90deg, transparent 49.95%, var(--border-hairline) 49.95% 50.05%, transparent 50.05%),
+    linear-gradient(0deg, transparent 49.95%, var(--border-hairline) 49.95% 50.05%, transparent 50.05%);
+  background-size: 100% 100%;
+}
+
+.star-map-canvas {
+  display: block;
+  width: 100%;
+  min-height: 560px;
+  touch-action: none;
+}
+
+.star-map-legend-rail {
+  position: absolute;
+  left: 17px;
+  bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  max-width: calc(100% - 35px);
+  padding: 6px 8px;
+  border: 1px solid var(--border-hairline);
+  background: color-mix(in srgb, var(--bg-surface) 86%, transparent);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  pointer-events: none;
+}
+
+.star-map-preview {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: min(238px, calc(100% - 32px));
+  min-height: 160px;
+  padding: 13px 15px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-brass) 62%, var(--border-hairline));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--bg-surface) 96%, transparent), color-mix(in srgb, var(--bg-subtle) 86%, transparent));
+  box-shadow: 0 12px 30px -20px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.star-map-preview:not(.is-populated) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.star-map-preview.is-populated {
+  pointer-events: auto;
+}
+
+.star-map-preview::before {
+  content: "EX LIBRIS";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: color-mix(in srgb, var(--accent-brass) 50%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.4375rem;
+  letter-spacing: 0.12em;
+}
+
+.star-map-coordinate {
+  position: absolute;
+  top: 12px;
+  left: 17px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.4375rem;
+  letter-spacing: 0.09em;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+.star-map-container {
+    min-height: 480px;
+  }
+
+.star-map-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 20px 15px;
+  }
+
+.star-map-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+.star-map-filter-row {
+    padding: 8px 20px;
+  }
+
+.star-map-canvas-wrap,
+  .star-map-canvas {
+    min-height: 480px;
+  }
+
+.star-map-canvas {
+    min-height: 0 !important;
+  }
+
+.star-map-preview {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+.star-map-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.star-map-legend {
+    white-space: normal;
+  }
+
+.star-map-filter-row {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+.star-map-drag-hint {
+    width: 100%;
+    margin-left: 0;
+  }
+
+.star-map-preview {
+    top: auto;
+    right: 10px;
+    bottom: 45px;
+    width: min(220px, calc(100% - 20px));
+  }
+
+.star-map-preview.is-populated {
+    max-height: 186px;
+    overflow-y: auto;
+  }
+
+.star-map-canvas-wrap,
+  .star-map-canvas {
+    min-height: 480px;
+  }
+
+.star-map-canvas {
+    min-height: 0 !important;
+  }
+
+.star-map-legend-rail {
+    left: 10px;
+    bottom: 10px;
+    max-width: calc(100% - 20px);
+    font-size: 0.4375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.star-map-reset,
+.star-filter-btn {
+    transition: none;
+  }
+}

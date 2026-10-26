@@ -1,0 +1,247 @@
+/* Batch 2 · 按需样式：随 js/lazy.js 的「contextmenu」模块一起载入（从 styles.css 拆出）。 */
+@media (max-width: 640px) {
+.nav-context-menu {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    top: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-height: 75vh;
+    overflow-y: auto;
+    border-radius: var(--radius-sm);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    box-shadow: var(--shadow-lift);
+    transform: none !important;
+    animation: ctxSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+.ctx-item {
+    padding: 12px 18px;
+    font-size: 0.9375rem;
+    min-height: 44px;
+  }
+
+.ctx-icon {
+    font-size: 1.1rem;
+    width: 24px;
+  }
+
+.ctx-submenu {
+    position: static !important;
+    display: none;
+    box-shadow: none !important;
+    border: none !important;
+    border-left: 2px solid var(--color-accent) !important;
+    margin: 4px 0 4px 20px !important;
+    background-color: var(--bg-subtle) !important;
+  }
+
+.has-submenu.is-expanded .ctx-submenu {
+    display: block;
+  }
+
+.editorial-modal-window {
+    max-height: 88vh;
+    padding: 18px 16px;
+    margin: auto 8px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+.nav-context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 176px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-lift);
+  padding: 5px 0;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-main);
+  user-select: none;
+  animation: ctxFadeIn 0.14s ease-out;
+}
+
+.ctx-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 7px 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  outline: none;
+}
+
+.ctx-item:hover,
+.ctx-item.ctx-focused {
+  background-color: var(--bg-subtle);
+  color: var(--color-accent);
+}
+
+.ctx-icon {
+  width: 18px;
+  margin-right: 8px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ctx-item:hover .ctx-icon,
+.ctx-item.ctx-focused .ctx-icon {
+  color: var(--color-accent);
+}
+
+.ctx-label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.ctx-arrow {
+  margin-left: 12px;
+  font-size: 0.6875rem;
+  color: var(--text-faint);
+}
+
+.ctx-check {
+  margin-left: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.ctx-divider {
+  height: 1px;
+  background-color: var(--border-hairline);
+  margin: 4px 0;
+}
+
+.ctx-danger {
+  color: #C0392B !important;
+}
+
+.ctx-danger .ctx-icon {
+  color: #C0392B !important;
+}
+
+.ctx-danger:hover,
+.ctx-danger.ctx-focused {
+  background-color: rgba(192, 57, 43, 0.08) !important;
+  color: #E74C3C !important;
+}
+
+[data-theme="dark"] .ctx-danger {
+  color: #E74C3C !important;
+}
+
+.ctx-submenu {
+  position: absolute;
+  left: 100%;
+  top: -5px;
+  min-width: 160px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-lift);
+  padding: 4px 0;
+  display: none;
+}
+
+.has-submenu:hover .ctx-submenu,
+.has-submenu:focus-within .ctx-submenu {
+  display: block;
+}
+
+.nav-context-menu.flip-x .ctx-submenu {
+  left: auto;
+  right: 100%;
+}
+
+.editorial-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(23, 24, 21, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalBackdropFadeIn 0.2s ease-out;
+}
+
+.editorial-modal-window {
+  width: 100%;
+  max-width: 520px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-lift);
+  padding: 24px 28px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalWindowSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.card-edit-modal-window {
+  max-width: 520px;
+}
+
+.hidden-cards-modal-window {
+  max-width: 620px;
+}
+
+.editorial-modal-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 14px;
+}
+
+.card-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hidden-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 16px;
+}
+
+.hidden-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  gap: 12px;
+}
+
+.hidden-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.hidden-cards-empty {
+  text-align: center;
+  padding: 36px 16px;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+}
