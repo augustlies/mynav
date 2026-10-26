@@ -763,11 +763,20 @@
     return isStoredEnabled() && !prefersReducedMotion();
   }
 
+  // Batch 2：省流量模式（navigator.connection.saveData）下不启动粒子。
+  function prefersSaveData() {
+    const conn = typeof navigator !== "undefined"
+      ? (navigator.connection || navigator.mozConnection || navigator.webkitConnection)
+      : null;
+    return Boolean(conn && conn.saveData);
+  }
+
+  // Batch 2：本模块由 js/lazy.js 在首屏渲染完成后的空闲时段载入，载入即装配。
   function init() {
     ensureContainer();
     initPointerListeners();
 
-    if (isStoredEnabled() && !prefersReducedMotion()) {
+    if (isStoredEnabled() && !prefersReducedMotion() && !prefersSaveData()) {
       startAnimation();
     } else {
       if (container) container.style.display = "none";

@@ -91,6 +91,16 @@
 
   function setArchiveView(view) {
     const next = view === "star-map" ? "star-map" : "grid";
+    if (next === "star-map" && !window.NavStarMap && window.NavLazy) {
+      // 星图模块按需加载：按钮先进入加载态，就绪后再切换（同一次点击 / 按键不落空）。
+      const btn = document.getElementById("btn-star-map-view");
+      if (btn) btn.setAttribute("aria-busy", "true");
+      withLazy("starmap", function () {
+        if (btn) btn.removeAttribute("aria-busy");
+        if (window.NavStarMap) setArchiveView("star-map");
+      });
+      return "star-map";
+    }
     if (next === state.archiveView) {
       if (next === "star-map" && window.NavStarMap && !window.NavStarMap.isRunning()) {
         renderStarMapView();
@@ -112,7 +122,17 @@
   }
 
   // Phase 5：`v` 键与「视图切换」快捷动作的唯一入口 —— 书本目录 ⟷ 穹顶星图。
+  // Batch 2：按需加载的模块统一经 NavLazy；未就绪时先加载再执行，绝不吞掉这次操作。
+  function withLazy(name, fn) {
+    if (window.NavLazy && typeof window.NavLazy.run === "function") return window.NavLazy.run(name, fn);
+    return Promise.resolve(fn());
+  }
+
   function openAlmanac() {
+    if (!window.NavAlmanac && window.NavLazy) {
+      withLazy("almanac", openAlmanac);
+      return;
+    }
     if (state.archiveView === "star-map") setArchiveView("grid");
     if (window.NavAlmanac) window.NavAlmanac.scrollIntoView();
   }
@@ -435,6 +455,11 @@
       : getUncataloguedSites();
   }
 
+  function isLibrarianPrefix(value) {
+    const first = String(value || "").trimStart().charAt(0);
+    return first === "?" || first === "!";
+  }
+
   function isCommandQuery(query) {
     const raw = String(query || "").trimStart();
     // Phase 4A: `?`（D1 荐书顾问）与 `!`（D1 就地处决）同样是前缀路由，
@@ -505,6 +530,16 @@
     if (window.NavLibrarian && typeof window.NavLibrarian.handleEnter === "function" &&
       window.NavLibrarian.isLibrarianQuery(value)) {
       return window.NavLibrarian.handleEnter(event) ? true : false;
+    }
+    if (!window.NavLibrarian && isLibrarianPrefix(value)) {
+      // 司天监尚未载入（极快的回车）：先拦下回车，载入后补一次输入 + 回车。
+      if (event) event.preventDefault();
+      withLazy("librarian", function () {
+        if (!window.NavLibrarian) return;
+        window.NavLibrarian.handleInput(dom.searchInput.value);
+        window.NavLibrarian.handleEnter(null);
+      });
+      return true;
     }
     if (window.NavSanctum && typeof window.NavSanctum.handleCommand === "function" &&
       window.NavSanctum.handleCommand(value)) {
@@ -941,7 +976,7 @@
   }
 
   function renderContent() {
-    if (state.archiveView === "star-map") {
+    if (state.archiveView === "star-map" && window.NavStarMap) {
       renderStarMapView();
       return;
     }
@@ -1280,11 +1315,23 @@
       dom.searchClearBtn.style.display = raw.trim().length > 0 ? "block" : "none";
       if (window.NavLore && window.NavLore.checkSearchEasterEgg(state.searchQuery)) {
         window.NavLore.open("about");
+      } else if (!window.NavLore && state.searchQuery.trim()) {
+        // 彩蛋口诀在 lore.js 里：首次输入检索词时按需加载，载入后补查当前输入。
+        withLazy("lore", function () {
+          const q = isCommandQuery(dom.searchInput.value) ? "" : dom.searchInput.value;
+          if (window.NavLore && q && window.NavLore.checkSearchEasterEgg(q)) window.NavLore.open("about");
+        });
       }
       if (window.NavCommands) window.NavCommands.render(raw);
       // Phase 4A · D1：`?` / `!` 前缀实时展开司天监羊皮纸浮层（其余输入自动收卷）。
       if (window.NavLibrarian && typeof window.NavLibrarian.handleInput === "function") {
         window.NavLibrarian.handleInput(raw);
+      } else if (isLibrarianPrefix(raw)) {
+        withLazy("librarian", function () {
+          if (window.NavLibrarian && typeof window.NavLibrarian.handleInput === "function") {
+            window.NavLibrarian.handleInput(dom.searchInput.value);
+          }
+        });
       }
       renderContent();
     });
@@ -1551,8 +1598,10 @@
         const siteId = bookplateBtn.getAttribute("data-bookplate-id");
         const allSites = getRawSites();
         const targetSite = allSites.find(s => s.id === siteId);
-        if (targetSite && window.NavExLibris) {
-          window.NavExLibris.open(targetSite);
+        if (targetSite) {
+          withLazy("exlibris", function () {
+            if (window.NavExLibris) window.NavExLibris.open(targetSite);
+          });
         }
         return;
       }
@@ -1723,15 +1772,9 @@
 
   // Stage 2 的模块清单：全部是隐藏浮层或纯键盘钩子，首屏不可见。
   // 顺序保持与历史一致，便于回归对照。
+  // Batch 2：藏书票 / 手记 / 秘卷 / 工具尺 / 编年 / 司天监 / 琥珀 / 飞鸽 / 星图 / 右键菜单 /
+  // 云同步 / 粒子 改为按需加载，由 js/lazy.js 在首次使用时载入并 init，这里不再初始化。
   function runStage2() {
-    // 2.5 专属数字藏书票 (Ex Libris)
-    if (window.NavExLibris) {
-      safeInit("NavExLibris", function () { window.NavExLibris.init(); });
-    }
-    // 2.8 文化手记与金石印章
-    if (window.NavLore) {
-      safeInit("NavLore", function () { window.NavLore.init(); });
-    }
     // 2.9 A1/A2/A8 纯前端效率模块
     if (window.NavCommands) {
       safeInit("NavCommands", function () { window.NavCommands.init(); });
@@ -1742,9 +1785,6 @@
     }
     if (window.NavUncatalogued) {
       safeInit("NavUncatalogued", function () { window.NavUncatalogued.init(); });
-    }
-    if (window.NavSnippets) {
-      safeInit("NavSnippets", function () { window.NavSnippets.init(); });
     }
     if (window.NavFolioKeys) {
       safeInit("NavFolioKeys", function () {
@@ -1770,30 +1810,14 @@
     if (window.NavAstronomy) {
       safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });
     }
-    if (window.NavBrassTools) {
-      safeInit("NavBrassTools", function () { window.NavBrassTools.init(); });
-    }
-    if (window.NavAlmanac) {
-      safeInit("NavAlmanac", function () { window.NavAlmanac.init(); });
-      safeInit("NavAlmanacRefresh", function () { window.NavAlmanac.refresh(); });
-    }
     // Phase 4A：D1 守馆人 AI（司天监终端）与 A5/C4 星轨探针与遥测机关台。
     // Phase 4B：C2 观星晨报、D5 网页琥珀、A6/C5 飞鸽传书、D7 联邦寻星镜。
     // 附加模块的初始化必须与主画布渲染隔离：任何单个模块抛异常都不得中断
     // 卡片渲染与事件绑定，否则整座藏书馆会退化为「载入中… · 0 卷」。
-    if (window.NavLibrarian) {
-      safeInit("NavLibrarian", function () { window.NavLibrarian.init(); });
-    }
     // Batch 2：A5 探针从 telemetry.js 拆为 js/probe.js（NavTelemetry 为别名）；
     // C2 晨报 / C4 机关台 / D6 白噪音 / D7 寻星镜 已下线（archive/retired-batch2/）。
     if (window.NavProbe) {
       safeInit("NavProbe", function () { window.NavProbe.init(); });
-    }
-    if (window.NavAmber) {
-      safeInit("NavAmber", function () { window.NavAmber.init(); });
-    }
-    if (window.NavCourier) {
-      safeInit("NavCourier", function () { window.NavCourier.init(); });
     }
     // 部分模块在 init 中自我注册到 NavApp；这里统一回填，保证引用永远可用。
     syncModuleRefs();
@@ -1982,9 +2006,11 @@
         onBookplateOpen: (siteId) => {
           const allSites = getRawSites();
           const targetSite = allSites.find(s => s.id === siteId);
-          if (targetSite && window.NavExLibris) {
+          if (targetSite) {
             flushIdleBoot();
-            window.NavExLibris.open(targetSite);
+            withLazy("exlibris", function () {
+              if (window.NavExLibris) window.NavExLibris.open(targetSite);
+            });
           }
         }
       });
@@ -1993,6 +2019,10 @@
     // 首屏渲染：36 张卡片在第一帧完成绘制。
     renderIndexTabs();
     renderContent();
+    if (state.archiveView === "star-map" && !window.NavStarMap) {
+      // 上次停在星图：先画书本目录，星图模块就绪后再切过去。
+      withLazy("starmap", function () { if (state.archiveView === "star-map") renderContent(); });
+    }
     bindEvents();
     updateOverridesNote();
 

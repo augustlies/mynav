@@ -1,6 +1,24 @@
-/sw.js
+# Cloudflare Pages 响应头（Batch 2）
+# - 入口页与 Service Worker：每次都回源校验，保证新版本能及时生效。
+# - 带 ?v= 版本号引用的脚本 / 样式 / 图标：一年强缓存 + immutable（改动文件必须同时改版本号）。
+# - data.js 例外：馆主的日常流程是「导出 data.js → 直接替换仓库文件」，常常不会顺手改版本号，
+#   所以它只做 no-cache（ETag 304 校验，几乎零成本），避免老访客拿到一年前的馆藏。
+#   _headers 不能按查询串匹配，所以按路径列出；不要写 /*.js 这类根通配，否则会与 /sw.js 的 no-cache 合并。
+/
   Cache-Control: no-cache
 /index.html
   Cache-Control: no-cache
-/
+/404.html
   Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/app.js
+  Cache-Control: public, max-age=31536000, immutable
+/data.js
+  Cache-Control: no-cache
+/styles.css
+  Cache-Control: public, max-age=31536000, immutable
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable

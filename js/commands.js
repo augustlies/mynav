@@ -47,6 +47,12 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
+  // Batch 2：按需加载模块的命令先经 NavLazy 载入，再执行。
+  function withModule(name, fn) {
+    if (window.NavLazy && typeof window.NavLazy.run === "function") return window.NavLazy.run(name, fn);
+    return Promise.resolve(fn());
+  }
+
   function resetInput() {
     close();
     if (!input) return;
@@ -144,9 +150,9 @@
         hint: "Snippets",
         drawer: { group: "collect", order: 30, icon: "📜", title: "活字秘卷", desc: "常用 Prompt 与脚本片段，一键复制", key: "S", id: "btn-snippets-entry", selfBound: true },
         run: function () {
-          if (window.NavSnippets && typeof window.NavSnippets.open === "function") {
-            window.NavSnippets.open();
-          }
+          withModule("snippets", function () {
+            if (window.NavSnippets && typeof window.NavSnippets.open === "function") window.NavSnippets.open();
+          });
         }
       },
       {
@@ -180,9 +186,9 @@
         hint: "Brass Instruments",
         drawer: { group: "collect", order: 40, icon: "📐", title: "黄铜工具尺", desc: "罗盘探测 · 编解码转盘 · 时间戳刻漏", key: "T", id: "btn-brass-tools-entry", selfBound: true },
         run: function () {
-          if (window.NavBrassTools && typeof window.NavBrassTools.open === "function") {
-            window.NavBrassTools.open("compass");
-          }
+          withModule("brass", function () {
+            if (window.NavBrassTools && typeof window.NavBrassTools.open === "function") window.NavBrassTools.open("compass");
+          });
         }
       },
       {
@@ -232,10 +238,12 @@
         label: "配置司天监密钥（Base URL / Key / Model）",
         hint: "Librarian Secret",
         run: function () {
-          if (window.NavLibrarian && typeof window.NavLibrarian.openConfig === "function") {
-            window.NavLibrarian.openConfig();
-            notify("司天监密钥", "密钥仅保存在本机，绝不上传第三方", "⚙️");
-          }
+          withModule("librarian", function () {
+            if (window.NavLibrarian && typeof window.NavLibrarian.openConfig === "function") {
+              window.NavLibrarian.openConfig();
+              notify("司天监密钥", "密钥仅保存在本机，绝不上传第三方", "⚙️");
+            }
+          });
         }
       },
       {
@@ -260,9 +268,9 @@
         label: "调阅网页琥珀拓片 · 防失联保险箱",
         hint: "Amber Rubbing",
         run: function () {
-          if (window.NavAmber && typeof window.NavAmber.open === "function") {
-            window.NavAmber.open();
-          }
+          withModule("amber", function () {
+            if (window.NavAmber && typeof window.NavAmber.open === "function") window.NavAmber.open();
+          });
         }
       },
       // Phase 4B · A6 & C5 飞鸽传书
@@ -274,8 +282,12 @@
         hint: "Bookmarklet",
         drawer: { group: "collect", order: 20, icon: "🕊️", title: "盖章入馆小书签", desc: "把小书签拖到书签栏，任意网页一键送回本馆", key: "", id: "btn-courier-entry", selfBound: true },
         run: function () {
-          if (window.NavCourier && typeof window.NavCourier.open === "function") {
-            window.NavCourier.open();
+          if (window.NavHall && typeof window.NavHall.openIngest === "function") {
+            window.NavHall.openIngest();
+          } else {
+            withModule("courier", function () {
+              if (window.NavCourier && typeof window.NavCourier.open === "function") window.NavCourier.open();
+            });
           }
         }
       },
