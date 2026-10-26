@@ -5,7 +5,7 @@
  * - /api/ 与跨站请求：一律不经手（云同步、探针、守馆人照常走网络）
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "78c27e0ee7";
+const CACHE_VERSION = "6bb96a71f3";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -29,7 +29,8 @@ const PRECACHE = [
   "./js/sortable.js?v=1.7.0",
   "./js/exlibris.js?v=1.7.0",
   "./js/shortcuts.js?v=4.1.0",
-  "./js/commands.js?v=4.1.0",
+  "./js/commands.js?v=5.0.0",
+  "./js/hall.js?v=5.0.0",
   "./js/folio-keys.js?v=2.0.0",
   "./js/serendipity.js?v=4.2.0",
   "./js/marginalia.js?v=2.0.0",

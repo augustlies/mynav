@@ -112,6 +112,11 @@
   }
 
   // Phase 5：`v` 键与「视图切换」快捷动作的唯一入口 —— 书本目录 ⟷ 穹顶星图。
+  function openAlmanac() {
+    if (state.archiveView === "star-map") setArchiveView("grid");
+    if (window.NavAlmanac) window.NavAlmanac.scrollIntoView();
+  }
+
   function toggleArchiveView() {
     if (window.NavSortable && window.NavSortable.isArrangeMode()) {
       window.NavSortable.exitArrangeMode();
@@ -847,6 +852,23 @@
   }
 
   // 生成专用于检索未命中的典雅图书馆式空状态与推荐藏书
+  // Batch 2 回归修复：空态模板在早期重构中被误删，空「私人典藏 / 常驻案头」会抛
+  // ReferenceError（此前因快捷书签扣绑定落空而没人触发）。按初版原样恢复。
+  function createEmptyStateHtml(title, desc, buttonText = "清空检索", action = "resetSearch") {
+    return `
+      <div class="quiet-empty-state">
+        <div class="empty-state-symbol" aria-hidden="true">❦</div>
+        <h3 class="empty-state-headline">${escapeHtml(title)}</h3>
+        <p class="empty-state-text">${escapeHtml(desc)}</p>
+        ${buttonText ? `
+          <button type="button" class="btn-empty-action" data-empty-action="${escapeHtml(action)}">
+            ${escapeHtml(buttonText)}
+          </button>
+        ` : ""}
+      </div>
+    `;
+  }
+
   function createSearchEmptyStateHtml(query, allSites) {
     // 挑选 3 本馆藏代表性典籍（优先选取已收藏或常驻案头条目，不足则取前列条目）
     const favs = allSites.filter(s => window.NavFavorites && window.NavFavorites.has(s.id));
@@ -1238,10 +1260,7 @@
     });
     const almanacJump = document.getElementById("btn-almanac-jump");
     if (almanacJump) {
-      almanacJump.addEventListener("click", function () {
-        if (state.archiveView === "star-map") setArchiveView("grid");
-        if (window.NavAlmanac) window.NavAlmanac.scrollIntoView();
-      });
+      almanacJump.addEventListener("click", openAlmanac);
     }
     document.addEventListener("keydown", function (event) {
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -1350,15 +1369,13 @@
       switchCategory(targetCat);
     });
 
-    // 8. 索书条右侧快捷书签扣
-    const searchMeta = document.querySelector(".folio-search-meta");
-    if (searchMeta) {
-      searchMeta.addEventListener("click", function (event) {
-        const hook = event.target.closest("[data-search-cat]");
-        if (!hook) return;
-        switchCategory(hook.getAttribute("data-search-cat"));
-      });
-    }
+    // 8. 快捷书签扣（私人典藏 / 常驻案头）：Batch 2 起住在馆务抽屉里，
+    //    改为 document 委托（原 .folio-search-meta 容器已不存在，旧绑定落空）。
+    document.addEventListener("click", function (event) {
+      const hook = event.target.closest("[data-search-cat]");
+      if (!hook) return;
+      switchCategory(hook.getAttribute("data-search-cat"));
+    });
 
     // 5. 内容委托（书签点击、清空案头、外链点击统计、空状态操作）
     dom.contentArea.addEventListener("click", function (e) {
@@ -2017,6 +2034,7 @@
       getSiteById: getSiteById,
       setArchiveView: setArchiveView,
       toggleArchiveView: toggleArchiveView,
+      openAlmanac: openAlmanac,
       hydrateMarginalia: hydrateMarginaliaPanel,
       openSubLink: openSubLink,
       switchCategory: switchCategory,

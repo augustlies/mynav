@@ -99,6 +99,7 @@
         command: "/random",
         label: "今日开卷 · 随机寻星",
         hint: "Serendipity",
+        drawer: { group: "find", order: 20, icon: "✦", title: "今日开卷", desc: "从全馆随机抽一卷，冷门书优先", key: "R", id: "btn-random-open", selfBound: true },
         run: function () {
           if (window.NavApp && typeof window.NavApp.openRandom === "function") {
             window.NavApp.openRandom();
@@ -129,6 +130,7 @@
         command: "/uncatalogued",
         label: "打开待编目匣 · 暗星带",
         hint: "Uncatalogued",
+        drawer: { group: "collect", order: 10, icon: "⌘", title: "待编目匣", desc: "暂存还没归类的候选网址", key: "U", id: "btn-uncatalogued-entry", selfBound: true, badge: "<span id=\"uncatalogued-entry-count\">00</span>" },
         run: function () {
           if (window.NavUncatalogued && typeof window.NavUncatalogued.open === "function") {
             window.NavUncatalogued.open();
@@ -140,6 +142,7 @@
         command: "/snippets",
         label: "打开活字秘卷匣",
         hint: "Snippets",
+        drawer: { group: "collect", order: 30, icon: "📜", title: "活字秘卷", desc: "常用 Prompt 与脚本片段，一键复制", key: "S", id: "btn-snippets-entry", selfBound: true },
         run: function () {
           if (window.NavSnippets && typeof window.NavSnippets.open === "function") {
             window.NavSnippets.open();
@@ -151,6 +154,7 @@
         command: "/shadow",
         label: "切换暗月密室 · 里世界",
         hint: "Shadow Moon",
+        drawer: { group: "hall", order: 10, icon: "☾", title: "暗月", desc: "切换暗月密室 · 里世界书架", key: "/shadow", id: "btn-shadow-toggle", selfBound: true },
         run: function () {
           if (window.NavSanctum && typeof window.NavSanctum.toggleShadow === "function") {
             window.NavSanctum.toggleShadow();
@@ -162,6 +166,7 @@
         command: "/focus",
         label: "切换考场沉浸结界",
         hint: "Focus Lock",
+        drawer: { group: "hall", order: 20, icon: "⌛", title: "考场结界", desc: "封住娱乐书卷，专心研习", key: "/focus", id: "btn-focus-toggle", selfBound: true },
         run: function () {
           if (window.NavSanctum && typeof window.NavSanctum.toggleFocus === "function") {
             window.NavSanctum.toggleFocus();
@@ -173,6 +178,7 @@
         command: "/tools",
         label: "拉开黄铜工具尺 · 炼金实验台",
         hint: "Brass Instruments",
+        drawer: { group: "collect", order: 40, icon: "📐", title: "黄铜工具尺", desc: "罗盘探测 · 编解码转盘 · 时间戳刻漏", key: "T", id: "btn-brass-tools-entry", selfBound: true },
         run: function () {
           if (window.NavBrassTools && typeof window.NavBrassTools.open === "function") {
             window.NavBrassTools.open("compass");
@@ -184,6 +190,7 @@
         command: "/graph",
         label: "展开穹顶引力星图",
         hint: "Knowledge Graph",
+        drawer: { group: "find", order: 10, icon: "📖", title: "书本目录 ⇄ 穹顶星图", desc: "在卡片目录与知识关系星图之间切换", key: "V", options: [{ id: "btn-catalog-view", label: "书本目录", icon: "📖", attrs: { "data-archive-view": "grid", "aria-pressed": "true" }, cls: "folio-view-btn is-active" }, { id: "btn-star-map-view", label: "穹顶星图", icon: "🌌", attrs: { "data-archive-view": "star-map", "aria-pressed": "false" }, cls: "folio-view-btn" }] },
         run: function () {
           if (window.NavApp && typeof window.NavApp.setArchiveView === "function") {
             window.NavApp.setArchiveView("star-map");
@@ -265,6 +272,7 @@
         command: "/ingest",
         label: "飞鸽传书 · 盖章入馆小书签",
         hint: "Bookmarklet",
+        drawer: { group: "collect", order: 20, icon: "🕊️", title: "盖章入馆小书签", desc: "把小书签拖到书签栏，任意网页一键送回本馆", key: "", id: "btn-courier-entry", selfBound: true },
         run: function () {
           if (window.NavCourier && typeof window.NavCourier.open === "function") {
             window.NavCourier.open();
@@ -278,11 +286,85 @@
         label: "Notion 典藏同步桥 · CSV / JSON 双向",
         hint: "Notion Bridge",
         run: function () {
-          if (window.NavCourier && typeof window.NavCourier.open === "function") {
+          if (window.NavHall && typeof window.NavHall.openSync === "function") {
+            window.NavHall.openSync("notion");
+          } else if (window.NavCourier && typeof window.NavCourier.open === "function") {
             window.NavCourier.open();
           }
         }
       },
+      // Batch 2 · 馆务抽屉专用条目（同一份注册表同时生成 / 命令与抽屉项）
+      {
+        id: "almanac",
+        command: "/almanac",
+        label: "展开星轨编年 · 借阅时光回溯",
+        hint: "Almanac",
+        drawer: { group: "find", order: 30, icon: "🗓️", title: "星轨编年", desc: "按日回看借阅轨迹，筛出近 7 / 30 日与尘封往昔", key: "", id: "btn-almanac-jump", selfBound: true },
+        run: function () {
+          if (window.NavApp && typeof window.NavApp.openAlmanac === "function") window.NavApp.openAlmanac();
+        }
+      },
+      {
+        id: "favorites",
+        command: "/favorites",
+        label: "只看私人典藏",
+        hint: "Favorites",
+        drawer: { group: "find", order: 40, icon: "★", title: "私人典藏 / 常驻案头", desc: "只看收藏的书，或近 7 天常翻的书", key: "", options: [{ label: "私人典藏", icon: "★", attrs: { "data-search-cat": "favorites" }, cls: "search-hook-btn" }, { label: "常驻案头", icon: "🔥", attrs: { "data-search-cat": "frequent" }, cls: "search-hook-btn" }] },
+        run: function () {
+          if (window.NavApp && typeof window.NavApp.switchCategory === "function") window.NavApp.switchCategory("favorites");
+        }
+      },
+      {
+        id: "frequent",
+        command: "/frequent",
+        label: "查看近 7 天常驻案头",
+        hint: "Frequent",
+        run: function () {
+          if (window.NavApp && typeof window.NavApp.switchCategory === "function") window.NavApp.switchCategory("frequent");
+        }
+      },
+      {
+        id: "stars",
+        command: "/stars",
+        label: "星群连珠 · 一组书签并发开卷",
+        hint: "Constellations",
+        drawer: { group: "find", order: 50, icon: "✧", title: "星群连珠", desc: "悬停高亮一组书签，点击同时打开", key: "", slot: "constellation-rail" },
+        run: function () {
+          if (window.NavHall && typeof window.NavHall.open === "function") window.NavHall.open({ focus: "#constellation-rail button" });
+        }
+      },
+      {
+        id: "arrange",
+        command: "/arrange",
+        label: "整理书架 · 拖动调整卡片顺序",
+        hint: "Arrange",
+        drawer: { group: "hall", order: 30, icon: "✥", title: "整理排序", desc: "拖动或用方向键调整卡片顺序", key: "", id: "btn-arrange-toggle", selfBound: true },
+        run: function () {
+          const btn = document.getElementById("btn-arrange-toggle");
+          if (btn) btn.click();
+        }
+      },
+      {
+        id: "sync",
+        command: "/sync",
+        label: "同步与备份 · 云同步 / Notion / 导出",
+        hint: "Sync & Backup",
+        drawer: { group: "hall", order: 40, icon: "☁", title: "同步与备份", desc: "云同步 · Notion CSV/JSON · 导出 data.js", key: "", id: "btn-hall-sync" },
+        run: function () {
+          if (window.NavHall && typeof window.NavHall.openSync === "function") window.NavHall.openSync("cloud");
+        }
+      },
+      {
+        id: "help",
+        command: "/help",
+        label: "快捷键指南",
+        hint: "Shortcuts",
+        drawer: { group: "hall", order: 50, icon: "⌨", title: "快捷键指南", desc: "全站键盘漫游一览", key: "?", id: "btn-shortcuts-toggle", selfBound: true },
+        run: function () {
+          const btn = document.getElementById("btn-shortcuts-toggle");
+          if (btn) btn.click();
+        }
+      }
     ];
   }
 
@@ -423,7 +505,7 @@
     input = document.getElementById("archive-search-input");
     panel = document.getElementById("folio-command-panel");
     if (!input || !panel) return;
-    commands = buildCommands();
+    commands = getRegistry();
     bound = true;
 
     input.addEventListener("keydown", handleKeydown);
@@ -442,10 +524,23 @@
     return raw.startsWith("/") || raw.startsWith(">");
   }
 
+  // Batch 2：/ 命令与馆务抽屉共用这一份注册表。
+  let registryCache = null;
+  function getRegistry() {
+    if (!registryCache) registryCache = buildCommands();
+    return registryCache;
+  }
+
   return {
     init,
     render,
     close,
-    isCommandInput
+    isCommandInput,
+    getRegistry,
+    run: function (id, options) {
+      const item = getRegistry().find(function (entry) { return entry.id === id; });
+      if (item) item.run(options);
+      return Boolean(item);
+    }
   };
 });

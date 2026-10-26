@@ -638,10 +638,13 @@
   // ---------------------------------------------------------------------------
   // 开合
   // ---------------------------------------------------------------------------
-  function open() {
+  function open(options) {
     var modal = document.getElementById("courier-modal");
     var backdrop = document.getElementById("courier-backdrop");
     if (!modal) return false;
+    // Batch 2：同一弹窗两种模式 —— ingest（盖章入馆小书签 + 来信确认）/
+    // sync（同步与备份：云同步 / Notion / 导出 三页签，页签由 js/hall.js 管理）。
+    modal.setAttribute("data-courier-mode", options && options.mode === "sync" ? "sync" : "ingest");
     lastActiveElement = document.activeElement;
     state.open = true;
     render();
@@ -661,8 +664,12 @@
     if (backdrop) backdrop.hidden = true;
     state.open = false;
     document.body.classList.remove("courier-open");
-    if (lastActiveElement && typeof lastActiveElement.focus === "function") {
-      lastActiveElement.focus();
+    // 从馆务抽屉打开时，原触发按钮已随抽屉隐藏：焦点改回顶栏「馆务」按钮。
+    var returnTo = lastActiveElement && lastActiveElement.offsetParent !== null
+      ? lastActiveElement
+      : document.getElementById("btn-hall-menu");
+    if (returnTo && typeof returnTo.focus === "function") {
+      returnTo.focus();
     }
     return true;
   }

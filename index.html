@@ -42,6 +42,20 @@
         <span class="colophon-sub-title">个人数字收藏馆</span>
       </div>
       <div class="colophon-right">
+        <!-- Batch 2 · 馆务抽屉入口：所有低频馆务收拢于此（快捷键 .） -->
+        <button
+          type="button"
+          id="btn-hall-menu"
+          class="theme-switch-btn hall-menu-btn"
+          aria-haspopup="dialog"
+          aria-controls="hall-drawer"
+          aria-expanded="false"
+          title="打开馆务抽屉 (.)"
+        >
+          <span class="hall-menu-glyph" aria-hidden="true">⌘</span>
+          <span class="hall-menu-label">馆务</span>
+          <kbd class="hall-menu-key" aria-hidden="true">.</kbd>
+        </button>
         <!-- 典雅双色与自然时序主题切换按钮 -->
         <button
           type="button"
@@ -91,30 +105,6 @@
               <!-- 由 JavaScript 动态根据 data.js 计算并生成 -->
             </div>
           </nav>
-
-          <!-- C1：活字秘卷书脊入口 -->
-          <button
-            type="button"
-            id="btn-snippets-spine-entry"
-            class="spine-uncatalogued-entry spine-snippets-entry"
-            title="打开活字秘卷匣 (S)"
-          >
-            <span class="uncatalogued-glyph" aria-hidden="true">📜</span>
-            <span class="uncatalogued-label">活字秘卷</span>
-            <span class="uncatalogued-meta">PROMPT · S</span>
-          </button>
-
-          <!-- Phase 3A：D3 黄铜工具尺（桌面书脊入口） -->
-          <button
-            type="button"
-            id="btn-brass-tools-entry"
-            class="spine-uncatalogued-entry spine-brass-entry"
-            title="打开黄铜工具尺 (T)"
-          >
-            <span class="uncatalogued-glyph" aria-hidden="true">📐</span>
-            <span class="uncatalogued-label">黄铜工具尺</span>
-            <span class="uncatalogued-meta">UTILITY · T</span>
-          </button>
 
           <div id="focus-timer" class="focus-timer" hidden aria-live="polite">
             <span class="focus-timer-kicker">FOCUS · 沉浸研习</span>
@@ -251,192 +241,13 @@
           <div class="almanac-chronicle-slot"></div>
         </section>
 
-        <!-- Batch 1A · 馆务索引：低频入口与辅助面板统一下沉到卡片之后 -->
-        <section class="footer-utility-rack" aria-label="馆务索引">
-          <div class="footer-utility-heading">
-            <span class="footer-utility-kicker">BACK MATTER · 馆务索引</span>
-            <p>检索与分类留在此页；低频馆务、视图切换与星图工具集中在此，按需展开。</p>
-          </div>
-
-          <div class="folio-view-switcher footer-view-switcher" role="group" aria-label="典藏视图">
-            <button type="button" id="btn-catalog-view" class="folio-view-btn is-active" data-archive-view="grid" aria-pressed="true" title="书本目录视图">
-              <span aria-hidden="true">📖</span><span>书本目录</span>
-            </button>
-            <span class="folio-view-divider" aria-hidden="true">|</span>
-            <button type="button" id="btn-star-map-view" class="folio-view-btn" data-archive-view="star-map" aria-pressed="false" title="穹顶星图视图 (G)">
-              <span aria-hidden="true">🌌</span><span>穹顶星图</span>
-            </button>
-          </div>
-
-          <div class="footer-utility-actions" role="group" aria-label="馆务与工具">
-            <!-- Phase 2：活字秘卷与双生结界 -->
-            <button
-              type="button"
-              id="btn-snippets-entry"
-              class="theme-switch-btn snippets-switch-btn"
-              aria-label="打开活字秘卷匣 (S)"
-              title="活字秘卷匣 (S)"
-            >
-              <span class="snippets-icon" aria-hidden="true">📜</span>
-              <span class="snippets-label">秘卷</span>
-            </button>
-            <button
-              type="button"
-              id="btn-uncatalogued-entry"
-              class="theme-switch-btn spine-uncatalogued-entry footer-utility-btn"
-              title="打开待编目匣 (U)"
-            >
-              <span class="uncatalogued-glyph" aria-hidden="true">⌘</span>
-              <span class="uncatalogued-label">待编目匣</span>
-              <span class="uncatalogued-meta"><span id="uncatalogued-entry-count">00</span> · U</span>
-            </button>
-            <button
-              type="button"
-              id="btn-shadow-toggle"
-              class="theme-switch-btn shadow-switch-btn"
-              aria-label="切换暗月密室 (/shadow)"
-              title="暗月密室 (/shadow)"
-            >
-              <span class="shadow-icon" aria-hidden="true">☾</span>
-              <span class="shadow-label">暗月</span>
-            </button>
-            <button
-              type="button"
-              id="btn-focus-toggle"
-              class="theme-switch-btn focus-switch-btn"
-              aria-label="切换考场结界 (/focus)"
-              title="考场结界 (/focus)"
-            >
-              <span class="focus-icon" aria-hidden="true">⌛</span>
-              <span class="focus-label">结界</span>
-            </button>
-            <button
-              type="button"
-              id="btn-arrange-toggle"
-              class="theme-switch-btn arrange-switch-btn"
-              aria-label="整理书架：调整卡片排序"
-              title="整理书架 (拖动排序)"
-            >
-              <span class="arrange-icon" aria-hidden="true">✥</span>
-              <span class="arrange-label">整理</span>
-            </button>
-            <button
-              type="button"
-              id="btn-shortcuts-toggle"
-              class="theme-switch-btn shortcuts-switch-btn"
-              aria-label="查看全站键盘漫游指南 (?)"
-              title="键盘漫游指南 (?)"
-            >
-              <span class="shortcuts-icon" aria-hidden="true">⌨</span>
-              <span class="shortcuts-label">指南</span>
-            </button>
-            <button
-              type="button"
-              id="btn-random-open"
-              class="theme-switch-btn random-switch-btn"
-              aria-label="今日开卷：从全馆随机抽一卷 (R)"
-              title="今日开卷 · 随机寻星 (R)"
-            >
-              <span class="random-icon" aria-hidden="true">✦</span>
-              <span class="random-label">随机开卷</span>
-              <kbd class="header-key">R</kbd>
-            </button>
-            <button
-              type="button"
-              id="btn-courier-entry"
-              class="theme-switch-btn courier-switch-btn"
-              aria-label="打开飞鸽传书与 Notion 同步台 (/ingest)"
-              title="飞鸽传书 · 盖章入馆 (/ingest · /notion)"
-            >
-              <span class="courier-icon" aria-hidden="true">🕊️</span>
-              <span class="courier-label">飞鸽</span>
-            </button>
-            <button
-              type="button"
-              id="btn-cloud-sync"
-              class="theme-switch-btn cloud-sync-btn"
-              aria-label="云同步：登录以同步收藏与记录"
-              title="云同步 (登录)"
-            >
-              <span class="cloud-icon" aria-hidden="true">☁</span>
-              <span class="cloud-label">云</span>
-            </button>
-          </div>
-
-          <div class="footer-utility-filters">
-            <span>寻书镜</span>
-            <div class="search-quick-hooks" role="group" aria-label="典藏快捷筛选">
-              <button
-                type="button"
-                class="search-hook-btn"
-                data-search-cat="favorites"
-                title="只看私人典藏"
-              >★ 私人典藏</button>
-              <button
-                type="button"
-                class="search-hook-btn"
-                data-search-cat="frequent"
-                title="查看近 7 天常驻案头"
-              >🔥 常驻案头</button>
-              <button
-                type="button"
-                id="btn-almanac-jump"
-                class="search-hook-btn search-hook-btn--almanac"
-                title="展开星轨编年史"
-              >🗓️ 星轨编年</button>
-            </div>
-            <div class="almanac-status-switch" role="group" aria-label="星轨时光回溯窗口">
-              <button type="button" class="almanac-window-btn is-active" data-almanac-window="all" aria-pressed="true">✦ 全部纪元</button>
-              <button type="button" class="almanac-window-btn" data-almanac-window="7d" aria-pressed="false">🌒 近 7 日</button>
-              <button type="button" class="almanac-window-btn" data-almanac-window="30d" aria-pressed="false">🌓 近 30 日</button>
-              <button type="button" class="almanac-window-btn" data-almanac-window="old" aria-pressed="false">⌛ 尘封往昔</button>
-            </div>
-          </div>
-
-          <div class="mobile-phase3-actions" role="group" aria-label="移动端 Phase 3A 快捷入口">
-            <button type="button" id="btn-uncatalogued-mobile" class="mobile-phase3-btn">
-              <span aria-hidden="true">⌘</span> 待编目
-            </button>
-            <button type="button" id="btn-brass-tools-mobile" class="mobile-phase3-btn">
-              <span aria-hidden="true">📐</span> 工具尺
-            </button>
-          </div>
-          <div class="mobile-phase4b-actions" role="group" aria-label="移动端 Phase 4B 快捷入口">
-            <button type="button" id="btn-courier-mobile" class="mobile-phase3-btn">
-              <span aria-hidden="true">🕊️</span> 飞鸽
-            </button>
-          </div>
-
-          <div class="footer-observatory">
-            <span class="footer-observatory-label">星群连珠 · 悬停高亮，点击并发开卷</span>
-            <div id="constellation-rail" class="constellation-rail" aria-label="星群连珠工作流"></div>
-          </div>
-
-        </section>
-
         <footer class="colophon-footer" role="contentinfo">
           <div class="footer-inner-rail">
             <p class="footer-quote">“博学之，审问之，慎思之，明辨之，笃行之。”</p>
             <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
-            <div class="footer-shortcuts-line">
-              <span>快捷键：<kbd class="kbd-tag">/</kbd> 聚焦检索</span>
-              <span><kbd class="kbd-tag">&gt;</kbd> 馆内命令</span>
-              <span><kbd class="kbd-tag">01</kbd> 索书号直达</span>
-              <span><kbd class="kbd-tag">R</kbd> 随机开卷</span>
-              <span><kbd class="kbd-tag">U</kbd> 待编目匣</span>
-              <span><kbd class="kbd-tag">S</kbd> 活字秘卷</span>
-              <span><kbd class="kbd-tag">T</kbd> 黄铜工具尺</span>
-              <span><kbd class="kbd-tag">/ingest</kbd> 飞鸽传书</span>
-              <span><kbd class="kbd-tag">j</kbd>/<kbd class="kbd-tag">k</kbd> 漫游翻卷</span>
-              <span><kbd class="kbd-tag">Enter</kbd> 开卷阅读</span>
-              <span><kbd class="kbd-tag">f</kbd> 典藏</span>
-              <span><kbd class="kbd-tag">e</kbd> 藏书票</span>
-              <span><kbd class="kbd-tag">c</kbd> 馆长手记</span>
-              <span><kbd class="kbd-tag">v</kbd> 切换视图</span>
-              <span><kbd class="kbd-tag">?</kbd> 完整指南</span>
-              <span><kbd class="kbd-tag">Esc</kbd> 清除退出</span>
-              <button type="button" id="btn-footer-export" class="footer-export-action-btn" title="导出与备份数据">💾 导出</button>
-            </div>
+            <p class="footer-hall-hint">
+              按 <kbd class="kbd-tag">.</kbd> 打开馆务 · <kbd class="kbd-tag">/</kbd> 检索 · <kbd class="kbd-tag">?</kbd> 快捷键指南
+            </p>
             <div id="footer-overrides-note" class="footer-overrides-note" style="display: none;">
               有 <strong id="overrides-count-num">0</strong> 处修改仅保存在本机，建议<button type="button" id="btn-note-export-data" class="btn-text-link">导出 data.js</button>
             </div>
@@ -488,7 +299,31 @@
     </div>
   </section>
 
-  <!-- Phase 4B · A6/C5 飞鸽传书与 Notion 同步桥 -->
+  <!-- Batch 2 · 馆务抽屉（条目由 js/hall.js 依 js/commands.js 注册表生成） -->
+  <div id="hall-drawer-backdrop" class="hall-drawer-backdrop" hidden></div>
+  <aside
+    id="hall-drawer"
+    class="hall-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="hall-drawer-title"
+    aria-hidden="true"
+    hidden
+  >
+    <header class="hall-drawer-head">
+      <div>
+        <span class="hall-drawer-kicker">BACK MATTER · 馆务索引</span>
+        <h2 id="hall-drawer-title">馆务</h2>
+      </div>
+      <button type="button" id="btn-close-hall-drawer" class="hall-drawer-close" aria-label="收起馆务抽屉 (Esc)" title="收起 (Esc)">✕</button>
+    </header>
+    <div id="hall-drawer-body" class="hall-drawer-body"></div>
+    <footer class="hall-drawer-foot" aria-hidden="true">
+      <span><kbd>.</kbd> 开合</span><span><kbd>↑</kbd><kbd>↓</kbd> 选择</span><span><kbd>Esc</kbd> 收起</span>
+    </footer>
+  </aside>
+
+  <!-- Phase 4B · A6/C5 飞鸽传书与 Notion 同步桥 · Batch 2 起兼作「同步与备份」面板（data-courier-mode） -->
   <div id="courier-backdrop" class="courier-backdrop" hidden></div>
   <section
     id="courier-modal"
@@ -497,14 +332,17 @@
     aria-modal="true"
     aria-labelledby="courier-title"
     aria-hidden="true"
+    data-courier-mode="ingest"
     hidden
   >
     <div class="courier-sheet">
       <header class="courier-head">
         <div class="courier-head-main">
-          <span class="courier-kicker">CARRIER PIGEON · EX LIBRIS</span>
-          <h2 id="courier-title">飞鸽传书 · 盖章入馆</h2>
-          <p class="courier-lede">
+          <span class="courier-kicker courier-only-ingest">CARRIER PIGEON · EX LIBRIS</span>
+          <span class="courier-kicker courier-only-sync">SYNC &amp; BACKUP · EX LIBRIS</span>
+          <h2 id="courier-title"><span class="courier-only-ingest">飞鸽传书 · 盖章入馆</span><span class="courier-only-sync">同步与备份</span></h2>
+          <p class="courier-lede courier-only-sync">云同步、Notion 典藏桥与本地导出，三处备份任选。所有数据默认只存在本机。</p>
+          <p class="courier-lede courier-only-ingest">
             从任意网页一键把书卷送回本馆。小书签会把
             <code>location.href</code> / <code>document.title</code> / 选中文本
             打包成 <code>?ingest=1</code> 回传，落地即唤醒确认匣。
@@ -513,8 +351,44 @@
         <button type="button" id="btn-close-courier" class="courier-close" aria-label="收卷 (Esc)" title="收卷 (Esc)">✕</button>
       </header>
 
+      <div class="courier-tabs courier-only-sync" role="tablist" aria-label="同步与备份">
+        <button type="button" class="courier-tab is-active" role="tab" data-courier-tab="cloud" aria-selected="true" aria-controls="courier-pane-cloud">☁ 云同步</button>
+        <button type="button" class="courier-tab" role="tab" data-courier-tab="notion" aria-selected="false" aria-controls="courier-pane-notion" tabindex="-1">⇄ Notion CSV / JSON</button>
+        <button type="button" class="courier-tab" role="tab" data-courier-tab="export" aria-selected="false" aria-controls="courier-pane-export" tabindex="-1">💾 导出与导入</button>
+      </div>
+
       <div class="courier-body">
-        <section class="courier-section" aria-labelledby="courier-bookmarklet-title">
+        <section class="courier-section" id="courier-pane-cloud" data-courier-pane="cloud" role="tabpanel" aria-labelledby="courier-cloud-title">
+          <h3 id="courier-cloud-title" class="courier-section-title">云同步 · 跨设备</h3>
+          <p class="courier-hint">用你自己定的口令登录（只存本机）。收藏、访问记录、排序与主题会在多台设备间静默同步；断网时一切照常本地运行。</p>
+          <div class="courier-sync-actions">
+            <button
+              type="button"
+              id="btn-cloud-sync"
+              class="courier-btn cloud-sync-btn"
+              data-lazy="cloudsync"
+              aria-label="云同步：登录以同步收藏与记录"
+              title="云同步 (登录)"
+            >
+              <span class="cloud-icon" aria-hidden="true">☁</span>
+              <span class="cloud-label">登录 / 立即同步</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="courier-section" id="courier-pane-export" data-courier-pane="export" role="tabpanel" aria-labelledby="courier-export-title">
+          <h3 id="courier-export-title" class="courier-section-title">导出与导入 · 本地备份</h3>
+          <div class="courier-sync-actions">
+            <button type="button" class="courier-btn" data-sync-action="export-datajs">📄 导出 data.js</button>
+            <button type="button" class="courier-btn" data-sync-action="export-backup">💾 导出备份 JSON</button>
+            <button type="button" class="courier-btn" data-sync-action="export-ledger">📚 导出全馆 JSON + 借阅账本</button>
+            <button type="button" class="courier-btn courier-btn--ghost" data-sync-action="import-backup">📥 导入备份 JSON</button>
+            <input type="file" id="sync-import-file" accept="application/json,.json" hidden>
+          </div>
+          <p class="courier-hint">data.js 是馆藏的源文件：本机改过的卡片会合并写入，替换仓库里的 data.js 即可永久生效。</p>
+        </section>
+
+        <section class="courier-section" data-courier-pane="ingest" aria-labelledby="courier-bookmarklet-title">
           <h3 id="courier-bookmarklet-title" class="courier-section-title">C5 · 加盖藏书票 · Bookmarklet</h3>
           <div class="courier-bookmarklet-rail">
             <div id="courier-bookmarklet-slot" class="courier-bookmarklet-slot"></div>
@@ -525,12 +399,12 @@
           </p>
         </section>
 
-        <section class="courier-section" aria-labelledby="courier-confirm-title">
+        <section class="courier-section" data-courier-pane="ingest" aria-labelledby="courier-confirm-title">
           <h3 id="courier-confirm-title" class="courier-section-title">飞鸽来信 · 盖章确认匣</h3>
           <div id="courier-confirm" class="courier-confirm" aria-live="polite"></div>
         </section>
 
-        <section class="courier-section" aria-labelledby="courier-notion-title">
+        <section class="courier-section" id="courier-pane-notion" data-courier-pane="notion" role="tabpanel" aria-labelledby="courier-notion-title">
           <h3 id="courier-notion-title" class="courier-section-title">A6 · Notion 典藏同步桥</h3>
           <p id="courier-stats" class="courier-stats"></p>
           <div class="courier-sync-actions">
@@ -557,7 +431,7 @@
       </div>
 
       <footer class="courier-foot">
-        <span>EX LIBRIS · COURIER &amp; NOTION BRIDGE · 离线零损耗</span>
+        <span>EX LIBRIS · COURIER &amp; SYNC · 离线零损耗</span>
         <button type="button" id="btn-dismiss-courier" class="courier-btn courier-btn--ghost">收卷 (Esc)</button>
       </footer>
     </div>
@@ -1104,7 +978,8 @@
   <script src="js/sortable.js?v=1.7.0" defer></script>
   <script src="js/exlibris.js?v=1.7.0" defer></script>
   <script src="js/shortcuts.js?v=4.1.0" defer></script>
-  <script src="js/commands.js?v=4.1.0" defer></script>
+  <script src="js/commands.js?v=5.0.0" defer></script>
+  <script src="js/hall.js?v=5.0.0" defer></script>
   <script src="js/folio-keys.js?v=2.0.0" defer></script>
   <script src="js/serendipity.js?v=4.2.0" defer></script>
   <script src="js/marginalia.js?v=2.0.0" defer></script>
