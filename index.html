@@ -1287,5 +1287,13 @@
   <script src="js/contextmenu.js?v=1.7.0" defer></script>
   <script src="js/cloud-sync.js?v=1.7.0" defer></script>
   <script src="app.js?v=4.2.0" defer></script>
+  <script>
+    /* 离线开馆：注册 Service Worker，断网时从本地缓存打开整座馆 */
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>
