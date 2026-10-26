@@ -1,10 +1,29 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="light" class="theme-booting">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>个人数字收藏馆 · The Digital Archive</title>
   <meta name="description" content="独立杂志排印风格的个人数字收藏馆与网址典藏，精选 AI 工具、工程开发、深度研习与效率工具。">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    /* 首帧主题预置：在样式表之前同步读取主题，避免「先白后黑」闪烁（规则须与 js/theme.js resolveAutoTheme 一致） */
+    (function () {
+      var d = document.documentElement;
+      try {
+        var raw = localStorage.getItem("mynav_arch_theme"), mode = "auto";
+        if (raw) { try { mode = JSON.parse(raw); } catch (e) { mode = raw; } }
+        if (mode !== "light" && mode !== "dark") mode = "auto";
+        var h = new Date().getHours();
+        d.setAttribute("data-theme", mode === "auto" ? ((h >= 6 && h < 18) ? "light" : "dark") : mode);
+        d.setAttribute("data-theme-mode", mode);
+        if (JSON.parse(localStorage.getItem("mynav_arch_nier_bg") || "false") === true) d.setAttribute("data-nier-bg", "true");
+      } catch (e) {}
+      window.addEventListener("load", function () {
+        requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove("theme-booting"); }); });
+      });
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css?v=4.3.0-batch1a">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>

@@ -12161,3 +12161,10 @@ body.federation-open {
     padding: 4px;
   }
 }
+
+/* Batch 2：首屏加载期间禁用颜色过渡，避免主题预置后仍出现渐变闪烁 */
+html.theme-booting *,
+html.theme-booting *::before,
+html.theme-booting *::after { transition: none !important; }
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; }

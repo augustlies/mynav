@@ -38,8 +38,9 @@
     effectiveTheme = mode === MODES.AUTO ? resolveAutoTheme() : mode;
 
     if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", effectiveTheme);
-      document.documentElement.setAttribute("data-theme-mode", currentMode);
+      const rootEl = document.documentElement;
+      if (rootEl.getAttribute("data-theme") !== effectiveTheme) rootEl.setAttribute("data-theme", effectiveTheme);
+      if (rootEl.getAttribute("data-theme-mode") !== currentMode) rootEl.setAttribute("data-theme-mode", currentMode);
     }
 
     if (save && NavStorage) {
