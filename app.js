@@ -1292,7 +1292,12 @@
   // ==========================================================================
 
   function bindEvents() {
-    document.querySelectorAll("[data-archive-view]").forEach(function (button) {
+    // 星图标题栏的「返回目录」由星图模块渲染（晚于这里），用委托。
+    document.addEventListener("click", function (event) {
+      if (event.target.closest && event.target.closest("#btn-star-map-back")) setArchiveView("grid");
+    });
+    // 注意排除 <html>：它也带 data-archive-view（供 CSS 用），绑上会让任何点击都触发视图切换。
+    document.querySelectorAll("button[data-archive-view]").forEach(function (button) {
       button.addEventListener("click", function () {
         setArchiveView(button.getAttribute("data-archive-view"));
       });
@@ -1417,6 +1422,8 @@
       const targetCat = btn.getAttribute("data-cat-target");
       if (!targetCat) return;
 
+      // 停在星图时点左侧分类：回到书本目录并打开该专栏（不再「点啥都还是星图」）。
+      if (state.archiveView === "star-map") setArchiveView("grid");
       switchCategory(targetCat);
     });
 

@@ -33,7 +33,7 @@
 
   const MODULES = {
     librarian: { src: "js/librarian.js?v=4.2.0", css: "css/librarian.css?v=5.0.0", global: "NavLibrarian", ref: "Librarian", init: true },
-    starmap: { src: "js/star-map.js?v=4.2.0", css: "css/starmap.css?v=5.0.0", global: "NavStarMap", ref: "StarMap" },
+    starmap: { src: "js/star-map.js?v=4.2.1", css: "css/starmap.css?v=5.0.0", global: "NavStarMap", ref: "StarMap" },
     contextmenu: { src: "js/contextmenu.js?v=1.7.0", css: "css/contextmenu.css?v=5.0.0", global: "NavContextMenu", ref: "ContextMenu" },
     courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=5.0.0", global: "NavCourier", ref: "Courier", init: true },
     amber: { src: "js/amber.js?v=4.1.0", css: "css/amber.css?v=5.0.0", global: "NavAmber", ref: "Amber", init: true, after: "syncCards" },

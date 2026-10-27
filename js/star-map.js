@@ -910,6 +910,7 @@
       '<div class="star-map-actions">',
       '<span class="star-map-legend" data-star-legend>恒星分类: -- · 入轨藏品: -- · 共振星链: --</span>',
       '<button type="button" class="star-map-reset" id="btn-star-map-reset">⌖ 归位重置</button>',
+      '<button type="button" class="star-map-reset star-map-back" id="btn-star-map-back" title="返回书本目录（快捷键 G 或 V）">📖 返回目录</button>',
       '</div>',
       '</header>',
       '<div class="star-map-filter-row" role="group" aria-label="星图分类筛选">',

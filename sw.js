@@ -5,7 +5,7 @@
  * - /api/ 与跨站请求：一律不经手（云同步、探针、守馆人照常走网络）
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "75529b5172";
+const CACHE_VERSION = "2360e1bf4f";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -13,7 +13,7 @@ const PRECACHE = [
   "./styles.css?v=5.1.0-batch2",
   "./favicon.svg",
   "./data.js?v=1.8.0",
-  "./js/lazy.js?v=5.1.0",
+  "./js/lazy.js?v=5.1.0.1",
   "./js/storage.js?v=2.0.0",
   "./js/schema.js?v=4.2.0",
   "./js/ledger.js?v=4.1.0",
@@ -35,10 +35,10 @@ const PRECACHE = [
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.0",
   "./js/probe.js?v=5.0.0",
-  "./app.js?v=5.0.1",
+  "./app.js?v=5.0.2",
   "./js/librarian.js?v=4.2.0",
   "./css/librarian.css?v=5.0.0",
-  "./js/star-map.js?v=4.2.0",
+  "./js/star-map.js?v=4.2.1",
   "./css/starmap.css?v=5.0.0",
   "./js/contextmenu.js?v=1.7.0",
   "./css/contextmenu.css?v=5.0.0",
@@ -138,7 +138,8 @@ async function networkFirst(request) {
 
 async function staleWhileRevalidate(request, event) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request) || await cache.match(request, { ignoreSearch: true });
+  // 只认完全相同的地址（含 ?v=）：版本号一变就走网络拿新文件；断网时才退回旧版本兜底。
+  const cached = await cache.match(request);
   const refresh = fetch(request).then((response) => {
     if (response && response.ok) cache.put(request, response.clone());
     return response;
@@ -147,7 +148,7 @@ async function staleWhileRevalidate(request, event) {
     event.waitUntil(refresh);
     return cached;
   }
-  return (await refresh) || Response.error();
+  return (await refresh) || (await cache.match(request, { ignoreSearch: true })) || Response.error();
 }
 
 self.addEventListener("fetch", (event) => {
