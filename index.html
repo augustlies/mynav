@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light" class="theme-booting">
+<html lang="zh-CN" data-theme="light" class="theme-booting deco-pending">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
@@ -20,11 +20,14 @@
         if (JSON.parse(localStorage.getItem("mynav_arch_nier_bg") || "false") === true) d.setAttribute("data-nier-bg", "true");
       } catch (e) {}
       window.addEventListener("load", function () {
-        requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.remove("theme-booting"); }); });
+        /* Batch 3：等主线程空闲再撤掉首帧限制（整页样式重算放到首屏交互之后，不和刚就位的索书框抢时间） */
+        var done = function () { d.classList.remove("theme-booting", "deco-pending"); };
+        if (window.requestIdleCallback) requestIdleCallback(done, { timeout: 1200 });
+        else setTimeout(done, 300);
       });
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=5.2.0-b3a">
+  <link rel="stylesheet" href="styles.css?v=b3.1">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -259,6 +262,7 @@
 
 
   <!-- Phase 4B · D5 网页琥珀 · 碑拓阅览室 -->
+  <template data-lazy-dom="amber">
   <div id="amber-backdrop" class="amber-backdrop" hidden></div>
   <section
     id="amber-modal"
@@ -298,6 +302,7 @@
       </footer>
     </div>
   </section>
+  </template>
 
   <!-- Batch 2 · 馆务抽屉（条目由 js/hall.js 依 js/commands.js 注册表生成） -->
   <div id="hall-drawer-backdrop" class="hall-drawer-backdrop" hidden></div>
@@ -324,6 +329,7 @@
   </aside>
 
   <!-- Phase 4B · A6/C5 飞鸽传书与 Notion 同步桥 · Batch 2 起兼作「同步与备份」面板（data-courier-mode） -->
+  <template data-lazy-dom="courier">
   <div id="courier-backdrop" class="courier-backdrop" hidden></div>
   <section
     id="courier-modal"
@@ -436,9 +442,10 @@
       </footer>
     </div>
   </section>
-
+  </template>
 
   <!-- 藏书票印画模态展示层 (Ex Libris Modal) -->
+  <template data-lazy-dom="bookplate">
   <div id="bookplate-modal" class="bookplate-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="bookplate-modal-title">
     <div class="bookplate-modal-card">
       <header class="bookplate-modal-header">
@@ -464,8 +471,10 @@
       </footer>
     </div>
   </div>
+  </template>
 
   <!-- 全站快捷键漫游指南模态层 (Shortcuts Modal) -->
+  <template data-lazy-dom="shortcuts">
   <div id="shortcuts-modal" class="shortcuts-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="shortcuts-modal-title">
     <div class="shortcuts-modal-card">
       <header class="shortcuts-modal-header">
@@ -596,8 +605,10 @@
       </footer>
     </div>
   </div>
+  </template>
 
   <!-- 馆长手记与出版版记模态抽屉 (Colophon Modal) -->
+  <template data-lazy-dom="colophon">
   <div id="colophon-modal" class="colophon-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="colophon-modal-title">
     <div class="colophon-modal-card">
       <header class="colophon-modal-header">
@@ -662,6 +673,7 @@
       </footer>
     </div>
   </div>
+  </template>
 
   <!-- A2 黄铜索书号印章 Toast -->
   <div id="folio-chord-stamp" class="folio-chord-stamp" role="status" aria-live="polite" aria-atomic="true">
@@ -672,6 +684,7 @@
   </div>
 
   <!-- A8 今日推荐藏书票 -->
+  <template data-lazy-dom="serendipity">
   <div
     id="today-open-modal"
     class="today-open-modal-backdrop"
@@ -726,8 +739,10 @@
       </footer>
     </article>
   </div>
+  </template>
 
   <!-- Phase 4A · D1「司天监密钥」本地安全配置弹窗（仅存本机 MYNAV_LEDGER_V2.aiConfig） -->
+  <template data-lazy-dom="librarian">
   <div
     id="librarian-config-modal"
     class="librarian-config-backdrop"
@@ -769,11 +784,13 @@
       </footer>
     </section>
   </div>
+  </template>
 
   <!-- 典雅微印记 Toast 提示浮层 (Editorial Toast Container) -->
   <div id="editorial-toast-container" class="editorial-toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- B1-B4 待编目匣 · 暗星带 -->
+  <template data-lazy-dom="uncatalogued">
   <div id="uncatalogued-backdrop" class="uncatalogued-backdrop" hidden></div>
   <aside
     id="uncatalogued-drawer"
@@ -807,8 +824,10 @@
     </form>
     <div id="uncatalogued-list" class="uncatalogued-list" aria-live="polite"></div>
   </aside>
+  </template>
 
   <!-- C1 活字秘卷匣 -->
+  <template data-lazy-dom="snippets">
   <div id="snippets-modal" class="snippets-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="snippets-title">
     <section class="snippets-modal-card">
       <header class="snippets-modal-header">
@@ -826,8 +845,10 @@
       <div id="snippets-copy-menu" class="snippets-copy-menu" hidden aria-live="polite"></div>
     </section>
   </div>
+  </template>
 
   <!-- Phase 3A · D3 黄铜工具尺 · 炼金实验台 -->
+  <template data-lazy-dom="brass">
   <div id="brass-tools-backdrop" class="brass-tools-backdrop" hidden></div>
   <aside
     id="brass-workbench"
@@ -959,32 +980,66 @@
       <span>按 T 或 Esc 收卷</span>
     </footer>
   </aside>
+  </template>
 
+  <script>
+    /* Batch 3 · 首屏减负：低频弹窗/抽屉的标记收在 <template data-lazy-dom> 里，首次用到时才放进页面。
+       模块照旧 getElementById(…)，查不到时自动从模板里取出整块（含遮罩），所有 DOM ID 与钩子不变。 */
+    (function () {
+      var proto = Document.prototype, original = proto.getElementById;
+      function materialize(id) {
+        var tpls = document.querySelectorAll("template[data-lazy-dom]");
+        for (var i = 0; i < tpls.length; i += 1) {
+          var tpl = tpls[i];
+          if (tpl.content.getElementById(id) || tpl.content.querySelector("[id=\"" + id + "\"]")) {
+            var parent = tpl.parentNode, anchor = tpl.nextSibling;
+            parent.insertBefore(tpl.content, anchor);
+            parent.removeChild(tpl);
+            (window.__LAZY_DOM__ = window.__LAZY_DOM__ || []).push(tpl.getAttribute("data-lazy-dom"));
+            return true;
+          }
+        }
+        return false;
+      }
+      proto.getElementById = function (id) {
+        var el = original.call(this, id);
+        if (el || this !== document || !id) return el;
+        return materialize(String(id)) ? original.call(this, id) : null;
+      };
+      window.NavDom = {
+        ensure: function (idOrName) {
+          var el = original.call(document, idOrName);
+          if (el) return el;
+          var tpl = document.querySelector("template[data-lazy-dom=\"" + idOrName + "\"]");
+          if (tpl) { var p = tpl.parentNode; p.insertBefore(tpl.content, tpl.nextSibling); p.removeChild(tpl); (window.__LAZY_DOM__ = window.__LAZY_DOM__ || []).push(idOrName); return true; }
+          return document.getElementById(idOrName);
+        },
+        ensureAll: function () { document.querySelectorAll("template[data-lazy-dom]").forEach(function (t) { window.NavDom.ensure(t.getAttribute("data-lazy-dom")); }); }
+      };
+    })();
+  </script>
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.8.0" defer></script>
-  <script src="js/lazy.js?v=5.1.0.1" defer></script>
+  <script src="js/lazy.js?v=b3.1" defer></script>
   <script src="js/storage.js?v=2.0.0" defer></script>
-  <script src="js/schema.js?v=4.2.0" defer></script>
+  <script src="js/schema.js?v=b3.1" defer></script>
   <script src="js/ledger.js?v=4.1.0" defer></script>
   <script src="js/overrides.js?v=4.2.0" defer></script>
   <script src="js/theme.js?v=1.7.0" defer></script>
-  <script src="js/astronomy.js?v=3.0.0" defer></script>
   <script src="js/favorites.js?v=1.7.0" defer></script>
   <script src="js/visits.js?v=2.0.0" defer></script>
   <script src="js/search.js?v=1.7.0" defer></script>
   <script src="js/engine.js?v=2.0.0" defer></script>
   <script src="js/motion.js?v=1.7.0" defer></script>
   <script src="js/sortable.js?v=1.7.0" defer></script>
-  <script src="js/shortcuts.js?v=5.0.0" defer></script>
-  <script src="js/commands.js?v=5.0.0" defer></script>
-  <script src="js/hall.js?v=5.0.0" defer></script>
+  <script src="js/shortcuts.js?v=b3.1" defer></script>
+  <script src="js/commands.js?v=b3.1" defer></script>
+  <script src="js/hall.js?v=b3.1" defer></script>
   <script src="js/folio-keys.js?v=2.0.0" defer></script>
   <script src="js/marginalia.js?v=2.0.0" defer></script>
-  <script src="js/uncatalogued.js?v=4.2.0" defer></script>
   <script src="js/constellations.js?v=2.0.0" defer></script>
   <script src="js/sanctum.js?v=2.0.0" defer></script>
-  <script src="js/probe.js?v=5.0.0" defer></script>
-  <script src="app.js?v=5.0.2" defer></script>
+  <script src="app.js?v=b3.1" defer></script>
   <div id="net-status" class="net-status" role="status" aria-live="polite" hidden></div>
   <script>
     /* 离线开馆：注册 Service Worker（入口页缓存优先，秒开）；离线小签与「已更新，下次打开生效」提示 */

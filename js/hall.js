@@ -356,34 +356,32 @@
           break;
       }
     });
-    const fileInput = document.getElementById("sync-import-file");
-    if (fileInput) {
-      fileInput.addEventListener("change", function () {
+    // Batch 3：飞鸽弹窗与待编目匣的标记首屏收在 <template> 里，这里改为事件委托，不在启动时把它们取出来。
+    document.addEventListener("change", function (event) {
+      const fileInput = event.target;
+      if (fileInput && fileInput.id === "sync-import-file") {
         importBackupFile(fileInput.files && fileInput.files[0]);
-      });
-    }
-    const modal = document.getElementById("courier-modal");
-    if (modal) {
-      modal.addEventListener("keydown", function (event) {
-        const tabBtn = event.target.closest && event.target.closest("[data-courier-tab]");
-        if (!tabBtn || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
-        const tabs = Array.from(modal.querySelectorAll("[data-courier-tab]"));
-        const index = tabs.indexOf(tabBtn);
-        const next = tabs[(index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
-        event.preventDefault();
-        event.stopPropagation();
-        next.click();
-        next.focus();
-      });
-    }
+      }
+    });
+    document.addEventListener("keydown", function (event) {
+      const modal = event.target.closest && event.target.closest("#courier-modal");
+      if (!modal) return;
+      const tabBtn = event.target.closest("[data-courier-tab]");
+      if (!tabBtn || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+      const tabs = Array.from(modal.querySelectorAll("[data-courier-tab]"));
+      const index = tabs.indexOf(tabBtn);
+      const next = tabs[(index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+      event.preventDefault();
+      event.stopPropagation();
+      next.click();
+      next.focus();
+    }, true);
     // 待编目匣里的「飞鸽传书」小入口此前无人绑定，这里补上。
-    const uncatCourier = document.getElementById("btn-courier-entry-drawer");
-    if (uncatCourier) {
-      uncatCourier.addEventListener("click", function () {
-        if (window.NavUncatalogued && typeof window.NavUncatalogued.close === "function") window.NavUncatalogued.close();
-        openIngest();
-      });
-    }
+    document.addEventListener("click", function (event) {
+      if (!event.target.closest || !event.target.closest("#btn-courier-entry-drawer")) return;
+      if (window.NavUncatalogued && typeof window.NavUncatalogued.close === "function") window.NavUncatalogued.close();
+      openIngest();
+    });
   }
 
   function init() {

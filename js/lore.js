@@ -279,19 +279,13 @@
   }
 
   function init() {
-    // 绑定关闭按钮与遮罩点击
-    const closeBtn = document.getElementById("btn-close-colophon");
-    if (closeBtn) closeBtn.addEventListener("click", closeColophon);
-
-    const dismissBtn = document.getElementById("btn-dismiss-colophon");
-    if (dismissBtn) dismissBtn.addEventListener("click", closeColophon);
-
-    const modal = document.getElementById("colophon-modal");
-    if (modal) {
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeColophon();
-      });
-    }
+    // 绑定关闭按钮与遮罩点击（Batch 3：弹窗标记首屏收在 <template> 里，改为事件委托）
+    document.addEventListener("click", function (e) {
+      const t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest("#btn-close-colophon") || t.closest("#btn-dismiss-colophon")) { closeColophon(); return; }
+      if (t.id === "colophon-modal") closeColophon();
+    });
 
     // 绑定刊头 EX LIBRIS 标志点击
     const colophonBadge = document.getElementById("btn-colophon-mark");

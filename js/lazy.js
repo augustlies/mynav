@@ -15,6 +15,9 @@
  *   exlibris    藏书票（卡片按钮 / e）
  *   serendipity 今日开卷转盘（按钮 / R / /random）
  *   particles   背景粒子：首屏渲染完成后空闲加载；减弱动效 / 省流量时不加载
+ *   probe       星轨联通探针（Batch 3）：首屏装配完立即载入，不再压在首屏脚本链上
+ *   astronomy   恒星时 / 月相（Batch 3）：同上
+ *   uncatalogued 待编目匣（Batch 3）：同上；载入前按 U / 点入口也不落空
  *
  * 契约：触发前只有这里注册的轻量壳；第一次点击 / 按键不会被吞掉 ——
  * 拦下这次事件、显示加载态（aria-busy），模块就绪后原样重放一次。
@@ -35,16 +38,20 @@
     librarian: { src: "js/librarian.js?v=4.2.0", css: "css/librarian.css?v=5.0.0", global: "NavLibrarian", ref: "Librarian", init: true },
     starmap: { src: "js/star-map.js?v=4.2.1", css: "css/starmap.css?v=5.0.0", global: "NavStarMap", ref: "StarMap" },
     contextmenu: { src: "js/contextmenu.js?v=1.7.0", css: "css/contextmenu.css?v=5.0.0", global: "NavContextMenu", ref: "ContextMenu" },
-    courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=5.0.0", global: "NavCourier", ref: "Courier", init: true },
+    courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=b3.1", global: "NavCourier", ref: "Courier", init: true },
     amber: { src: "js/amber.js?v=4.1.0", css: "css/amber.css?v=5.0.0", global: "NavAmber", ref: "Amber", init: true, after: "syncCards" },
     brass: { src: "js/brass-tools.js?v=3.0.0", css: "css/brass.css?v=5.0.0", global: "NavBrassTools", ref: "BrassTools", init: true },
     almanac: { src: "js/almanac.js?v=3.1.0", css: "css/almanac.css?v=5.0.0", global: "NavAlmanac", ref: "Almanac", init: true, after: "refresh" },
     snippets: { src: "js/snippets.js?v=2.0.0", css: "css/snippets.css?v=5.0.0", global: "NavSnippets", ref: "Snippets", init: true },
-    lore: { src: "js/lore.js?v=1.7.0", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
+    lore: { src: "js/lore.js?v=b3.1", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
     cloudsync: { src: "js/cloud-sync.js?v=1.7.0", global: "NavCloudSync", ref: "CloudSync" },
     exlibris: { src: "js/exlibris.js?v=1.7.0", css: "css/exlibris.css?v=5.0.0", global: "NavExLibris", ref: "ExLibris", init: true },
     serendipity: { src: "js/serendipity.js?v=4.2.0", css: "css/serendipity.css?v=5.0.0", global: "NavSerendipity", ref: "Serendipity", init: true },
-    particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" }
+    particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" },
+    // Batch 3：首屏后立即载入（不等空闲），init 由 app.js Stage 2 负责（boot: true = 不冲刷 Stage 2、不在这里 init）。
+    probe: { src: "js/probe.js?v=5.0.0", global: "NavProbe", ref: "Probe", boot: true },
+    astronomy: { src: "js/astronomy.js?v=3.0.0", global: "NavAstronomy", ref: "Astronomy", boot: true },
+    uncatalogued: { src: "js/uncatalogued.js?v=b3.1", global: "NavUncatalogued", ref: "Uncatalogued", boot: true, init: true }
   };
 
   // 点击触发：首次点击被拦下 → 加载 → 重放。
@@ -55,11 +62,14 @@
     ["#btn-brass-tools-entry", "brass"],
     ["#btn-cloud-sync", "cloudsync"],
     ["#btn-colophon-mark", "lore"],
-    ["[data-bookplate-id]", "exlibris"]
+    ["[data-bookplate-id]", "exlibris"],
+    ["#btn-uncatalogued-entry", "uncatalogued"],
+    ["#btn-uncatalogued-mobile", "uncatalogued"],
+    ["[data-uncatalogued-open-drawer]", "uncatalogued"]
   ];
 
   // 按键触发（非输入态、无修饰键）。
-  const KEY_TRIGGERS = { s: "snippets", S: "snippets", T: "brass", c: "lore", C: "lore" };
+  const KEY_TRIGGERS = { s: "snippets", S: "snippets", T: "brass", c: "lore", C: "lore", u: "uncatalogued", U: "uncatalogued" };
 
   const pending = {};
   const ready = {};
@@ -129,7 +139,7 @@
       .then(function () {
         const mod = window[spec.global];
         if (!mod) throw new Error("lazy module missing global: " + spec.global);
-        if (window.NavApp && typeof window.NavApp.flushIdleBoot === "function") window.NavApp.flushIdleBoot();
+        if (!spec.boot && window.NavApp && typeof window.NavApp.flushIdleBoot === "function") window.NavApp.flushIdleBoot();
         if (spec.init && typeof mod.init === "function") {
           try { mod.init(); } catch (error) {
             if (window.console) console.error("[NavLazy] " + name + " init failed:", error);

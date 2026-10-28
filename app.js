@@ -1815,20 +1815,38 @@
         });
       });
     }
-    if (window.NavAstronomy) {
-      safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });
-    }
+    initBootModules();
     // Phase 4A：D1 守馆人 AI（司天监终端）与 A5/C4 星轨探针与遥测机关台。
     // Phase 4B：C2 观星晨报、D5 网页琥珀、A6/C5 飞鸽传书、D7 联邦寻星镜。
     // 附加模块的初始化必须与主画布渲染隔离：任何单个模块抛异常都不得中断
     // 卡片渲染与事件绑定，否则整座藏书馆会退化为「载入中… · 0 卷」。
     // Batch 2：A5 探针从 telemetry.js 拆为 js/probe.js（NavTelemetry 为别名）；
     // C2 晨报 / C4 机关台 / D6 白噪音 / D7 寻星镜 已下线（archive/retired-batch2/）。
-    if (window.NavProbe) {
-      safeInit("NavProbe", function () { window.NavProbe.init(); });
-    }
     // 部分模块在 init 中自我注册到 NavApp；这里统一回填，保证引用永远可用。
     syncModuleRefs();
+  }
+
+  // Batch 3：恒星时（astronomy）与探针（probe）不再压在首屏脚本链上，由 js/lazy.js 在 Stage 1 后立即载入；
+  // 谁先到谁等谁都行：Stage 2 跑时已载入的就地 init，晚到的在载入完成时补 init。每个模块只 init 一次。
+  const bootModulesInited = {};
+  function initBootModules() {
+    if (!stage2Done) return;
+    if (window.NavAstronomy && !bootModulesInited.astronomy) {
+      bootModulesInited.astronomy = true;
+      safeInit("NavAstronomy", function () { window.NavAstronomy.init(); });
+    }
+    if (window.NavProbe && !bootModulesInited.probe) {
+      bootModulesInited.probe = true;
+      safeInit("NavProbe", function () { window.NavProbe.init(); });
+    }
+    syncModuleRefs();
+  }
+
+  function loadBootModules() {
+    if (!window.NavLazy || typeof window.NavLazy.ensure !== "function") return;
+    ["uncatalogued", "astronomy", "probe"].forEach(function (name) {
+      window.NavLazy.ensure(name).then(initBootModules).catch(function () {});
+    });
   }
 
   function syncModuleRefs() {
@@ -2040,6 +2058,7 @@
     if (window.__BOOT_TIMING__) {
       window.__BOOT_TIMING__.stage1End = Math.round(performance.now() * 100) / 100;
     }
+    loadBootModules();
 
     // 挂载全局刷新方法并监听修改层变化事件
     window.NavApp = {
@@ -2081,7 +2100,8 @@
       // Phase 5：两段式启动的公开契约。
       whenReady: whenReady,
       flushIdleBoot: flushIdleBoot,
-      isStage2Ready: function () { return stage2Done; }
+      isStage2Ready: function () { return stage2Done; },
+      initBootModules: initBootModules
     };
     syncModuleRefs();
 

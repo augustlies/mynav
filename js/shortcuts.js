@@ -203,6 +203,7 @@
   }
 
   function closeHelp() {
+    if (!isHelpOpen) return;
     const modal = document.getElementById("shortcuts-modal");
     if (!modal) return;
     modal.style.display = "none";
@@ -493,22 +494,14 @@
     // 监听全局按键
     window.addEventListener("keydown", handleKeyDown);
 
-    // 绑定模态窗关闭与遮罩点击
-    const closeBtn = document.getElementById("btn-close-shortcuts");
-    if (closeBtn) closeBtn.addEventListener("click", closeHelp);
-
-    const dismissBtn = document.getElementById("btn-dismiss-shortcuts");
-    if (dismissBtn) dismissBtn.addEventListener("click", closeHelp);
-
-    const toggleBtn = document.getElementById("btn-shortcuts-toggle");
-    if (toggleBtn) toggleBtn.addEventListener("click", toggleHelp);
-
-    const modal = document.getElementById("shortcuts-modal");
-    if (modal) {
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeHelp();
-      });
-    }
+    // 绑定模态窗关闭与遮罩点击（Batch 3：弹窗标记首屏收在 <template> 里，改为事件委托）
+    document.addEventListener("click", function (e) {
+      const t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest("#btn-close-shortcuts") || t.closest("#btn-dismiss-shortcuts")) { closeHelp(); return; }
+      if (t.closest("#btn-shortcuts-toggle")) { toggleHelp(); return; }
+      if (t.id === "shortcuts-modal") closeHelp();
+    });
 
     // 鼠标点击卡片时，将焦点索引同步到该卡片，避免鼠标与键盘脱节
     const area = document.getElementById("archive-content-area");

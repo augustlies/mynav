@@ -137,6 +137,7 @@
   }
 
   function renderDrawer() {
+    bindDrawer();
     const list = document.getElementById("uncatalogued-list");
     const count = document.getElementById("uncatalogued-count");
     const sites = getAll();
@@ -154,6 +155,7 @@
   }
 
   function open() {
+    bindDrawer();
     const drawer = document.getElementById("uncatalogued-drawer");
     const backdrop = document.getElementById("uncatalogued-backdrop");
     if (!drawer || !backdrop) return;
@@ -167,6 +169,7 @@
   }
 
   function close() {
+    if (!drawerBound) return;
     const drawer = document.getElementById("uncatalogued-drawer");
     const backdrop = document.getElementById("uncatalogued-backdrop");
     if (!drawer || !backdrop) return;
@@ -322,12 +325,49 @@
     bound = true;
     const entry = document.getElementById("btn-uncatalogued-entry");
     const mobileEntry = document.getElementById("btn-uncatalogued-mobile");
+    if (entry) entry.addEventListener("click", open);
+    if (mobileEntry) mobileEntry.addEventListener("click", open);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "u" || event.key === "U") {
+        const target = event.target;
+        const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) return;
+        if (isDrawerOpen()) return;
+        event.preventDefault();
+        open();
+      }
+      if (event.key === "Escape" && isDrawerOpen()) {
+        event.preventDefault();
+        close();
+      }
+    });
+    document.addEventListener("click", function (event) {
+      const potential = event.target.closest("[data-uncatalogued-open-drawer]");
+      if (!potential) return;
+      event.preventDefault();
+      open();
+      const siteId = potential.getAttribute("data-uncatalogued-open-drawer");
+      const card = document.querySelector('[data-uncatalogued-id="' + siteId.replace(/"/g, '\\"') + '"]');
+      if (card) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
+
+  // Batch 3：抽屉标记首屏收在 <template data-lazy-dom="uncatalogued"> 里；
+  // 第一次打开（或飞鸽收件后刷新列表）时才取出并绑定，启动时不碰它。
+  let drawerBound = false;
+  function isDrawerOpen() {
+    if (!drawerBound) return false;
+    const drawer = document.getElementById("uncatalogued-drawer");
+    return Boolean(drawer && !drawer.hidden);
+  }
+
+  function bindDrawer() {
+    if (drawerBound) return;
+    drawerBound = true;
     const closeBtn = document.getElementById("btn-close-uncatalogued");
     const backdrop = document.getElementById("uncatalogued-backdrop");
     const addBtn = document.getElementById("btn-uncatalogued-add");
     const form = document.getElementById("uncatalogued-form");
-    if (entry) entry.addEventListener("click", open);
-    if (mobileEntry) mobileEntry.addEventListener("click", open);
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (backdrop) backdrop.addEventListener("click", close);
     if (addBtn) addBtn.addEventListener("click", addFromForm);
@@ -337,24 +377,6 @@
         addFromForm();
       });
     }
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "u" || event.key === "U") {
-        const target = event.target;
-        const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
-        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) return;
-        const drawer = document.getElementById("uncatalogued-drawer");
-        if (drawer && !drawer.hidden) return;
-        event.preventDefault();
-        open();
-      }
-      if (event.key === "Escape") {
-        const drawer = document.getElementById("uncatalogued-drawer");
-        if (drawer && !drawer.hidden) {
-          event.preventDefault();
-          close();
-        }
-      }
-    });
     const list = document.getElementById("uncatalogued-list");
     const categorySelect = document.getElementById("uncatalogued-category");
     if (categorySelect) {
@@ -386,15 +408,6 @@
         }
       });
     }
-    document.addEventListener("click", function (event) {
-      const potential = event.target.closest("[data-uncatalogued-open-drawer]");
-      if (!potential) return;
-      event.preventDefault();
-      open();
-      const siteId = potential.getAttribute("data-uncatalogued-open-drawer");
-      const card = document.querySelector('[data-uncatalogued-id="' + siteId.replace(/"/g, '\\"') + '"]');
-      if (card) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    });
   }
 
   function init() {

@@ -140,6 +140,8 @@
         run: function () {
           if (window.NavUncatalogued && typeof window.NavUncatalogued.open === "function") {
             window.NavUncatalogued.open();
+          } else if (window.NavLazy && typeof window.NavLazy.run === "function") {
+            window.NavLazy.run("uncatalogued", function (mod) { mod.open(); });
           }
         }
       },
@@ -252,11 +254,17 @@
         label: "巡检星轨 · 探测全馆连通性与延迟",
         hint: "Star Probe",
         run: function (options) {
+          // `/ping sandbox` exercises the deterministic drill so automated
+          // runs never fan out into 36 cross-origin requests.
+          const mock = Boolean(options && options.mock);
           if (window.NavTelemetry && typeof window.NavTelemetry.probeAll === "function") {
-            // `/ping sandbox` exercises the deterministic drill so automated
-            // runs never fan out into 36 cross-origin requests.
-            const mock = Boolean(options && options.mock);
             window.NavTelemetry.probeAll({ mock: mock });
+          } else if (window.NavLazy && typeof window.NavLazy.run === "function") {
+            // Batch 3：探针改为首屏后载入；万一还没到，先载入再巡检。
+            window.NavLazy.run("probe", function () {
+              if (window.NavApp && typeof window.NavApp.initBootModules === "function") window.NavApp.initBootModules();
+              if (window.NavTelemetry && typeof window.NavTelemetry.probeAll === "function") window.NavTelemetry.probeAll({ mock: mock });
+            });
           }
         }
       },
