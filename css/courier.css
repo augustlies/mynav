@@ -434,6 +434,10 @@ body.courier-open {
   display: none;
 }
 
+/* Batch 3：ingest 模式下最后一块可见的「盖章确认匣」后面跟着被隐藏的 Notion 面板，
+   :last-child 落不到它身上，导致底部残留一条虚线；这里直接收掉。 */
+#courier-modal[data-courier-mode="ingest"] .courier-section[data-courier-pane="ingest"]:has(+ [data-courier-pane]:not([data-courier-pane="ingest"])),
+#courier-modal[data-courier-mode="ingest"] .courier-section[data-courier-pane="ingest"]:last-of-type,
 #courier-modal[data-courier-mode="sync"] .courier-section.is-active-pane {
   border-bottom: 0;
   margin-bottom: 0;
