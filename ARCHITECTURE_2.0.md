@@ -270,3 +270,12 @@ NavSchema.hostnameOf(url)                    // 安全取 hostname，异常返�
 **联邦星图的例外**：邻馆沙盒条目不是用户确认的来源，`federation.js` 对非本馆节点只输出内联徽标，避免陌生域名探测把 404 噪声带进控制台；本馆节点仍走正常解析。
 
 **尺寸与主题**：`.archive-icon-box` 统一 `inline-flex` + `object-fit: contain`；`.card--monograph` 40px、`.card--archive/.card--full` 34px、`.card--slip` 24px；`[data-theme="dark"]` 追加 `drop-shadow(0 0 1px …0.35)` 背光，`[data-sanctum="shadow"]` 换成暗红底座。
+
+## 7. Phase 5 · Batch 2 / 3 结构补记
+- **启动**：`index.html` 同步预置主题 → defer 脚本（`data.js`、`js/lazy.js`、核心模块、`app.js`）→ Stage 1 渲染卡片 → 空闲时载入粒子与底纹。
+- **按需模块**：`js/lazy.js` 的 `MODULES` 表登记模块 JS/CSS 与版本号；首次点击/按键/右键/长按时 `ensure(name)` 载入后重放事件。改动模块须同步改表内 `?v=`。
+- **懒 DOM**：低频弹窗标记在 `<template data-lazy-dom>`，`NavDom.ensure(id)` 或 `getElementById` 落空时取出，ID 不变。
+- **离线**：`sw.js` 由 `node scripts/build-sw.js` 生成清单；入口页与 `data.js` 缓存优先 + 后台回源，新版下次打开生效。
+- **检索**：`js/engine.js` 引擎表 Google / Bing / 站内 / GitHub / 群星会诊，切换时派发 `mynav-engine-changed`；`app.js` 负责回车路由、无结果外搜按钮、最近检索（`mynav_recent_searches_v1`，最多 8 条）。
+- **探针**：`js/probe.js`（别名 `NavTelemetry`）巡检后派发 `mynav-probe-updated`；离线且可信时卡片加 `data-link-suspect`，星点加 `.is-suspect`。
+- **归档**：下线模块在 `archive/retired-batch2/`，不进离线清单。

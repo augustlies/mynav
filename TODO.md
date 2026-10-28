@@ -65,3 +65,11 @@
 - [x] **Bookmarklet 源头捕获**：`js/courier.js` 自动提取 `apple-touch-icon` / `icon` 绝对地址并以 `&icon=` 回传，`courier.js` / `overrides.js` 持久化为 `favicon`；Notion 导出新增 `Icon` 列（十列）。
 - [x] **三级尺寸与三套主题护盾**：40 / 34 / 24px 底座，浅色日晷 / 深色观星台 / 暗月密室三套边框与背光；顺带修复暗月倾斜导致的 1440 断点 8px 横向溢出。
 - [x] **验收**：`artifacts/visual-qa/icons-2026-10-21/acceptance.js` 全绿 —— 36/36 图标解码、三档尺寸、9 断点（1440/1280/1024/900/899/768/640/390/375）零溢出、冷启动 0 三方请求 / 0 控制台错误 / 0 失败请求、DOM 级降级链终止于内联 SVG；`phase01 / phase02 / phase03a / phase03b / phase05-perf` 回归全绿。
+
+## 🧹 Phase 5 · Batch 2 / Batch 3（减法、提速、检索）
+- [x] Batch 2：首帧主题、SW 离线、馆务抽屉 `.`、四项功能下线归档、12 个懒模块、CSS 拆分、`_headers`（见 `CHANGELOG_PHASE5_BATCH2.md`）
+- [x] Batch 3：入口缓存优先、懒 DOM、常驻案头按点击排序、Bing、无结果外搜、最近检索词、疑似失效朱砂点、卡片外围降噪（见 `CHANGELOG_BATCH3.md`）
+- [ ] `hark/batch3` 真机验收后合入 main
+- [ ] 视觉底座校准余项（`STEP7B_VISUAL_PROMPT.md`）：浅色 `--text-faint` 对比度、小字下限、`--space-*` / `--z-*` 变量化、触屏常显悬停入口
+- [ ] 疑似失效：国内网络下被墙站点会被判离线，考虑加「忽略此站」或白名单
+- [ ] 1440 宽刊头「VOL. 2026 · PRIVATE COLLECTION」仍折两行，可再收窄
