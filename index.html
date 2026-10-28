@@ -1018,6 +1018,33 @@
       };
     })();
   </script>
+  <script>
+    /* Batch 3 · 打开即可打字：桌面端把焦点放进索书框（≤640px 不抢，免得弹键盘；带 ?ingest= 或已有弹窗/焦点时不抢）。
+       自动聚焦且框内为空时，「.」「?」仍当快捷键用（馆务抽屉 / 快捷键指南）；字母照常输入，按 Esc 离开索书框即恢复单键快捷键。 */
+    (function () {
+      var input = document.getElementById("archive-search-input");
+      if (!input) return;
+      try { if (new URLSearchParams(location.search).get("ingest") !== null) return; } catch (e) {}
+      if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) return;
+      if (document.activeElement && document.activeElement !== document.body) return;
+      if (document.body.classList.contains("modal-open")) return;
+      input.focus({ preventScroll: true });
+      if (document.activeElement !== input) return;
+      input.setAttribute("data-autofocused", "true");
+      function release() { input.removeAttribute("data-autofocused"); }
+      input.addEventListener("input", release, { once: true });
+      input.addEventListener("pointerdown", release, { once: true });
+      input.addEventListener("blur", release, { once: true });
+      window.addEventListener("keydown", function (e) {
+        if (e.target !== input || !input.hasAttribute("data-autofocused") || input.value !== "") return;
+        if ((e.key !== "." && e.key !== "?") || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        input.blur();
+        document.body.dispatchEvent(new KeyboardEvent("keydown", { key: e.key, code: e.code, shiftKey: e.shiftKey, bubbles: true, cancelable: true }));
+      }, true);
+    })();
+  </script>
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.8.0" defer></script>
   <script src="js/lazy.js?v=b3.1" defer></script>

@@ -2059,6 +2059,10 @@
       window.__BOOT_TIMING__.stage1End = Math.round(performance.now() * 100) / 100;
     }
     loadBootModules();
+    // Batch 3：索书框首帧即可聚焦打字；脚本就位前已经敲进去的字，这里补一次检索。
+    if (dom.searchInput && dom.searchInput.value) {
+      dom.searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
 
     // 挂载全局刷新方法并监听修改层变化事件
     window.NavApp = {
