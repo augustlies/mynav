@@ -7536,3 +7536,69 @@ html.deco-pending .archive-wrapper::before { display: none !important; }
   cursor: help;
   pointer-events: auto;
 }
+
+/* ==========================================================================
+   Batch 3 · 视觉降噪（第二批）：卡片外围减噪 / 刊头与书脊节奏统一 / 手机大触点
+   只做减法与归位，EX LIBRIS 宋体、表格数字、羊皮纸/黄铜/星点不变。
+   ========================================================================== */
+/* 1. 卡片四角定位角标：常态隐去，悬停时淡淡浮现 */
+.folio-main .entry-card::after {
+  opacity: 0;
+  transition: opacity 0.24s var(--ease-quick, ease);
+}
+.folio-main .entry-card:hover::after,
+.folio-main .entry-card:focus-within::after {
+  opacity: 0.45;
+}
+/* 2. 卡脚重复的「№ xx」：保留可点的批注索书号，跳转箭头不再重复编号 */
+.folio-main .card-jump-mark .card-call-number {
+  display: none;
+}
+/* 主卷右侧已有大号 № 印鉴（>640px 才显示），卡脚那枚小号的去掉 */
+@media (min-width: 641px) {
+  .folio-main .card--monograph .card-bottom-actions .card-slip-marginalia-trigger {
+    display: none;
+  }
+}
+/* 3. 细碎英文小标签减半：书脊「ARCHIVE SECTIONS」、刊头 PRIVATE INDEX 行 */
+.spine-nav .spine-aux-item + .index-tab-item:not(.spine-aux-item)::after {
+  content: none;
+}
+.ex-libris-plate .plate-imprint {
+  display: none;
+}
+/* 4. 刊头 / 书脊 / 卡脚数字统一表格数字与字号档位 */
+.ex-libris-plate .masthead-issue,
+.ex-libris-plate .plate-meta-row,
+.spine-nav .index-tab-item,
+.card-bottom-actions,
+.card-slip-index {
+  font-variant-numeric: tabular-nums;
+}
+.ex-libris-plate .masthead-issue,
+.ex-libris-plate .plate-meta-row {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+}
+.card-slip-marginalia-trigger,
+.card-jump-mark {
+  font-size: 12px;
+}
+/* 5. ≤640px：卡片与收藏键做成真正好按的触点 */
+@media (max-width: 640px) {
+  .folio-main .entry-card.card--slip {
+    min-height: 64px;
+  }
+  .folio-main .entry-card .btn-bookmark {
+    width: 44px;
+    height: 44px;
+  }
+  .folio-main .card-jump-mark,
+  .folio-main .card-slip-marginalia-trigger,
+  .folio-main .btn-bookplate {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
