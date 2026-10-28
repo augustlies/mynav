@@ -7462,3 +7462,66 @@ html.deco-pending .archive-wrapper::before { display: none !important; }
   contain-intrinsic-size: auto 720px;
 }
 @media print { .archive-section { content-visibility: visible; } }
+
+/* Batch 3 · 最近检索词 + 无结果外搜 */
+.search-recent-chips {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 16px;
+  z-index: 89;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-medium);
+  border-top: 2px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--bg-surface) 98%, transparent);
+  box-shadow: var(--shadow-lift);
+}
+.search-recent-chips[hidden] { display: none; }
+.recent-chips-label {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+.recent-chip {
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-main);
+  background: transparent;
+  border: 1px solid var(--border-card);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.recent-chip:hover, .recent-chip:focus-visible { border-color: var(--accent-brass); color: var(--accent-brass); }
+.recent-chips-clear {
+  margin-left: auto;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.recent-chips-clear:hover { color: var(--accent-stamp); }
+.empty-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.btn-empty-external { border-color: var(--accent-brass); }
+.btn-empty-kbd { margin-left: 6px; opacity: 0.6; font-size: 0.9em; }
+@media (max-width: 640px) {
+  .search-recent-chips { left: 0; right: 0; }
+  .recent-chip { padding: 6px 12px; font-size: 14px; }
+}

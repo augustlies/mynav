@@ -539,6 +539,110 @@
     if (AGENT_PROBE_URL) window.open(AGENT_PROBE_URL, "_blank");
   }
 
+  // ==========================================================================
+  // Batch 3 · 无结果外搜 + 最近检索词（本地，最多 8 条）
+  // ==========================================================================
+  const RECENT_SEARCH_KEY = "mynav_recent_searches_v1";
+  const RECENT_SEARCH_LIMIT = 8;
+
+  function getExternalEngineName() {
+    const engine = window.NavEngine && typeof window.NavEngine.getCurrent === "function"
+      ? window.NavEngine.getCurrent() : null;
+    if (!engine) return "Google";
+    if (engine.id === "constellation") return "群星会诊";
+    return engine.url ? engine.name : "Google";
+  }
+
+  function searchExternalFromEmpty(rawQuery) {
+    const query = String(rawQuery || "").trim();
+    if (!query) return false;
+    rememberSearch(query);
+    const engine = window.NavEngine && typeof window.NavEngine.getCurrent === "function"
+      ? window.NavEngine.getCurrent() : null;
+    if (engine && (engine.url || engine.id === "constellation") &&
+      typeof window.NavEngine.searchExternal === "function") {
+      return window.NavEngine.searchExternal(query);
+    }
+    // 站内模式：按钮是显式点击，交给 Google；回车仍守站内不跳外网的约定。
+    window.open("https://www.google.com/search?q=" + encodeURIComponent(query), "_blank", "noopener,noreferrer");
+    return true;
+  }
+
+  function getRecentSearches() {
+    try {
+      const list = JSON.parse(localStorage.getItem(RECENT_SEARCH_KEY) || "[]");
+      return Array.isArray(list) ? list.filter(function (t) { return typeof t === "string" && t; }).slice(0, RECENT_SEARCH_LIMIT) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function rememberSearch(query) {
+    const term = String(query || "").trim().slice(0, 60);
+    if (!term || isSecretCode(term) || isCommandQuery(term) || isLibrarianPrefix(term)) return;
+    const list = getRecentSearches().filter(function (t) { return t !== term; });
+    list.unshift(term);
+    try { localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(list.slice(0, RECENT_SEARCH_LIMIT))); } catch (e) {}
+  }
+
+  function updateRecentChips() {
+    const host = document.getElementById("search-recent-chips");
+    const input = dom.searchInput;
+    if (!host || !input) return;
+    const terms = getRecentSearches();
+    const commandsOpen = document.getElementById("folio-command-panel");
+    const show = document.activeElement === input && !input.value && terms.length > 0 &&
+      !(commandsOpen && !commandsOpen.hidden);
+    if (!show) {
+      host.hidden = true;
+      return;
+    }
+    host.innerHTML = '<span class="recent-chips-label">近检</span>' + terms.map(function (t) {
+      return '<button type="button" class="recent-chip" data-recent-term="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>';
+    }).join("") + '<button type="button" class="recent-chips-clear" data-recent-clear title="清除最近检索">清除</button>';
+    host.hidden = false;
+  }
+
+  function bindRecentChips() {
+    const input = dom.searchInput;
+    if (!input) return;
+    let host = document.getElementById("search-recent-chips");
+    if (!host) {
+      const section = input.closest(".archive-search-section");
+      if (!section) return;
+      host = document.createElement("div");
+      host.id = "search-recent-chips";
+      host.className = "search-recent-chips";
+      host.setAttribute("aria-label", "最近检索");
+      host.hidden = true;
+      section.appendChild(host);
+    }
+    // mousedown 先 preventDefault，焦点留在索书框里。
+    host.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    host.addEventListener("click", function (e) {
+      const clear = e.target.closest("[data-recent-clear]");
+      if (clear) {
+        try { localStorage.removeItem(RECENT_SEARCH_KEY); } catch (err) {}
+        host.hidden = true;
+        input.focus();
+        return;
+      }
+      const chip = e.target.closest("[data-recent-term]");
+      if (!chip) return;
+      setSearchValue(chip.getAttribute("data-recent-term"));
+      input.focus();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      host.hidden = true;
+    });
+    input.addEventListener("focus", updateRecentChips);
+    input.addEventListener("input", updateRecentChips);
+    input.addEventListener("blur", function () { host.hidden = true; });
+    document.addEventListener("mynav-engine-changed", function () {
+      const name = getExternalEngineName();
+      document.querySelectorAll("[data-external-engine-label]").forEach(function (el) { el.textContent = name; });
+    });
+  }
+
   // Central Enter route. The hidden probe code is checked before any
   // command/search routing; input-method composition is never intercepted.
   function routeSearchEnter(event) {
@@ -576,6 +680,7 @@
 
     const query = value.trim();
     if (!query) return true;
+    rememberSearch(query);
 
     // Cmd/Ctrl+Shift+Enter is a dedicated multi-cast gesture. It must not
     // pass through the ordinary single-engine Shift+Enter branch below.
@@ -964,9 +1069,14 @@
         <div class="empty-state-symbol" aria-hidden="true">❦</div>
         <h3 class="empty-state-headline">馆藏目录未检索到 “${escapeHtml(query)}”</h3>
         <p class="empty-state-text">暂无完全匹配之书卷。您可以尝试缩短检索词、使用拼音简拼（如 kl、ds、xtjj、yq）或点击下方标签展开探索。</p>
-        <button type="button" class="btn-empty-action" data-empty-action="resetSearch">
-          清空检索
-        </button>
+        <div class="empty-action-row">
+          <button type="button" class="btn-empty-action btn-empty-external" data-empty-action="externalSearch" title="回车同样跳转">
+            用 <span data-external-engine-label>${escapeHtml(getExternalEngineName())}</span> 搜「${escapeHtml(query)}」<span class="btn-empty-kbd" aria-hidden="true">↵</span>
+          </button>
+          <button type="button" class="btn-empty-action" data-empty-action="resetSearch">
+            清空检索
+          </button>
+        </div>
 
         <div class="empty-recommendation-box">
           <div class="empty-recommendation-title">—— 馆席精选藏目推荐 ——</div>
@@ -1376,6 +1486,8 @@
       return false;
     }
 
+    bindRecentChips();
+
     // 搜索框元素事件监听：捕获阶段先于 engine.js 和 shortcuts.js。
     if (dom.searchInput) {
       dom.searchInput.addEventListener("keydown", function (e) {
@@ -1665,6 +1777,8 @@
         const action = emptyBtn.getAttribute("data-empty-action");
         if (action === "resetSearch") {
           resetSearch({ render: true });
+        } else if (action === "externalSearch") {
+          searchExternalFromEmpty((dom.searchInput && dom.searchInput.value) || state.searchQuery || "");
         } else if (action === "viewAll") {
           switchCategory("all");
         }
@@ -1675,6 +1789,7 @@
       const card = e.target.closest(".entry-card");
       if (card) {
         const siteId = card.getAttribute("data-site-id");
+        if (state.searchQuery) rememberSearch(state.searchQuery);
         const marginaliaToggle = e.target.closest("[data-marginalia-toggle]");
         if (marginaliaToggle) {
           e.preventDefault();

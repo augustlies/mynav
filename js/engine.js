@@ -103,6 +103,10 @@
       searchInput.setAttribute("placeholder", getEnginePlaceholder(targetEngine));
     }
 
+    try {
+      document.dispatchEvent(new CustomEvent("mynav-engine-changed", { detail: { id: currentEngineId } }));
+    } catch (e) {}
+
     // 持久化存储
     try {
       localStorage.setItem(STORAGE_KEY, currentEngineId);
