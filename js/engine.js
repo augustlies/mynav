@@ -30,6 +30,12 @@
       url: "https://www.google.com/search?q=关键词"
     },
     {
+      id: "bing",
+      name: "Bing",
+      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 Bing... (Tab 切换引擎)",
+      url: "https://www.bing.com/search?q=关键词"
+    },
+    {
       id: "site",
       name: "站内",
       placeholder: "检索书名、简介、标签或域名，/ 调出馆内命令...",
@@ -152,7 +158,7 @@
     }
     if (!engine || !engine.url) {
       if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
-        window.NavShortcuts.showToast("站内模式不跳外网", "Tab 切换到 Google 或 GitHub", "ℹ");
+        window.NavShortcuts.showToast("站内模式不跳外网", "Tab 切换到 Google / Bing / GitHub", "ℹ");
       }
       return false;
     }

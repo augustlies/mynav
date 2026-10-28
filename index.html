@@ -27,7 +27,7 @@
       });
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=b3.5">
+  <link rel="stylesheet" href="styles.css?v=b3.6">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -131,6 +131,7 @@
               <div id="search-engine-picker" class="search-engine-picker is-external" title="切换搜索引擎 (Tab 循环切换)">
                 <select id="search-engine-select" class="search-engine-select" aria-label="切换搜索引擎">
                 <option value="google" selected>Google</option>
+                  <option value="bing">Bing</option>
                   <option value="site">站内</option>
                   <option value="github">GitHub</option>
                 </select>
@@ -1020,26 +1021,26 @@
   </script>
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.8.0" defer></script>
-  <script src="js/lazy.js?v=b3.5" defer></script>
+  <script src="js/lazy.js?v=b3.6" defer></script>
   <script src="js/storage.js?v=2.0.0" defer></script>
-  <script src="js/schema.js?v=b3.5" defer></script>
+  <script src="js/schema.js?v=b3.6" defer></script>
   <script src="js/ledger.js?v=4.1.0" defer></script>
   <script src="js/overrides.js?v=4.2.0" defer></script>
   <script src="js/theme.js?v=1.7.0" defer></script>
   <script src="js/favorites.js?v=1.7.0" defer></script>
   <script src="js/visits.js?v=2.0.0" defer></script>
   <script src="js/search.js?v=1.7.0" defer></script>
-  <script src="js/engine.js?v=2.0.0" defer></script>
+  <script src="js/engine.js?v=b3.6" defer></script>
   <script src="js/motion.js?v=1.7.0" defer></script>
   <script src="js/sortable.js?v=1.7.0" defer></script>
-  <script src="js/shortcuts.js?v=b3.5" defer></script>
-  <script src="js/commands.js?v=b3.5" defer></script>
-  <script src="js/hall.js?v=b3.5" defer></script>
+  <script src="js/shortcuts.js?v=b3.6" defer></script>
+  <script src="js/commands.js?v=b3.6" defer></script>
+  <script src="js/hall.js?v=b3.6" defer></script>
   <script src="js/folio-keys.js?v=2.0.0" defer></script>
   <script src="js/marginalia.js?v=2.0.0" defer></script>
   <script src="js/constellations.js?v=2.0.0" defer></script>
   <script src="js/sanctum.js?v=2.0.0" defer></script>
-  <script src="app.js?v=b3.5" defer></script>
+  <script src="app.js?v=b3.6" defer></script>
   <div id="net-status" class="net-status" role="status" aria-live="polite" hidden></div>
   <script>
     /* 离线开馆：注册 Service Worker（入口页缓存优先，秒开）；离线小签与「已更新，下次打开生效」提示 */
