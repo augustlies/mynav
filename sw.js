@@ -1,16 +1,19 @@
 /**
- * 离线开馆 Service Worker（Batch 2）
- * - 页面 HTML：网络优先，3 秒没回应或断网时用本地缓存，所以断网也能打开整座馆
- * - 样式 / 脚本 / 图标：缓存优先，后台静默更新
- * - /api/ 与跨站请求：一律不经手（云同步、探针、守馆人照常走网络）
+ * 离线开馆 Service Worker（Batch 3 · 秒开）
+ * - 入口页（/、/index.html，含 ?ingest= 等查询串）：缓存优先，立即用本地副本开馆；
+ *   后台静默回源比对，有新版时先把新页面引用的脚本/样式补进缓存，再替换本地副本，
+ *   下一次打开生效（不强制刷新），并给页面发一条 mynav-updated 消息。
+ * - data.js：缓存优先，后台回源；馆主直接替换 data.js（不改版本号）也会在下次打开时生效。
+ * - 其余样式 / 脚本 / 图标：缓存优先，后台静默更新。
+ * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "2360e1bf4f";
+const CACHE_VERSION = "bd2ee680ec";
 const PRECACHE = [
   "./",
   "./index.html",
   "./404.html",
-  "./styles.css?v=5.1.0-batch2",
+  "./styles.css?v=5.2.0-b3a",
   "./favicon.svg",
   "./data.js?v=1.8.0",
   "./js/lazy.js?v=5.1.0.1",
@@ -99,56 +102,174 @@ const PRECACHE = [
   "./icons/tool-tinypng.png",
   "./icons/tool-yuque.png"
 ];
-const CACHE_NAME = "mynav-" + CACHE_VERSION;
+const CACHE_PREFIX = "mynav-";
+const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
+const SHELL_KEYS = ["./", "./index.html"];
+
+// Cloudflare Pages 会把 /index.html 308 到 /；带 redirected 标记的响应不能直接回给导航请求，这里统一洗掉。
+async function clean(response) {
+  if (!response || !response.redirected) return response;
+  const body = await response.blob();
+  return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
+}
+
+function scopeUrl(path) {
+  return new URL(path, self.registration.scope).href;
+}
+
+function isShellRequest(url) {
+  const scopePath = new URL(self.registration.scope).pathname;
+  return url.pathname === scopePath || url.pathname === scopePath + "index.html";
+}
+
+function isDataRequest(url) {
+  return url.pathname === new URL(self.registration.scope).pathname + "data.js";
+}
+
+async function broadcast(message) {
+  const list = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
+  list.forEach((client) => client.postMessage(message));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       Promise.all(PRECACHE.map((url) =>
-        cache.add(new Request(url, { cache: "reload" })).catch(() => null)
+        fetch(new Request(url, { cache: "reload" }))
+          .then(clean)
+          .then((response) => (response && response.ok ? cache.put(url, response) : null))
+          .catch(() => null)
       ))
     ).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (event) => {
+  // 保留上一版缓存一代：仍开着的旧页面按需载入旧 ?v= 模块时不会落空；更早的版本清掉。
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("mynav-") && k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then((keys) => {
+        const old = keys.filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME);
+        return Promise.all(old.slice(0, Math.max(0, old.length - 1)).map((k) => caches.delete(k)));
+      })
       .then(() => self.clients.claim())
   );
 });
+
+async function matchShell() {
+  const cache = await caches.open(CACHE_NAME);
+  for (const key of SHELL_KEYS) {
+    const hit = await cache.match(key);
+    if (hit) return hit;
+  }
+  for (const key of SHELL_KEYS) {
+    const hit = await caches.match(key);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+let shellRevalidating = null;
+function revalidateShell() {
+  if (!shellRevalidating) {
+    shellRevalidating = doRevalidateShell().catch(() => null).then(() => { shellRevalidating = null; });
+  }
+  return shellRevalidating;
+}
+
+async function doRevalidateShell() {
+  const response = await clean(await fetch(new Request(scopeUrl("./"), { cache: "no-cache", credentials: "same-origin" })));
+  if (!response || !response.ok) return;
+  const text = await response.clone().text();
+  const cache = await caches.open(CACHE_NAME);
+  const current = await matchShell();
+  if (current && (await current.clone().text()) === text) return;
+  // 新页面引用的本地脚本 / 样式先补进缓存，补齐了才替换入口页，保证下一次（哪怕断网）开馆版本一致。
+  const refs = new Set();
+  for (const m of text.matchAll(/<(?:script|link)[^>]+(?:src|href)="([^"]+)"/g)) {
+    const ref = m[1];
+    if (/^(https?:)?\/\//.test(ref) || ref.startsWith("data:") || ref.startsWith("#")) continue;
+    refs.add(scopeUrl(ref));
+  }
+  let complete = true;
+  for (const ref of refs) {
+    if (await caches.match(ref)) continue;
+    try {
+      const fresh = await clean(await fetch(new Request(ref, { cache: "no-cache" })));
+      if (fresh && fresh.ok) await cache.put(ref, fresh);
+      else complete = false;
+    } catch (err) {
+      complete = false;
+    }
+  }
+  self.registration.update().catch(() => null);
+  if (!complete) return;
+  await Promise.all(SHELL_KEYS.map((key) => cache.put(key, new Response(text, {
+    status: 200,
+    headers: { "Content-Type": response.headers.get("Content-Type") || "text/html; charset=utf-8" }
+  }))));
+  if (current) broadcast({ type: "mynav-updated", what: "shell" });
+}
+
+async function serveShell(request, event) {
+  const cached = await matchShell();
+  if (cached) {
+    event.waitUntil(revalidateShell());
+    return cached;
+  }
+  try {
+    const response = await clean(await fetch(request));
+    if (response && response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      const copy = await response.clone().text();
+      await Promise.all(SHELL_KEYS.map((key) => cache.put(key, new Response(copy, { status: 200, headers: response.headers }))));
+    }
+    return response;
+  } catch (err) {
+    return (await caches.match("./404.html")) || Response.error();
+  }
+}
 
 function timeout(ms) {
   return new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 }
 
+// 其他页面（如 404.html）：网络优先，3 秒没回应或断网时退回缓存。
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const response = await Promise.race([fetch(request), timeout(3000)]);
+    const response = await clean(await Promise.race([fetch(request), timeout(3000)]));
     if (response && response.ok) cache.put(request, response.clone());
     return response;
   } catch (err) {
-    return (await cache.match(request, { ignoreSearch: true }))
-      || (await cache.match("./index.html"))
+    return (await caches.match(request, { ignoreSearch: true }))
+      || (await matchShell())
       || Response.error();
   }
 }
 
-async function staleWhileRevalidate(request, event) {
+async function staleWhileRevalidate(request, event, watchChanges) {
   const cache = await caches.open(CACHE_NAME);
-  // 只认完全相同的地址（含 ?v=）：版本号一变就走网络拿新文件；断网时才退回旧版本兜底。
-  const cached = await cache.match(request);
-  const refresh = fetch(request).then((response) => {
-    if (response && response.ok) cache.put(request, response.clone());
-    return response;
+  // 先认完全相同的地址（含 ?v=）；版本号一变就走网络拿新文件；断网时才退回旧版本兜底。
+  const cached = (await cache.match(request)) || (await caches.match(request));
+  const refresh = fetch(request, watchChanges ? { cache: "no-cache" } : undefined).then(async (response) => {
+    const fresh = await clean(response);
+    if (fresh && fresh.ok) {
+      if (watchChanges && cached) {
+        const [a, b] = await Promise.all([cached.clone().text(), fresh.clone().text()]);
+        await cache.put(request, fresh.clone());
+        if (a !== b) broadcast({ type: "mynav-updated", what: "data" });
+      } else {
+        await cache.put(request, fresh.clone());
+      }
+    }
+    return fresh;
   }).catch(() => null);
   if (cached) {
     event.waitUntil(refresh);
     return cached;
   }
-  return (await refresh) || (await cache.match(request, { ignoreSearch: true })) || Response.error();
+  return (await refresh) || (await caches.match(request, { ignoreSearch: true })) || Response.error();
 }
 
 self.addEventListener("fetch", (event) => {
@@ -158,8 +279,8 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
   if (request.mode === "navigate" || request.destination === "document") {
-    event.respondWith(networkFirst(request));
+    event.respondWith(isShellRequest(url) ? serveShell(request, event) : networkFirst(request));
     return;
   }
-  event.respondWith(staleWhileRevalidate(request, event));
+  event.respondWith(staleWhileRevalidate(request, event, isDataRequest(url)));
 });

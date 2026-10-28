@@ -7423,3 +7423,23 @@ html[data-theme="light"] { color-scheme: light; }
     animation: none;
   }
 }
+
+/* Batch 3 · 离线小签 / 更新提示：左下角一枚不抢眼的铭牌，不挡卡片与快捷键 */
+.net-status {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 200;
+  padding: 2px 8px;
+  border: 1px solid var(--accent-brass);
+  border-radius: 2px;
+  background: var(--bg-page);
+  color: var(--text-muted);
+  font: 400 12px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  opacity: 0.82;
+  pointer-events: none;
+}
+.net-status[hidden] { display: none; }
+.net-status[data-kind="offline"]::before { content: "◌ "; }
+.net-status[data-kind="update"]::before { content: "✦ "; }

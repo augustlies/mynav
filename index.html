@@ -24,7 +24,7 @@
       });
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=5.1.0-batch2">
+  <link rel="stylesheet" href="styles.css?v=5.2.0-b3a">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -985,13 +985,39 @@
   <script src="js/sanctum.js?v=2.0.0" defer></script>
   <script src="js/probe.js?v=5.0.0" defer></script>
   <script src="app.js?v=5.0.2" defer></script>
+  <div id="net-status" class="net-status" role="status" aria-live="polite" hidden></div>
   <script>
-    /* 离线开馆：注册 Service Worker，断网时从本地缓存打开整座馆 */
-    if ("serviceWorker" in navigator && location.protocol !== "file:") {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("sw.js").catch(function () {});
+    /* 离线开馆：注册 Service Worker（入口页缓存优先，秒开）；离线小签与「已更新，下次打开生效」提示 */
+    (function () {
+      var pill = document.getElementById("net-status"), hideTimer = 0;
+      function show(text, kind, ms) {
+        if (!pill) return;
+        clearTimeout(hideTimer);
+        pill.textContent = text; pill.setAttribute("data-kind", kind); pill.hidden = false;
+        if (ms) hideTimer = setTimeout(sync, ms);
+      }
+      function sync() {
+        if (!pill) return;
+        if (navigator.onLine === false) show("离线模式", "offline", 0);
+        else { pill.hidden = true; pill.removeAttribute("data-kind"); }
+      }
+      window.addEventListener("online", sync);
+      window.addEventListener("offline", sync);
+      sync();
+      if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+      var hadController = !!navigator.serviceWorker.controller, told = false;
+      function updated() {
+        if (told || navigator.onLine === false) return;
+        told = true; show("已更新 · 下次打开生效", "update", 4000);
+      }
+      navigator.serviceWorker.addEventListener("message", function (e) {
+        if (e.data && e.data.type === "mynav-updated") updated();
       });
-    }
+      navigator.serviceWorker.addEventListener("controllerchange", function () { if (hadController) updated(); });
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(function () {});
+      });
+    })();
   </script>
 </body>
 </html>
