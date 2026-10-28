@@ -36,6 +36,11 @@
   let autoProbeEnabled = true;
   let autoProbeScheduled = false;
   let lastSummary = { probed: 0, online: 0, offline: 0, mock: false, at: 0 };
+  // Batch 3 · 疑似失效标记：只用已有巡检结果，不额外发请求。
+  // 沙盒演练、本机断网、或离线占比过高（多半是网络问题而非站点死掉）时不标。
+  const SUSPECT_MAX_RATIO = 0.6;
+  const SUSPECT_TITLE = "可能已失效，考虑替换";
+  let suspectTrusted = false;
 
   function notify(title, subtitle, icon) {
     if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
@@ -212,6 +217,9 @@
 
     probing = false;
     lastSummary = { probed: ids.length, online: online, offline: offline, mock: useMock, at: Date.now() };
+    suspectTrusted = !useMock && ids.length > 0 &&
+      !(typeof navigator !== "undefined" && navigator.onLine === false) &&
+      offline / ids.length <= SUSPECT_MAX_RATIO;
     syncCards();
     // Phase 4B · D5：巡检结果广播给网页琥珀，离线卡片的「调阅拓片」徽章
     // 依赖这次通知才会浮现。事件本身无副作用，纯通知。
@@ -265,6 +273,18 @@
     if (!node || !siteId) return;
     const entry = probes.get(siteId);
     const status = entry ? entry.status : "idle";
+    const suspect = status === "offline" && suspectTrusted && !(entry && entry.mock);
+    card.toggleAttribute("data-link-suspect", suspect);
+    node.classList.toggle("is-suspect", suspect);
+    if (suspect) {
+      node.removeAttribute("aria-hidden");
+      node.setAttribute("role", "img");
+      node.setAttribute("aria-label", SUSPECT_TITLE);
+    } else if (node.getAttribute("role") === "img") {
+      node.setAttribute("aria-hidden", "true");
+      node.removeAttribute("role");
+      node.removeAttribute("aria-label");
+    }
     node.classList.remove("is-idle", "is-online", "is-offline", "is-probing");
     node.classList.add("is-" + status);
     node.setAttribute("data-probe-status", status);
@@ -274,7 +294,7 @@
       node.title = "星轨畅通 · Δt " + latency + "ms";
     } else if (status === "offline") {
       node.setAttribute("data-latency-ms", "0");
-      node.title = "星轨受阻 / 离线";
+      node.title = suspect ? SUSPECT_TITLE : "星轨受阻 / 离线";
     } else if (status === "probing") {
       node.setAttribute("data-latency-ms", "0");
       node.title = "星轨巡检中…";

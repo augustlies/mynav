@@ -38,20 +38,20 @@
     librarian: { src: "js/librarian.js?v=4.2.0", css: "css/librarian.css?v=5.0.0", global: "NavLibrarian", ref: "Librarian", init: true },
     starmap: { src: "js/star-map.js?v=4.2.1", css: "css/starmap.css?v=5.0.0", global: "NavStarMap", ref: "StarMap" },
     contextmenu: { src: "js/contextmenu.js?v=1.7.0", css: "css/contextmenu.css?v=5.0.0", global: "NavContextMenu", ref: "ContextMenu" },
-    courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=b3.7", global: "NavCourier", ref: "Courier", init: true },
+    courier: { src: "js/courier.js?v=5.0.0", css: "css/courier.css?v=b3.8", global: "NavCourier", ref: "Courier", init: true },
     amber: { src: "js/amber.js?v=4.1.0", css: "css/amber.css?v=5.0.0", global: "NavAmber", ref: "Amber", init: true, after: "syncCards" },
     brass: { src: "js/brass-tools.js?v=3.0.0", css: "css/brass.css?v=5.0.0", global: "NavBrassTools", ref: "BrassTools", init: true },
     almanac: { src: "js/almanac.js?v=3.1.0", css: "css/almanac.css?v=5.0.0", global: "NavAlmanac", ref: "Almanac", init: true, after: "refresh" },
     snippets: { src: "js/snippets.js?v=2.0.0", css: "css/snippets.css?v=5.0.0", global: "NavSnippets", ref: "Snippets", init: true },
-    lore: { src: "js/lore.js?v=b3.7", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
+    lore: { src: "js/lore.js?v=b3.8", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
     cloudsync: { src: "js/cloud-sync.js?v=1.7.0", global: "NavCloudSync", ref: "CloudSync" },
     exlibris: { src: "js/exlibris.js?v=1.7.0", css: "css/exlibris.css?v=5.0.0", global: "NavExLibris", ref: "ExLibris", init: true },
     serendipity: { src: "js/serendipity.js?v=4.2.0", css: "css/serendipity.css?v=5.0.0", global: "NavSerendipity", ref: "Serendipity", init: true },
     particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" },
     // Batch 3：首屏后立即载入（不等空闲），init 由 app.js Stage 2 负责（boot: true = 不冲刷 Stage 2、不在这里 init）。
-    probe: { src: "js/probe.js?v=5.0.0", global: "NavProbe", ref: "Probe", boot: true },
+    probe: { src: "js/probe.js?v=b3.8", global: "NavProbe", ref: "Probe", boot: true },
     astronomy: { src: "js/astronomy.js?v=3.0.0", global: "NavAstronomy", ref: "Astronomy", boot: true },
-    uncatalogued: { src: "js/uncatalogued.js?v=b3.7", global: "NavUncatalogued", ref: "Uncatalogued", boot: true, init: true }
+    uncatalogued: { src: "js/uncatalogued.js?v=b3.8", global: "NavUncatalogued", ref: "Uncatalogued", boot: true, init: true }
   };
 
   // 点击触发：首次点击被拦下 → 加载 → 重放。

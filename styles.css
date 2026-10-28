@@ -7525,3 +7525,14 @@ html.deco-pending .archive-wrapper::before { display: none !important; }
   .search-recent-chips { left: 0; right: 0; }
   .recent-chip { padding: 6px 12px; font-size: 14px; }
 }
+
+/* Batch 3 · 疑似失效：朱砂小点 + 悬停提示（只依据已有巡检结果） */
+.card-star-probe.is-suspect {
+  width: 7px;
+  height: 7px;
+  background-color: var(--accent-stamp, #943829);
+  opacity: 0.9;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-stamp, #943829) 22%, transparent);
+  cursor: help;
+  pointer-events: auto;
+}
