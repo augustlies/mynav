@@ -338,10 +338,29 @@
       }
     });
 
-    if (window.NavSortable && result.length > 1) {
-      return window.NavSortable.sortSites("frequent", result);
-    }
-    return result;
+    return sortDeskByClicks(result);
+  }
+
+  // Batch 3：常驻案头按真实点击次数自动排序（复用 MYNAV_LEDGER_V2.accessLog，不新增存储 key）：
+  // 近 7 天点击多的在前 → 总点击多的在前 → 最近一次调阅更近的在前；从没点过的典藏卡保持原相对顺序垫后。
+  // 旧的手动「常驻案头」排序（mynav_arch_order.frequent）原样保留在本机，只是不再覆盖点击排序。
+  function sortDeskByClicks(sites) {
+    if (!window.NavLedger || typeof window.NavLedger.getStat !== "function" || sites.length <= 1) return sites;
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (RECENT_DESK_DAYS - 1));
+    const startKey = start.getFullYear() + "-" + String(start.getMonth() + 1).padStart(2, "0") + "-" + String(start.getDate()).padStart(2, "0");
+    return sites
+      .map(function (site, index) {
+        const stat = window.NavLedger.getStat(site.id) || {};
+        const recent = (stat.history || []).reduce(function (sum, item) {
+          return sum + (item && item.date >= startKey ? Math.max(0, Number(item.count) || 0) : 0);
+        }, 0);
+        return { site: site, index: index, recent: recent, total: Number(stat.count) || 0, last: Number(stat.lastVisited) || 0 };
+      })
+      .sort(function (a, b) {
+        return (b.recent - a.recent) || (b.total - a.total) || (b.last - a.last) || (a.index - b.index);
+      })
+      .map(function (item) { return item.site; });
   }
 
   function getSiteById(siteId) {
@@ -1090,7 +1109,7 @@
         dom.contentArea.innerHTML = createSectionHtml(
           "常驻案头 (高频访问)",
           "DESK",
-          "手动典藏 + 近 7 天借阅频次 Top 6",
+          "手动典藏 + 近 7 天借阅频次 Top 6 · 按点击次数排序",
           freqSites.length,
           cardsHtml,
           clearActionHtml,
