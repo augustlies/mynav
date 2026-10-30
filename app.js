@@ -1049,7 +1049,12 @@
 
     const recCardsHtml = recSites.map(s => `
       <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="empty-rec-card" title="${escapeHtml(s.name)}">
-        <span class="empty-rec-icon">${escapeHtml(s.icon || s.name.slice(0, 2))}</span>
+        <span class="empty-rec-icon">${(() => {
+          const attrs = window.NavSchema && typeof window.NavSchema.iconAttributes === "function" ? window.NavSchema.iconAttributes(s) : "";
+          return attrs
+            ? `<img class="archive-icon-img" ${attrs} alt="" loading="lazy" width="24" height="24">`
+            : escapeHtml(s.name.slice(0, 2));
+        })()}</span>
         <div class="empty-rec-meta">
           <span class="empty-rec-name">${escapeHtml(s.name)}</span>
           <span class="empty-rec-desc">${escapeHtml(s.description || '')}</span>

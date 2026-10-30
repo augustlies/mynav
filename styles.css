@@ -7602,3 +7602,10 @@ html.deco-pending .archive-wrapper::before { display: none !important; }
     align-items: center;
   }
 }
+
+.empty-rec-icon .archive-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
