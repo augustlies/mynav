@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "f973384cc8";
+const CACHE_VERSION = "fd2ddfb813";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -35,7 +35,7 @@ const PRECACHE = [
   "./js/marginalia.js?v=2.0.0",
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.0",
-  "./app.js?v=20261030a",
+  "./app.js?v=20261031a",
   "./js/librarian.js?v=4.2.0",
   "./css/librarian.css?v=5.0.0",
   "./js/star-map.js?v=4.2.1",

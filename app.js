@@ -38,8 +38,18 @@
   // 在站点页面控制台执行一次即可启用：
   //   localStorage.setItem("MYNAV_AGENT_CODE", "你的暗号")
   //   localStorage.setItem("MYNAV_PROBE_URL", "你的探针地址")
+  // 隐藏探针入口：本机 localStorage（MYNAV_AGENT_CODE / MYNAV_PROBE_URL）优先；
+  // 未配置时用内置口令指纹与混淆地址兜底，源码里不出现明文口令和 IP。
   const AGENT_SECRET_CODE = localStorage.getItem("MYNAV_AGENT_CODE") || "";
-  const AGENT_PROBE_URL = localStorage.getItem("MYNAV_PROBE_URL") || "";
+  const AGENT_CODE_FINGERPRINT = 4274260597;
+  const AGENT_PROBE_URL = localStorage.getItem("MYNAV_PROBE_URL") ||
+    (function () { try { return atob("==wLj8COwADO6ATOuAjMy4iMxIjL1MzLvoDc0RHa".split("").reverse().join("")); } catch (_) { return ""; } })();
+  function agentFingerprint(text) {
+    let h = 0x811c9dc5;
+    const bytes = new TextEncoder().encode(String(text));
+    for (let i = 0; i < bytes.length; i++) { h ^= bytes[i]; h = Math.imul(h, 0x01000193) >>> 0; }
+    return h >>> 0;
+  }
   const RECENT_DESK_DAYS = 7;
   const RECENT_DESK_LIMIT = 6;
   // ==========================================================================
@@ -492,7 +502,10 @@
   }
 
   function isSecretCode(query) {
-    return AGENT_SECRET_CODE !== "" && String(query || "").trim() === AGENT_SECRET_CODE;
+    const value = String(query || "").trim();
+    if (!value) return false;
+    if (AGENT_SECRET_CODE) return value === AGENT_SECRET_CODE;
+    return agentFingerprint(value) === AGENT_CODE_FINGERPRINT;
   }
 
   function setSearchValue(value) {
@@ -1484,7 +1497,7 @@
       const input = dom.searchInput || document.getElementById("archive-search-input");
       if (!input) return false;
       const rawVal = (input.value || "").trim();
-      if (rawVal !== "" && rawVal === AGENT_SECRET_CODE) {
+      if (isSecretCode(rawVal)) {
         openAgentProbe(e);
         return true;
       }
@@ -1521,7 +1534,7 @@
       "submit",
       function (e) {
         const input = dom.searchInput || document.getElementById("archive-search-input");
-        if (input && (input.value || "").trim() !== "" && (input.value || "").trim() === AGENT_SECRET_CODE) {
+        if (input && isSecretCode(input.value)) {
           if (handleAgentEasterEgg(e)) {
             return;
           }
