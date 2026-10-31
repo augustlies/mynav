@@ -36,3 +36,5 @@ node validate.js
 ## 技术
 
 原生 HTML / CSS / JavaScript，无框架、无构建工具。站点数据在 `data.js`，页面逻辑在 `app.js` 和 `js/` 目录下，云同步接口在 `functions/`（Cloudflare Pages Functions）。
+
+test
