@@ -18,6 +18,8 @@
  *   probe       星轨联通探针（Batch 3）：首屏装配完立即载入，不再压在首屏脚本链上
  *   astronomy   恒星时 / 月相（Batch 3）：同上
  *   uncatalogued 待编目匣（Batch 3）：同上；载入前按 U / 点入口也不落空
+ *   fx          Canvas UI GPU 特效（js/fx-canvas.js）：只在切到星图 / 暗号彩蛋触发时载入；
+ *               减弱动效时根本不请求；载入失败静默（silent，不弹 toast）
  *
  * 契约：触发前只有这里注册的轻量壳；第一次点击 / 按键不会被吞掉 ——
  * 拦下这次事件、显示加载态（aria-busy），模块就绪后原样重放一次。
@@ -51,7 +53,9 @@
     // Batch 3：首屏后立即载入（不等空闲），init 由 app.js Stage 2 负责（boot: true = 不冲刷 Stage 2、不在这里 init）。
     probe: { src: "js/probe.js?v=b3.9", global: "NavProbe", ref: "Probe", boot: true },
     astronomy: { src: "js/astronomy.js?v=3.0.0", global: "NavAstronomy", ref: "Astronomy", boot: true },
-    uncatalogued: { src: "js/uncatalogued.js?v=b3.9", global: "NavUncatalogued", ref: "Uncatalogued", boot: true, init: true }
+    uncatalogued: { src: "js/uncatalogued.js?v=b3.9", global: "NavUncatalogued", ref: "Uncatalogued", boot: true, init: true },
+    // Canvas UI 特效：纯装饰，boot: true = 不冲刷 Stage 2；silent = 失败不打扰。
+    fx: { src: "js/fx-canvas.js?v=cu.1", global: "NavFxCanvas", ref: "FxCanvas", boot: true, silent: true }
   };
 
   // 点击触发：首次点击被拦下 → 加载 → 重放。
@@ -155,7 +159,7 @@
       })
       .catch(function (error) {
         delete pending[name];
-        notifyFail(name);
+        if (!spec.silent) notifyFail(name);
         throw error;
       });
     return pending[name];

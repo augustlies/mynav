@@ -127,8 +127,20 @@
       renderContent();
       return state.archiveView;
     }
-    renderStarMapView();
+    if (renderStarMapView()) playFx("starReveal", { host: document.querySelector(".star-map-container") });
     return state.archiveView;
+  }
+
+  // Canvas UI GPU 特效（js/fx-canvas.js）：纯装饰、一次性。减弱动效时不加载；
+  // 模块经 NavLazy 按需载入，任何失败都静默吞掉，绝不影响触发它的操作。
+  function playFx(kind, data) {
+    try {
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (!window.NavLazy || typeof window.NavLazy.ensure !== "function") return;
+      window.NavLazy.ensure("fx").then(function (fx) {
+        if (fx && typeof fx.play === "function") fx.play(kind, data);
+      }).catch(function () {});
+    } catch (e) {}
   }
 
   // Phase 5：`v` 键与「视图切换」快捷动作的唯一入口 —— 书本目录 ⟷ 穹顶星图。
@@ -548,8 +560,12 @@
       if (event.stopImmediatePropagation) event.stopImmediatePropagation();
       if (event.stopPropagation) event.stopPropagation();
     }
+    // 碎玻璃特效要用清空前的暗号文字做快照；window.open 仍在本次回车里同步调用（不被弹窗拦截）。
+    const fxInput = dom.searchInput;
+    const fxValue = fxInput ? fxInput.value : "";
     resetSearch({ render: true, focus: false });
     if (AGENT_PROBE_URL) window.open(AGENT_PROBE_URL, "_blank");
+    if (fxInput) playFx("shatter", { input: fxInput, frame: fxInput.closest(".search-box-frame"), value: fxValue });
   }
 
   // ==========================================================================

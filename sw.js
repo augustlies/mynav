@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "fd2ddfb813";
+const CACHE_VERSION = "b9b4547c38";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -16,7 +16,7 @@ const PRECACHE = [
   "./styles.css?v=20261030a",
   "./favicon.svg",
   "./data.js?v=1.8.0",
-  "./js/lazy.js?v=b3.9",
+  "./js/lazy.js?v=cu.1",
   "./js/storage.js?v=2.0.0",
   "./js/schema.js?v=b3.9",
   "./js/ledger.js?v=4.1.0",
@@ -35,7 +35,7 @@ const PRECACHE = [
   "./js/marginalia.js?v=2.0.0",
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.0",
-  "./app.js?v=20261031a",
+  "./app.js?v=cu.1",
   "./js/librarian.js?v=4.2.0",
   "./css/librarian.css?v=5.0.0",
   "./js/star-map.js?v=4.2.1",
@@ -63,6 +63,7 @@ const PRECACHE = [
   "./js/probe.js?v=b3.9",
   "./js/astronomy.js?v=3.0.0",
   "./js/uncatalogued.js?v=b3.9",
+  "./js/fx-canvas.js?v=cu.1",
   "./icons/ai-chatgpt.png",
   "./icons/ai-claude.png",
   "./icons/ai-deepseek-platform.png",
