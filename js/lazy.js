@@ -44,7 +44,7 @@
     almanac: { src: "js/almanac.js?v=3.1.0", css: "css/almanac.css?v=5.0.0", global: "NavAlmanac", ref: "Almanac", init: true, after: "refresh" },
     snippets: { src: "js/snippets.js?v=2.0.0", css: "css/snippets.css?v=5.0.0", global: "NavSnippets", ref: "Snippets", init: true },
     lore: { src: "js/lore.js?v=b3.9", css: "css/lore.css?v=5.0.0", global: "NavLore", ref: "Lore", init: true },
-    cloudsync: { src: "js/cloud-sync.js?v=1.7.0", global: "NavCloudSync", ref: "CloudSync" },
+    cloudsync: { src: "js/cloud-sync.js?v=2.0.0", global: "NavCloudSync", ref: "CloudSync" },
     exlibris: { src: "js/exlibris.js?v=1.7.0", css: "css/exlibris.css?v=5.0.0", global: "NavExLibris", ref: "ExLibris", init: true },
     serendipity: { src: "js/serendipity.js?v=4.2.0", css: "css/serendipity.css?v=5.0.0", global: "NavSerendipity", ref: "Serendipity", init: true },
     particles: { src: "js/particles-bg.js?v=5.0.0", global: "NavParticlesBg", ref: "ParticlesBg" },
