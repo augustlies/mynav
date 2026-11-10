@@ -48,6 +48,31 @@ function checkAuth(request, env) {
   return { ok: true };
 }
 
+// 修改层（站内卡片编辑）的空结构
+function emptyOverrides() {
+  return { modified: {}, added: [], hidden: [], deleted: [], unhidden: [] };
+}
+
+function isPlainObject(v) {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+// 清洗修改层：结构不合法的字段各自降级为空，不整单拒绝
+function sanitizeOverrides(raw) {
+  const out = emptyOverrides();
+  if (!isPlainObject(raw)) return out;
+  if (isPlainObject(raw.modified)) out.modified = raw.modified;
+  if (Array.isArray(raw.added)) {
+    out.added = raw.added.filter((s) => isPlainObject(s)).slice(0, 500);
+  }
+  ["hidden", "deleted", "unhidden"].forEach((k) => {
+    if (Array.isArray(raw[k])) {
+      out[k] = raw[k].filter((s) => typeof s === "string").slice(0, 2000);
+    }
+  });
+  return out;
+}
+
 // 只保留白名单字段并做基本类型校验，防止脏数据进 KV
 function sanitize(data) {
   if (!data || typeof data !== "object") return null;
@@ -68,6 +93,7 @@ function sanitize(data) {
   } else {
     out.order = {};
   }
+  out.overrides = sanitizeOverrides(data.overrides);
   return out;
 }
 
