@@ -5,16 +5,23 @@
  * - PUT  /api/sync  写入云端数据，body { updatedAt, data }；
  *                    云端更新时返回 409 + 云端版本（last-write-wins）
  *
- * 认证：口令制。请求头 Authorization: Bearer <口令>，
- * 与 Pages 环境变量 SYNC_TOKEN 比对（恒定时间比对）。
- * 未带口令/口令错误 → 401；未配置 SYNC_TOKEN → 500（fail closed）。
+ * 认证：账号会话制。请求头 Authorization: Bearer <会话 token>，
+ * 服务端查 KV 的 session:<token> 得到用户名；无/过期 → 401。
+ * 会话由 /api/auth/login 或 /api/auth/register 签发。
+ * （旧的口令制 SYNC_TOKEN 已弃用，本文件不再读取该环境变量。）
+ *
+ * 档案键：profile:v2:<用户名小写>。
+ * 迁移：v2 档案不存在且旧键 profile:v1 存在时，把 v1 视为该用户的初始档案
+ * （GET 返回它、PUT 的 409 比较以它为准）；首次成功 PUT 写入 v2 后即以 v2 为准。
+ * 旧键 profile:v1 保留不删，只读遗留。
  *
  * 需要在 Pages 项目设置里配置：
  * 1. KV 绑定：变量名 MYNAV_KV
- * 2. 环境变量：SYNC_TOKEN = 你自己定的口令（不要告诉任何人，包括 AI）
  */
 
-const KV_KEY = "profile:v1";
+const KV_KEY_V1 = "profile:v1";
+const KV_PROFILE_PREFIX = "profile:v2:";
+const KV_SESSION_PREFIX = "session:";
 const MAX_BYTES = 256 * 1024; // 单份档案上限 256KB，防滥用
 
 function json(data, status = 200) {
@@ -24,28 +31,48 @@ function json(data, status = 200) {
   });
 }
 
-// 恒定时间字符串比对，防时序攻击
-function safeEqual(a, b) {
-  if (typeof a !== "string" || typeof b !== "string") return false;
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) {
-    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+// 解析 Bearer 会话 → { username, token }；无/过期/伪造一律 null
+async function getSession(context, kv) {
+  const header = context.request.headers.get("authorization") || "";
+  const m = /^Bearer (.+)$/.exec(header);
+  if (!m) return null;
+  const raw = await kv.get(KV_SESSION_PREFIX + m[1]);
+  if (!raw) return null;
+  let s;
+  try {
+    s = JSON.parse(raw);
+  } catch (e) {
+    return null;
   }
-  return diff === 0;
+  if (!s || typeof s.username !== "string") return null;
+  if (typeof s.expiresAt === "number" && s.expiresAt < Date.now()) return null;
+  return { username: s.username, token: m[1] };
 }
 
-function checkAuth(request, env) {
-  const expected = env.SYNC_TOKEN;
-  if (!expected) {
-    return { ok: false, status: 500, error: "SYNC_TOKEN 未配置：请在 Pages 设置里添加环境变量" };
+function profileKey(username) {
+  return KV_PROFILE_PREFIX + String(username).toLowerCase();
+}
+
+// 读取该用户的有效档案：优先 v2，缺失时回落到旧键 v1（迁移期只读遗留）
+// 返回 { doc } | { corrupt: true }
+async function loadProfile(kv, username) {
+  const v2raw = await kv.get(profileKey(username));
+  if (v2raw) {
+    try {
+      return { doc: JSON.parse(v2raw) };
+    } catch (e) {
+      return { corrupt: true };
+    }
   }
-  const header = request.headers.get("authorization") || "";
-  const m = /^Bearer (.+)$/.exec(header);
-  if (!m || !safeEqual(m[1], expected)) {
-    return { ok: false, status: 401, error: "unauthorized" };
+  const v1raw = await kv.get(KV_KEY_V1);
+  if (v1raw) {
+    try {
+      return { doc: JSON.parse(v1raw) };
+    } catch (e) {
+      return { corrupt: true };
+    }
   }
-  return { ok: true };
+  return { doc: null };
 }
 
 // 修改层（站内卡片编辑）的空结构
@@ -98,35 +125,31 @@ function sanitize(data) {
 }
 
 export async function onRequestGet(context) {
-  const auth = checkAuth(context.request, context.env);
-  if (!auth.ok) return json({ error: auth.error }, auth.status);
-
   const kv = context.env.MYNAV_KV;
   if (!kv) {
     return json({ error: "KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定" }, 500);
   }
 
-  const raw = await kv.get(KV_KEY);
-  if (!raw) {
-    // 云端还没有数据（首次使用）
+  const auth = await getSession(context, kv);
+  if (!auth) return json({ error: "unauthorized" }, 401);
+
+  const loaded = await loadProfile(kv, auth.username);
+  if (loaded.corrupt) return json({ error: "云端数据损坏" }, 500);
+  if (!loaded.doc) {
+    // 该账号下还没有档案（首次使用）
     return json({ empty: true }, 404);
   }
-
-  try {
-    return json(JSON.parse(raw), 200);
-  } catch (e) {
-    return json({ error: "云端数据损坏" }, 500);
-  }
+  return json(loaded.doc, 200);
 }
 
 export async function onRequestPut(context) {
-  const auth = checkAuth(context.request, context.env);
-  if (!auth.ok) return json({ error: auth.error }, auth.status);
-
   const kv = context.env.MYNAV_KV;
   if (!kv) {
     return json({ error: "KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定" }, 500);
   }
+
+  const auth = await getSession(context, kv);
+  if (!auth) return json({ error: "unauthorized" }, 401);
 
   let body;
   try {
@@ -149,19 +172,13 @@ export async function onRequestPut(context) {
     return json({ error: "数据过大，拒绝写入" }, 413);
   }
 
-  // last-write-wins：云端更新则拒绝，并把云端版本还给客户端
-  const raw = await kv.get(KV_KEY);
-  if (raw) {
-    try {
-      const current = JSON.parse(raw);
-      if (typeof current.updatedAt === "number" && current.updatedAt > doc.updatedAt) {
-        return json(current, 409);
-      }
-    } catch (e) {
-      // 云端数据损坏则直接覆盖
-    }
+  // last-write-wins：当前有效档案（v2，缺失时回落 v1）更新则拒绝，并把该版本还给客户端
+  const loaded = await loadProfile(kv, auth.username);
+  if (loaded.doc && typeof loaded.doc.updatedAt === "number" && loaded.doc.updatedAt > doc.updatedAt) {
+    return json(loaded.doc, 409);
   }
 
-  await kv.put(KV_KEY, JSON.stringify(doc));
+  // 写入 v2；此后该用户以 v2 为准（v1 保持原样，只读遗留）
+  await kv.put(profileKey(auth.username), JSON.stringify(doc));
   return json({ updatedAt: doc.updatedAt }, 200);
 }

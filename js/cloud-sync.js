@@ -1,8 +1,9 @@
 /**
- * 模块：云同步（口令登录 + 个人数据跨设备同步）(js/cloud-sync.js)
+ * 模块：云同步（账号登录 + 个人数据跨设备同步）(js/cloud-sync.js)
  * 职责：
- * 1. 通过 /api/sync 与 Cloudflare KV 同步收藏、访问统计、排序与主题
- * 2. 登录 = 你自己定的口令（存在本机 localStorage），新设备输入一次即可
+ * 1. 通过 /api/auth 登录/注册账号，通过 /api/sync 与 Cloudflare KV 同步
+ *    收藏、访问统计、排序、主题与站内卡片编辑（overrides）
+ * 2. 登录 = 用户名 + 密码（会话 token 存本机 localStorage），新设备输入一次即可
  * 3. 本地优先渲染：启动即读本地，后台静默同步；云端更新才拉取并刷新页面
  * 4. 冲突策略：整份档案 last-write-wins（单人使用足够且可预测）
  * 5. 任何网络/登录异常都不影响本地功能，静默降级
@@ -18,7 +19,9 @@
   "use strict";
 
   const API = "/api/sync";
+  const AUTH_API = "/api/auth";
   const TOKEN_KEY = "mynav_arch_sync_token";
+  const USER_KEY = "mynav_arch_sync_user";
   const META_KEY = "mynav_arch_sync_meta";
   const PUSH_DEBOUNCE_MS = 8000;
 
@@ -59,9 +62,82 @@
     } catch (e) {}
   }
 
+  function getUser() {
+    try {
+      return window.localStorage.getItem(USER_KEY) || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setUser(name) {
+    try {
+      if (name) window.localStorage.setItem(USER_KEY, name);
+      else window.localStorage.removeItem(USER_KEY);
+    } catch (e) {}
+  }
+
   function authHeaders() {
     const t = getToken();
     return t ? { authorization: "Bearer " + t } : {};
+  }
+
+  // ---------- 账号接口 ----------
+
+  // 统一 POST /api/auth/<action>；返回 { ok, status, data }
+  async function authPost(action, body) {
+    const res = await fetch(AUTH_API + "/" + action, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data: data };
+  }
+
+  async function authMe() {
+    const res = await fetch(AUTH_API + "/me", {
+      credentials: "same-origin",
+      headers: authHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    return data && typeof data.username === "string" ? data.username : null;
+  }
+
+  async function authLogout() {
+    try {
+      await fetch(AUTH_API + "/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: authHeaders(),
+      });
+    } catch (e) {
+      // 网络失败也要清本地会话，避免卡在「已登录但用不了」的状态
+    }
+  }
+
+  // 登录/注册成功后的落地：存会话与用户名
+  function adoptSession(data) {
+    if (!data || typeof data.token !== "string") return false;
+    setToken(data.token);
+    setUser(typeof data.username === "string" ? data.username : null);
+    return true;
+  }
+
+  // 清掉本地会话（不动业务数据）
+  function clearSession() {
+    setToken(null);
+    setUser(null);
+    if (NavStorage) {
+      applyingRemote = true;
+      try {
+        NavStorage.remove(META_KEY);
+      } finally {
+        applyingRemote = false;
+      }
+    }
   }
 
   function getMeta() {
@@ -126,9 +202,26 @@
       syncBtn.setAttribute("aria-label", "云同步：" + (labelText || next));
       syncBtn.title = "云同步（" + (labelText || next) + "）";
     }
-    if (syncLabel && labelText) {
-      syncLabel.textContent = labelText;
+    renderButton();
+  }
+
+  // 按钮文案：未登录「登录」；已登录显示用户名，同步中/出错时显示状态
+  function renderButton() {
+    if (!syncLabel) return;
+    if (!getToken()) {
+      syncLabel.textContent = "登录";
+      return;
     }
+    if (status === "syncing") {
+      syncLabel.textContent = "同步…";
+      return;
+    }
+    if (status === "error") {
+      syncLabel.textContent = "重试";
+      return;
+    }
+    const name = getUser();
+    syncLabel.textContent = name ? name : "已同步";
   }
 
   function needLoginError() {
@@ -176,8 +269,8 @@
     return data;
   }
 
-  // 把云端档案应用到本地（经 importBackup 校验），然后刷新页面让各模块重读
-  function applyRemoteDoc(doc) {
+  // 把一份档案应用到本地（经 importBackup 校验），然后刷新页面让各模块重读
+  function applyDoc(doc) {
     if (!doc || !doc.data || !NavStorage) return;
     applyingRemote = true;
     try {
@@ -209,11 +302,11 @@
       setStatus("synced", "已同步");
     } catch (e) {
       if (e.code === "need-login") {
-        setToken(null);
+        clearSession();
         setStatus("logged-out", "登录");
       } else if (e.code === "conflict" && e.serverDoc) {
         // 云端更新：拉下来覆盖本地
-        applyRemoteDoc(e.serverDoc);
+        applyDoc(e.serverDoc);
       } else {
         setStatus("error", "重试");
       }
@@ -266,15 +359,13 @@
     try {
       const remote = await apiGet();
 
+      // 规则 1：账号下还没有档案。本地有数据就整份推上去；本地也没数据就不建档。
       if (remote.empty) {
         if (localHasData()) {
-          // 首次使用：把本地数据推上云
           const meta = getMeta();
-          await apiPut({
-            updatedAt: meta.updatedAt || Date.now(),
-            data: buildPayloadData(),
-          });
-          setMeta({ updatedAt: meta.updatedAt || Date.now(), lastSyncAt: Date.now() });
+          const ts = meta.updatedAt || Date.now();
+          await apiPut({ updatedAt: ts, data: buildPayloadData() });
+          setMeta({ updatedAt: ts, lastSyncAt: Date.now() });
         }
         setStatus("synced", "已同步");
         return;
@@ -282,9 +373,32 @@
 
       const meta = getMeta();
       const remoteTs = remote.updatedAt || 0;
+      const localOverrides = getOverrides();
+      const remoteOverrides = remote.data ? remote.data.overrides : null;
+
+      // 规则 2（优先于时间戳比较）：云端 overrides 为空、本地 overrides 非空
+      // —— 存量旧编辑是旧版本攒下的、从未 bump 过时间戳，只靠时间戳会「只拉不推」而搁浅。
+      // 处理：以云端档案为基础、overrides 换成本地的，推回云端，再把合并结果落到本地。
+      if (!hasOverridesData(remoteOverrides) && hasOverridesData(localOverrides)) {
+        const mergedData = Object.assign({}, remote.data, { overrides: localOverrides });
+        const ts = Math.max(Date.now(), remoteTs + 1);
+        try {
+          await apiPut({ updatedAt: ts, data: mergedData });
+          applyDoc({ updatedAt: ts, data: mergedData });
+        } catch (e) {
+          if (e.code === "conflict" && e.serverDoc) {
+            applyDoc(e.serverDoc);
+          } else {
+            throw e;
+          }
+        }
+        return;
+      }
+
+      // 规则 3：其余维持原状——时间戳较新者胜
       if (remoteTs > (meta.updatedAt || 0)) {
         // 云端更新：拉取并刷新
-        applyRemoteDoc(remote);
+        applyDoc(remote);
         return;
       }
       if ((meta.updatedAt || 0) > remoteTs && localHasData()) {
@@ -295,7 +409,7 @@
       setStatus("synced", "已同步");
     } catch (e) {
       if (e.code === "need-login") {
-        setToken(null);
+        clearSession();
         setStatus("logged-out", "登录");
       } else {
         setStatus("error", "重试");
@@ -303,20 +417,262 @@
     }
   }
 
-  function promptForToken() {
-    const t = window.prompt("请输入云同步口令（新设备首次使用时输入一次即可）：");
-    if (t && t.trim()) {
-      setToken(t.trim());
-      initialSync();
+  // ---------- 账号 UI（弹窗与菜单由 JS 生成，index.html 不需要额外 DOM） ----------
+
+  let uiStylesInjected = false;
+  let authOverlayEl = null;
+  let accountMenuEl = null;
+
+  function ensureUiStyles() {
+    if (uiStylesInjected || typeof document === "undefined") return;
+    if (document.getElementById("nav-auth-style")) {
+      uiStylesInjected = true;
+      return;
     }
+    const style = document.createElement("style");
+    style.id = "nav-auth-style";
+    style.textContent = [
+      ".nav-auth-overlay{position:fixed;inset:0;background:rgba(20,16,12,.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px}",
+      ".nav-auth-card{background:var(--paper,#fbf7ef);color:var(--ink,#2a2118);border:1px solid rgba(0,0,0,.12);border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.28);width:min(360px,100%);padding:20px 20px 16px;font:14px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}",
+      ".nav-auth-card h3{margin:0 0 4px;font-size:16px}",
+      ".nav-auth-hint{margin:0 0 14px;font-size:12px;opacity:.72}",
+      ".nav-auth-field{display:block;margin-bottom:10px}",
+      ".nav-auth-field span{display:block;font-size:12px;margin-bottom:4px;opacity:.8}",
+      ".nav-auth-field input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid rgba(0,0,0,.18);border-radius:8px;background:transparent;color:inherit;font:inherit}",
+      ".nav-auth-error{color:#b3261e;font-size:12px;min-height:16px;margin:2px 0 8px}",
+      ".nav-auth-actions{display:flex;gap:8px;justify-content:flex-end}",
+      ".nav-auth-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(0,0,0,.18);background:transparent;color:inherit;font:inherit;cursor:pointer}",
+      ".nav-auth-btn--primary{background:#2a2118;color:#fbf7ef;border-color:#2a2118}",
+      ".nav-auth-switch{margin-top:10px;font-size:12px;text-align:center}",
+      ".nav-auth-switch button{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0}",
+      ".nav-account-menu{position:absolute;z-index:9998;background:var(--paper,#fbf7ef);color:var(--ink,#2a2118);border:1px solid rgba(0,0,0,.14);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:6px;min-width:150px;font:13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif}",
+      ".nav-account-menu button{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer}",
+      ".nav-account-menu button:hover{background:rgba(0,0,0,.06)}",
+    ].join("");
+    document.head.appendChild(style);
+    uiStylesInjected = true;
   }
 
-  function onButtonClick() {
-    if (status === "logged-out" || status === "unknown") {
-      promptForToken();
-    } else if (status === "synced" || status === "error") {
-      pushNow(false);
+  function authErrorMessage(r) {
+    if (r.status === 403) return "注册已关闭：本站已有账号，请直接登录。";
+    if (r.status === 409) return "用户名已被占用，换一个试试。";
+    if (r.status === 401) return "用户名或密码不正确。";
+    if (r.status === 400) return (r.data && r.data.error) || "输入不合法。";
+    return "操作失败（" + r.status + "），请稍后重试。";
+  }
+
+  function closeAuthDialog() {
+    if (authOverlayEl && authOverlayEl.parentNode) authOverlayEl.parentNode.removeChild(authOverlayEl);
+    authOverlayEl = null;
+  }
+
+  function openAuthDialog(mode) {
+    if (typeof document === "undefined") return;
+    ensureUiStyles();
+    closeAuthDialog();
+    closeAccountMenu();
+
+    let currentMode = mode === "register" ? "register" : "login";
+
+    const overlay = document.createElement("div");
+    overlay.className = "nav-auth-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+
+    const card = document.createElement("div");
+    card.className = "nav-auth-card";
+    overlay.appendChild(card);
+
+    const title = document.createElement("h3");
+    const hint = document.createElement("p");
+    hint.className = "nav-auth-hint";
+
+    const form = document.createElement("form");
+    form.setAttribute("novalidate", "novalidate");
+
+    function makeField(labelText, type, autocomplete) {
+      const wrap = document.createElement("label");
+      wrap.className = "nav-auth-field";
+      const span = document.createElement("span");
+      span.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = type;
+      input.autocomplete = autocomplete;
+      input.required = true;
+      wrap.appendChild(span);
+      wrap.appendChild(input);
+      return { wrap: wrap, input: input };
     }
+
+    const userField = makeField("用户名", "text", "username");
+    const passField = makeField("密码", "password", "current-password");
+
+    const errEl = document.createElement("div");
+    errEl.className = "nav-auth-error";
+    errEl.setAttribute("role", "alert");
+
+    const actions = document.createElement("div");
+    actions.className = "nav-auth-actions";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "nav-auth-btn";
+    cancelBtn.textContent = "取消";
+    const submitBtn = document.createElement("button");
+    submitBtn.type = "submit";
+    submitBtn.className = "nav-auth-btn nav-auth-btn--primary";
+    actions.appendChild(cancelBtn);
+    actions.appendChild(submitBtn);
+
+    const switchWrap = document.createElement("div");
+    switchWrap.className = "nav-auth-switch";
+    const switchBtn = document.createElement("button");
+    switchBtn.type = "button";
+    switchWrap.appendChild(switchBtn);
+
+    form.appendChild(userField.wrap);
+    form.appendChild(passField.wrap);
+    form.appendChild(errEl);
+    form.appendChild(actions);
+    card.appendChild(title);
+    card.appendChild(hint);
+    card.appendChild(form);
+    card.appendChild(switchWrap);
+
+    function paint() {
+      const isReg = currentMode === "register";
+      title.textContent = isReg ? "注册账号" : "登录账号";
+      hint.textContent = isReg
+        ? "仅当本站还没有任何账号时可注册；注册成功后注册入口即关闭。"
+        : "用你的用户名和密码登录，收藏、访问记录、排序、主题与站内编辑会在多设备间同步。";
+      submitBtn.textContent = isReg ? "注册" : "登录";
+      passField.input.autocomplete = isReg ? "new-password" : "current-password";
+      switchBtn.textContent = isReg ? "已有账号？去登录" : "没有账号？去注册";
+      errEl.textContent = "";
+    }
+
+    switchBtn.addEventListener("click", function () {
+      currentMode = currentMode === "register" ? "login" : "register";
+      paint();
+      userField.input.focus();
+    });
+
+    cancelBtn.addEventListener("click", closeAuthDialog);
+    overlay.addEventListener("click", function (ev) {
+      if (ev.target === overlay) closeAuthDialog();
+    });
+
+    form.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      errEl.textContent = "";
+      const username = userField.input.value.trim();
+      const password = passField.input.value;
+      if (!username || !password) {
+        errEl.textContent = "请填写用户名和密码。";
+        return;
+      }
+      submitBtn.disabled = true;
+      const original = submitBtn.textContent;
+      submitBtn.textContent = currentMode === "register" ? "注册中…" : "登录中…";
+      try {
+        const r = await authPost(currentMode, { username: username, password: password });
+        if (!r.ok) {
+          errEl.textContent = authErrorMessage(r);
+          submitBtn.disabled = false;
+          submitBtn.textContent = original;
+          return;
+        }
+        adoptSession(r.data);
+        closeAuthDialog();
+        renderButton();
+        await initialSync();
+      } catch (e) {
+        errEl.textContent = "网络异常，请稍后重试。";
+        submitBtn.disabled = false;
+        submitBtn.textContent = original;
+      }
+    });
+
+    paint();
+    document.body.appendChild(overlay);
+    authOverlayEl = overlay;
+    userField.input.focus();
+  }
+
+  function closeAccountMenu() {
+    if (accountMenuEl && accountMenuEl.parentNode) accountMenuEl.parentNode.removeChild(accountMenuEl);
+    accountMenuEl = null;
+  }
+
+  function openAccountMenu(anchor) {
+    if (typeof document === "undefined") return;
+    ensureUiStyles();
+    closeAccountMenu();
+
+    const menu = document.createElement("div");
+    menu.className = "nav-account-menu";
+    menu.setAttribute("role", "menu");
+
+    function item(text, handler) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "menuitem");
+      b.textContent = text;
+      b.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        closeAccountMenu();
+        handler();
+      });
+      menu.appendChild(b);
+    }
+
+    item("立即同步", function () {
+      pushNow(false);
+    });
+    item("退出登录", function () {
+      doLogout();
+    });
+
+    document.body.appendChild(menu);
+    accountMenuEl = menu;
+
+    // 贴着按钮下方弹出，超出视口则上翻
+    const rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+    if (rect) {
+      const mw = menu.offsetWidth || 160;
+      const mh = menu.offsetHeight || 80;
+      let left = rect.left + window.pageXOffset;
+      let top = rect.bottom + window.pageYOffset + 6;
+      if (left + mw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - mw - 8);
+      if (rect.bottom + mh + 12 > window.innerHeight) {
+        top = rect.top + window.pageYOffset - mh - 6;
+      }
+      menu.style.left = left + "px";
+      menu.style.top = Math.max(8, top) + "px";
+    }
+
+    setTimeout(function () {
+      document.addEventListener(
+        "click",
+        function onDocClick(ev) {
+          if (accountMenuEl && !accountMenuEl.contains(ev.target)) closeAccountMenu();
+        },
+        { once: true }
+      );
+    }, 0);
+  }
+
+  async function doLogout() {
+    await authLogout();
+    clearSession();
+    setStatus("logged-out", "登录");
+  }
+
+  function onButtonClick(ev) {
+    if (!getToken()) {
+      openAuthDialog("login");
+      return;
+    }
+    openAccountMenu(ev && ev.currentTarget ? ev.currentTarget : syncBtn);
   }
 
   function init() {
@@ -327,6 +683,7 @@
     if (syncBtn) {
       syncLabel = syncBtn.querySelector(".cloud-label");
       syncBtn.addEventListener("click", onButtonClick);
+      renderButton();
     }
 
     // 页面切后台前把未推送的变更刷出去
@@ -364,10 +721,9 @@
   return {
     init,
     syncNow: () => pushNow(false),
-    logout: () => {
-      setToken(null);
-      setStatus("logged-out", "登录");
-    },
+    logout: () => doLogout(),
+    openAuth: (mode) => openAuthDialog(mode),
     getStatus: () => status,
+    getUser: () => getUser(),
   };
 });
