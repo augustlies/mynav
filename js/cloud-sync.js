@@ -22,10 +22,18 @@
   const META_KEY = "mynav_arch_sync_meta";
   const PUSH_DEBOUNCE_MS = 8000;
 
+  // 站内卡片编辑（修改层）的存储键。overrides.js 用这个字面键经 NavStorage.set 保存，
+  // 它不在 NavStorage.KEYS 里，所以单独列出并一并纳入同步白名单。
+  const OVERRIDES_KEY = "nav_site_overrides";
+
+  function emptyOverrides() {
+    return { modified: {}, added: [], hidden: [], deleted: [], unhidden: [] };
+  }
+
   // 参与云同步的键（其余键只存本地）
   const SYNCED_KEYS = new Set(
     NavStorage
-      ? [NavStorage.KEYS.THEME, NavStorage.KEYS.FAVORITES, NavStorage.KEYS.VISITS, NavStorage.KEYS.ORDER]
+      ? [NavStorage.KEYS.THEME, NavStorage.KEYS.FAVORITES, NavStorage.KEYS.VISITS, NavStorage.KEYS.ORDER, OVERRIDES_KEY]
       : []
   );
 
@@ -72,6 +80,31 @@
     }
   }
 
+  // 读取本地修改层（站内卡片编辑），结构不合法时退回空结构
+  function getOverrides() {
+    if (!NavStorage) return emptyOverrides();
+    const raw = NavStorage.get(OVERRIDES_KEY, null);
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return emptyOverrides();
+    return raw;
+  }
+
+  // 修改层是否有内容（决定它能不能算作「本地有数据」）
+  function hasOverridesData(o) {
+    if (!o || typeof o !== "object") return false;
+    if (o.modified && typeof o.modified === "object" && Object.keys(o.modified).length > 0) return true;
+    return ["added", "hidden", "deleted", "unhidden"].some(
+      (k) => Array.isArray(o[k]) && o[k].length > 0
+    );
+  }
+
+  // 统一的推送档案组装：基础四项 + 修改层。
+  // pushNow 与 initialSync 共用，避免两处漏并 overrides。
+  function buildPayloadData() {
+    const data = NavStorage.exportBackup().data;
+    data.overrides = getOverrides();
+    return data;
+  }
+
   // 本地是否有值得同步的数据（避免空档案覆盖云端）
   function localHasData() {
     if (!NavStorage) return false;
@@ -81,7 +114,8 @@
     return (
       (Array.isArray(favs) && favs.length > 0) ||
       (visits && Object.keys(visits).length > 0) ||
-      (order && Object.keys(order).length > 0)
+      (order && Object.keys(order).length > 0) ||
+      hasOverridesData(getOverrides())
     );
   }
 
@@ -148,6 +182,11 @@
     applyingRemote = true;
     try {
       NavStorage.importBackup({ data: doc.data });
+      // 修改层不在 importBackup 的白名单里，单独回写；applyingRemote 保护下不会反向标脏
+      const remoteOverrides = doc.data.overrides;
+      if (remoteOverrides && typeof remoteOverrides === "object" && !Array.isArray(remoteOverrides)) {
+        NavStorage.set(OVERRIDES_KEY, remoteOverrides);
+      }
     } finally {
       applyingRemote = false;
     }
@@ -165,8 +204,7 @@
     setStatus("syncing", "同步…");
     try {
       const meta = getMeta();
-      const backup = NavStorage.exportBackup();
-      await apiPut({ updatedAt: meta.updatedAt || Date.now(), data: backup.data }, keepalive);
+      await apiPut({ updatedAt: meta.updatedAt || Date.now(), data: buildPayloadData() }, keepalive);
       setMeta({ lastSyncAt: Date.now() });
       setStatus("synced", "已同步");
     } catch (e) {
@@ -234,7 +272,7 @@
           const meta = getMeta();
           await apiPut({
             updatedAt: meta.updatedAt || Date.now(),
-            data: NavStorage.exportBackup().data,
+            data: buildPayloadData(),
           });
           setMeta({ updatedAt: meta.updatedAt || Date.now(), lastSyncAt: Date.now() });
         }
@@ -251,7 +289,7 @@
       }
       if ((meta.updatedAt || 0) > remoteTs && localHasData()) {
         // 本地更新：推送
-        await apiPut({ updatedAt: meta.updatedAt, data: NavStorage.exportBackup().data });
+        await apiPut({ updatedAt: meta.updatedAt, data: buildPayloadData() });
         setMeta({ lastSyncAt: Date.now() });
       }
       setStatus("synced", "已同步");
