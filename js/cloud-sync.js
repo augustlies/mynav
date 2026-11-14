@@ -89,7 +89,7 @@
     const res = await fetch(AUTH_API + "/" + action, {
       method: "POST",
       credentials: "same-origin",
-      headers: { "content-type": "application/json" },
+      headers: Object.assign({ "content-type": "application/json" }, authHeaders()),
       body: JSON.stringify(body || {}),
     });
     const data = await res.json().catch(() => ({}));
@@ -690,7 +690,8 @@
       ".nav-auth-btn{padding:7px 14px;border-radius:8px;border:1px solid rgba(0,0,0,.18);background:transparent;color:inherit;font:inherit;cursor:pointer}",
       ".nav-auth-btn--primary{background:#2a2118;color:#fbf7ef;border-color:#2a2118}",
       ".nav-auth-switch{margin-top:10px;font-size:12px;text-align:center}",
-      ".nav-auth-switch button{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0}",
+      ".nav-auth-switch button{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0;margin:0 4px}",
+      ".nav-recovery-code{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;padding:10px;border:1px solid rgba(0,0,0,.18);border-radius:8px;background:transparent;color:inherit;font:12px/1.5 ui-monospace,monospace;word-break:break-all}",
       ".nav-account-menu{position:absolute;z-index:9998;background:var(--paper,#fbf7ef);color:var(--ink,#2a2118);border:1px solid rgba(0,0,0,.14);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);padding:6px;min-width:150px;font:13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif}",
       ".nav-account-menu button{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer}",
       ".nav-account-menu button:hover{background:rgba(0,0,0,.06)}",
@@ -700,11 +701,11 @@
   }
 
   function authErrorMessage(r) {
-    if (r.status === 403) return "注册已关闭：本站已有账号，请直接登录。";
+    if (r.status === 403) return "注册已关闭：本站已有账号，请直接登录或使用恢复码。";
     if (r.status === 409) return "用户名已被占用，换一个试试。";
     if (r.status === 401) return "用户名或密码不正确。";
     if (r.status === 400) return (r.data && r.data.error) || "输入不合法。";
-    return "操作失败（" + r.status + "），请稍后重试。";
+    return (r.data && (r.data.message || r.data.error)) || "操作失败（" + r.status + "），请稍后重试。";
   }
 
   function closeAuthDialog() {
@@ -718,7 +719,7 @@
     closeAuthDialog();
     closeAccountMenu();
 
-    let currentMode = mode === "register" ? "register" : "login";
+    let currentMode = mode === "register" ? "register" : (mode === "recover" ? "recover" : "login");
 
     const overlay = document.createElement("div");
     overlay.className = "nav-auth-overlay";
@@ -751,8 +752,10 @@
     }
 
     const userField = makeField("用户名", "text", "username");
+    const recoveryField = makeField("恢复码", "text", "off");
     const passField = makeField("密码", "password", "current-password");
     userField.input.value = getUser() || "";
+    recoveryField.input.spellcheck = false;
 
     const errEl = document.createElement("div");
     errEl.className = "nav-auth-error";
@@ -774,9 +777,14 @@
     switchWrap.className = "nav-auth-switch";
     const switchBtn = document.createElement("button");
     switchBtn.type = "button";
+    const forgotBtn = document.createElement("button");
+    forgotBtn.type = "button";
+    forgotBtn.textContent = "忘记密码？用恢复码";
     switchWrap.appendChild(switchBtn);
+    switchWrap.appendChild(forgotBtn);
 
     form.appendChild(userField.wrap);
+    form.appendChild(recoveryField.wrap);
     form.appendChild(passField.wrap);
     form.appendChild(errEl);
     form.appendChild(actions);
@@ -787,20 +795,32 @@
 
     function paint() {
       const isReg = currentMode === "register";
-      title.textContent = isReg ? "注册账号" : "登录账号";
+      const isRecover = currentMode === "recover";
+      title.textContent = isReg ? "注册账号" : (isRecover ? "用恢复码重置密码" : "登录账号");
       hint.textContent = isReg
-        ? "仅当本站还没有任何账号时可注册；注册成功后注册入口即关闭。"
-        : (reason || "用你的用户名和密码登录，收藏、访问记录、排序、主题与站内编辑会在多设备间同步。");
-      submitBtn.textContent = isReg ? "注册" : "登录";
-      passField.input.autocomplete = isReg ? "new-password" : "current-password";
-      switchBtn.textContent = isReg ? "已有账号？去登录" : "没有账号？去注册";
+        ? "仅当本站还没有任何账号时可注册；注册成功后会发放一次性恢复码。"
+        : (isRecover
+          ? "输入站长保存的恢复码和至少 8 位新密码。成功后旧密码、旧会话和旧恢复码都会失效。"
+          : (reason || "用你的用户名和密码登录，收藏、访问记录、排序、主题与站内编辑会在多设备间同步。"));
+      submitBtn.textContent = isReg ? "注册" : (isRecover ? "重置密码并登录" : "登录");
+      passField.wrap.querySelector("span").textContent = isRecover ? "新密码" : "密码";
+      passField.input.autocomplete = isReg || isRecover ? "new-password" : "current-password";
+      recoveryField.wrap.hidden = !isRecover;
+      recoveryField.input.required = isRecover;
+      switchBtn.textContent = isRecover ? "返回登录" : (isReg ? "已有账号？去登录" : "没有账号？去注册");
+      forgotBtn.hidden = isReg || isRecover;
       errEl.textContent = "";
     }
 
     switchBtn.addEventListener("click", function () {
-      currentMode = currentMode === "register" ? "login" : "register";
+      currentMode = currentMode === "recover" ? "login" : (currentMode === "register" ? "login" : "register");
       paint();
       userField.input.focus();
+    });
+    forgotBtn.addEventListener("click", function () {
+      currentMode = "recover";
+      paint();
+      recoveryField.input.focus();
     });
 
     cancelBtn.addEventListener("click", closeAuthDialog);
@@ -813,25 +833,34 @@
       errEl.textContent = "";
       const username = userField.input.value.trim();
       const password = passField.input.value;
-      if (!username || !password) {
-        errEl.textContent = "请填写用户名和密码。";
+      const recoveryCode = recoveryField.input.value.trim();
+      if (!username || !password || (currentMode === "recover" && !recoveryCode)) {
+        errEl.textContent = currentMode === "recover" ? "请填写用户名、恢复码和新密码。" : "请填写用户名和密码。";
         return;
       }
       submitBtn.disabled = true;
       const original = submitBtn.textContent;
-      submitBtn.textContent = currentMode === "register" ? "注册中…" : "登录中…";
+      submitBtn.textContent = currentMode === "register" ? "注册中…" : (currentMode === "recover" ? "重置中…" : "登录中…");
       try {
-        const r = await authPost(currentMode, { username: username, password: password });
+        const body = currentMode === "recover"
+          ? { username, recoveryCode, newPassword: password }
+          : { username, password };
+        const r = await authPost(currentMode, body);
         if (!r.ok) {
-          errEl.textContent = authErrorMessage(r);
+          errEl.textContent = currentMode === "recover" && r.status === 401
+            ? "用户名或恢复码不正确。" : authErrorMessage(r);
           submitBtn.disabled = false;
           submitBtn.textContent = original;
           return;
         }
         if (!adoptSession(r.data)) throw new Error("登录响应缺少会话信息");
-        closeAuthDialog();
         renderButton();
-        await initialSync();
+        if (r.data && r.data.recoveryCode) {
+          showRecoveryCode(r.data.recoveryCode);
+        } else {
+          closeAuthDialog();
+          await initialSync();
+        }
       } catch (e) {
         errEl.textContent = "网络异常，请稍后重试。";
         submitBtn.disabled = false;
@@ -843,6 +872,65 @@
     document.body.appendChild(overlay);
     authOverlayEl = overlay;
     userField.input.focus();
+  }
+
+  function showRecoveryCode(code) {
+    if (typeof document === "undefined" || !code) return;
+    ensureUiStyles();
+    closeAuthDialog();
+    closeAccountMenu();
+    const overlay = document.createElement("div");
+    overlay.className = "nav-auth-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    const card = document.createElement("div");
+    card.className = "nav-auth-card";
+    overlay.appendChild(card);
+    const title = document.createElement("h3");
+    title.textContent = "保存这次恢复码";
+    const hint = document.createElement("p");
+    hint.className = "nav-auth-hint";
+    hint.textContent = "它只显示这一次。忘记密码时可用它重置；下次使用或重新生成后，这枚恢复码即失效。不要发给其他人。";
+    const codeEl = document.createElement("textarea");
+    codeEl.className = "nav-recovery-code";
+    codeEl.readOnly = true;
+    codeEl.value = code;
+    codeEl.setAttribute("aria-label", "一次性恢复码");
+    const actions = document.createElement("div");
+    actions.className = "nav-auth-actions";
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "nav-auth-btn";
+    copyBtn.textContent = "复制恢复码";
+    const doneBtn = document.createElement("button");
+    doneBtn.type = "button";
+    doneBtn.className = "nav-auth-btn nav-auth-btn--primary";
+    doneBtn.textContent = "我已保存，开始同步";
+    actions.appendChild(copyBtn);
+    actions.appendChild(doneBtn);
+    card.appendChild(title);
+    card.appendChild(hint);
+    card.appendChild(codeEl);
+    card.appendChild(actions);
+    copyBtn.addEventListener("click", async function () {
+      codeEl.focus();
+      codeEl.select();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(code);
+        else document.execCommand("copy");
+        copyBtn.textContent = "已复制";
+      } catch (e) {
+        copyBtn.textContent = "请手动复制";
+      }
+    });
+    doneBtn.addEventListener("click", function () {
+      closeAuthDialog();
+      initialSync();
+    });
+    document.body.appendChild(overlay);
+    authOverlayEl = overlay;
+    codeEl.focus();
+    codeEl.select();
   }
 
   function closeAccountMenu() {
@@ -874,6 +962,16 @@
 
     item("立即同步", function () {
       pushNow(false);
+    });
+    item("设置恢复码", async function () {
+      try {
+        const r = await authPost("recovery-code", {});
+        if (r.ok && r.data && r.data.recoveryCode) showRecoveryCode(r.data.recoveryCode);
+        else if (r.status === 401) handleNeedLogin();
+        else notify("设置恢复码失败", authErrorMessage(r), "⚠");
+      } catch (e) {
+        notify("设置恢复码失败", friendlyError(e), "⚠");
+      }
     });
     item("退出登录", function () {
       doLogout();

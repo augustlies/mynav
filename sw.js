@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "9e9d75c04b";
+const CACHE_VERSION = "fbc4e1c544";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -54,7 +54,7 @@ const PRECACHE = [
   "./css/snippets.css?v=5.0.0",
   "./js/lore.js?v=b3.9",
   "./css/lore.css?v=5.0.0",
-  "./js/cloud-sync.js?v=2.1.0",
+  "./js/cloud-sync.js?v=2.2.0",
   "./js/exlibris.js?v=1.7.0",
   "./css/exlibris.css?v=5.0.0",
   "./js/serendipity.js?v=4.2.0",
