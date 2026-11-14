@@ -2,8 +2,9 @@
  * Cloudflare Pages Function: /api/sync —— 个人数据的云端读写
  *
  * - GET  /api/sync  读取云端数据 → { updatedAt, data } / 404 { empty: true }
- * - PUT  /api/sync  写入云端数据，body { updatedAt, data }；
- *                    云端更新时返回 409 + 云端版本（last-write-wins）
+ * - PUT  /api/sync  写入云端数据，body { updatedAt, baseUpdatedAt, data }；
+ *                    baseUpdatedAt 与当前有效版本不一致时返回 409 + 云端版本，
+ *                    由客户端基于上次同步快照做三方合并
  *
  * 认证：账号会话制。请求头 Authorization: Bearer <会话 token>，
  * 服务端查 KV 的 session:<token> 得到用户名；无/过期 → 401。
@@ -172,10 +173,23 @@ export async function onRequestPut(context) {
     return json({ error: "数据过大，拒绝写入" }, 413);
   }
 
-  // last-write-wins：当前有效档案（v2，缺失时回落 v1）更新则拒绝，并把该版本还给客户端
+  // 乐观并发：新客户端必须声明本次编辑基于哪个云端版本。
+  // 这样另一台设备已先写入时会返回 409，由客户端三方合并，而不是整份覆盖。
   const loaded = await loadProfile(kv, auth.username);
-  if (loaded.doc && typeof loaded.doc.updatedAt === "number" && loaded.doc.updatedAt > doc.updatedAt) {
-    return json(loaded.doc, 409);
+  if (loaded.corrupt) return json({ error: "云端数据损坏" }, 500);
+  const remoteUpdatedAt = loaded.doc && Number.isFinite(loaded.doc.updatedAt)
+    ? Math.max(0, loaded.doc.updatedAt)
+    : 0;
+  const hasBaseVersion = body.baseUpdatedAt !== undefined && body.baseUpdatedAt !== null;
+  if (hasBaseVersion &&
+      (!Number.isFinite(body.baseUpdatedAt) || body.baseUpdatedAt < 0)) {
+    return json({ error: "baseUpdatedAt 格式无效" }, 400);
+  }
+  const conflict = hasBaseVersion
+    ? body.baseUpdatedAt !== remoteUpdatedAt || doc.updatedAt <= remoteUpdatedAt
+    : remoteUpdatedAt > doc.updatedAt;
+  if (conflict) {
+    return json(loaded.doc || { empty: true, updatedAt: 0 }, 409);
   }
 
   // 写入 v2；此后该用户以 v2 为准（v1 保持原样，只读遗留）
