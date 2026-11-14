@@ -266,6 +266,9 @@
     const isBookmarked = window.NavFavorites ? window.NavFavorites.has(site.id) : false;
     const hasMod = ov ? ov.hasModifications(site.id) : false;
     const categories = getCategories();
+    const probeIgnored = window.NavProbe && typeof window.NavProbe.isProbeIgnored === "function"
+      ? window.NavProbe.isProbeIgnored(site.id)
+      : false;
 
     // 二级分类菜单 HTML
     const subCategoriesHtml = categories.map(cat => {
@@ -286,6 +289,10 @@
       <div class="ctx-item" data-action="copy-link" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">📋</span>
         <span class="ctx-label">复制链接</span>
+      </div>
+      <div class="ctx-item" data-action="toggle-probe-ignore" role="menuitem">
+        <span class="ctx-icon" aria-hidden="true">◎</span>
+        <span class="ctx-label">${probeIgnored ? "恢复联通巡检" : "忽略此站的联通巡检"}</span>
       </div>
       <div class="ctx-item" data-action="edit-card" role="menuitem">
         <span class="ctx-icon" aria-hidden="true">✏️</span>
@@ -488,6 +495,20 @@
       case "copy-link":
         if (site && site.url) {
           copyText(site.url);
+        }
+        break;
+
+      case "toggle-probe-ignore":
+        if (site && window.NavProbe && typeof window.NavProbe.setProbeIgnored === "function") {
+          const ignored = !window.NavProbe.isProbeIgnored(site.id);
+          window.NavProbe.setProbeIgnored(site.id, ignored);
+          showToast(
+            ignored ? "已忽略此站联通巡检" : "已恢复此站联通巡检",
+            ignored ? "不再参与自动/手动探测，也不会因被墙而标红" : "下次执行 /ping 时会重新探测",
+            "◎"
+          );
+        } else {
+          showToast("探针尚未就绪", "请稍后再试", "⚠");
         }
         break;
 

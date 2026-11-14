@@ -27,13 +27,15 @@
   const MOCK_MIN_MS = 12;
   const MOCK_SPAN_MS = 88;
   const AUTO_PROBE_DELAY_MS = 4000;
+  const IGNORE_KEY = "mynav_probe_ignored_v1";
+  const AUTO_DEFAULT_MIGRATION_KEY = "mynav_probe_auto_default_v2";
 
   let bound = false;
   let observer = null;
   let injectTimer = null;
   let probes = new Map();
   let probing = false;
-  let autoProbeEnabled = true;
+  let autoProbeEnabled = false;
   let autoProbeScheduled = false;
   let lastSummary = { probed: 0, online: 0, offline: 0, mock: false, at: 0 };
   // Batch 3 · 疑似失效标记：只用已有巡检结果，不额外发请求。
@@ -65,19 +67,68 @@
   function getTelemetryConfig() {
     if (window.NavLedger && typeof window.NavLedger.getTelemetryConfig === "function") {
       const config = window.NavLedger.getTelemetryConfig() || {};
-      return Object.assign({}, config, { autoProbe: config.autoProbe !== false });
+      return Object.assign({}, config, { autoProbe: config.autoProbe === true });
     }
     return { autoProbe: autoProbeEnabled };
   }
 
   function setTelemetryConfig(patch) {
     const next = Object.assign({}, getTelemetryConfig(), patch || {});
-    next.autoProbe = next.autoProbe !== false;
+    next.autoProbe = next.autoProbe === true;
     if (window.NavLedger && typeof window.NavLedger.setTelemetryConfig === "function") {
       window.NavLedger.setTelemetryConfig(next);
     }
     autoProbeEnabled = next.autoProbe;
     return next;
+  }
+
+  function readIgnored() {
+    try {
+      const raw = window.localStorage.getItem(IGNORE_KEY);
+      const ids = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string" && id) : []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  let ignoredSites = readIgnored();
+
+  function isProbeIgnored(siteId) {
+    return ignoredSites.has(String(siteId || ""));
+  }
+
+  function setProbeIgnored(siteId, ignored) {
+    const id = String(siteId || "").trim();
+    if (!id) return false;
+    if (ignored) ignoredSites.add(id);
+    else ignoredSites.delete(id);
+    try {
+      window.localStorage.setItem(IGNORE_KEY, JSON.stringify(Array.from(ignoredSites)));
+    } catch (e) {}
+    probes.delete(id);
+    if (typeof document !== "undefined") {
+      if (ignored) {
+        const card = Array.from(document.querySelectorAll(".entry-card[data-site-id]")).find(
+          (item) => item.getAttribute("data-site-id") === id
+        );
+        if (card) {
+          card.removeAttribute("data-link-suspect");
+          const node = card.querySelector(".card-star-probe");
+          if (node) {
+            node.classList.remove("is-suspect", "is-online", "is-offline", "is-probing");
+            node.classList.add("is-idle");
+            node.setAttribute("data-probe-status", "ignored");
+            node.setAttribute("aria-hidden", "true");
+            node.removeAttribute("role");
+            node.removeAttribute("aria-label");
+            node.title = "已忽略联通巡检";
+          }
+        }
+      }
+      syncCards();
+    }
+    return ignoredSites.has(id);
   }
 
 
@@ -140,7 +191,7 @@
     }
     const limit = options && Number(options.limit) > 0 ? Number(options.limit) : 0;
     if (limit) ids = ids.slice(0, limit);
-    return Array.from(new Set(ids));
+    return Array.from(new Set(ids)).filter(function (id) { return !isProbeIgnored(id); });
   }
 
   function siteById(siteId) {
@@ -271,9 +322,10 @@
     const siteId = card.getAttribute("data-site-id");
     const node = card.querySelector(".card-star-probe");
     if (!node || !siteId) return;
+    const ignored = isProbeIgnored(siteId);
     const entry = probes.get(siteId);
-    const status = entry ? entry.status : "idle";
-    const suspect = status === "offline" && suspectTrusted && !(entry && entry.mock);
+    const status = ignored ? "ignored" : (entry ? entry.status : "idle");
+    const suspect = !ignored && status === "offline" && suspectTrusted && !(entry && entry.mock);
     card.toggleAttribute("data-link-suspect", suspect);
     node.classList.toggle("is-suspect", suspect);
     if (suspect) {
@@ -286,7 +338,7 @@
       node.removeAttribute("aria-label");
     }
     node.classList.remove("is-idle", "is-online", "is-offline", "is-probing");
-    node.classList.add("is-" + status);
+    node.classList.add("is-" + (status === "ignored" ? "idle" : status));
     node.setAttribute("data-probe-status", status);
     if (status === "online") {
       const latency = Math.max(1, Number(entry.latencyMs) || 1);
@@ -298,6 +350,9 @@
     } else if (status === "probing") {
       node.setAttribute("data-latency-ms", "0");
       node.title = "星轨巡检中…";
+    } else if (status === "ignored") {
+      node.setAttribute("data-latency-ms", "0");
+      node.title = "已忽略联通巡检";
     } else {
       node.setAttribute("data-latency-ms", "0");
       node.title = "星轨未巡检";
@@ -355,7 +410,7 @@
     if (autoProbeScheduled) return;
     autoProbeScheduled = true;
     const config = getTelemetryConfig();
-    autoProbeEnabled = config.autoProbe !== false;
+    autoProbeEnabled = config.autoProbe === true;
     if (!autoProbeEnabled) return;
     // 自动化测试环境（Playwright 会置 navigator.webdriver = true）保持确定性，
     // 首屏轻量探测只服务于真实访客。
@@ -370,8 +425,17 @@
 
   function init() {
     bindEvents();
+    // 旧版本默认开启自动探测，会在国内网络下制造大量跨站报错。
+    // 一次性迁移为关闭；仍可通过 NavProbe.setAutoProbe(true) 显式开启。
+    try {
+      if (!window.localStorage.getItem(AUTO_DEFAULT_MIGRATION_KEY)) {
+        setTelemetryConfig({ autoProbe: false });
+        window.localStorage.setItem(AUTO_DEFAULT_MIGRATION_KEY, "1");
+      }
+    } catch (e) {}
     const config = getTelemetryConfig();
-    autoProbeEnabled = config.autoProbe !== false;
+    autoProbeEnabled = config.autoProbe === true;
+    ignoredSites = readIgnored();
     injectProbes();
     observeContent();
     scheduleAutoProbe();
@@ -409,6 +473,9 @@
   }
 
   function getProbe(siteId) {
+    if (isProbeIgnored(siteId)) {
+      return { status: "ignored", latencyMs: 0, at: 0, mock: false };
+    }
     const entry = probes.get(siteId);
     return entry ? Object.assign({}, entry) : null;
   }
@@ -426,7 +493,7 @@
   }
 
   function setAutoProbe(enabled) {
-    autoProbeEnabled = Boolean(enabled);
+    autoProbeEnabled = enabled === true;
     setTelemetryConfig({ autoProbe: autoProbeEnabled });
     return autoProbeEnabled;
   }
@@ -445,6 +512,8 @@
     syncCards,
     resetProbes,
     setAutoProbe,
+    isProbeIgnored,
+    setProbeIgnored,
     hashString,
     openDeck: retired,
     closeDeck: retired,

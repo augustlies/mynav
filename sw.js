@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "fbc4e1c544";
+const CACHE_VERSION = "28881806d1";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -16,10 +16,10 @@ const PRECACHE = [
   "./styles.css?v=20261030a",
   "./favicon.svg",
   "./data.js?v=1.8.0",
-  "./js/lazy.js?v=b3.9",
+  "./js/lazy.js?v=b4.0",
   "./js/storage.js?v=2.0.0",
   "./js/schema.js?v=b3.9",
-  "./js/ledger.js?v=4.1.0",
+  "./js/ledger.js?v=4.2.0",
   "./js/overrides.js?v=4.2.0",
   "./js/theme.js?v=1.7.0",
   "./js/favorites.js?v=1.7.0",
@@ -40,7 +40,7 @@ const PRECACHE = [
   "./css/librarian.css?v=5.0.0",
   "./js/star-map.js?v=4.2.1",
   "./css/starmap.css?v=5.0.0",
-  "./js/contextmenu.js?v=1.7.0",
+  "./js/contextmenu.js?v=1.8.0",
   "./css/contextmenu.css?v=5.0.0",
   "./js/courier.js?v=5.0.0",
   "./css/courier.css?v=b3.9",
@@ -60,7 +60,7 @@ const PRECACHE = [
   "./js/serendipity.js?v=4.2.0",
   "./css/serendipity.css?v=5.0.0",
   "./js/particles-bg.js?v=5.0.0",
-  "./js/probe.js?v=b3.9",
+  "./js/probe.js?v=b4.0",
   "./js/astronomy.js?v=3.0.0",
   "./js/uncatalogued.js?v=b3.9",
   "./icons/ai-chatgpt.png",

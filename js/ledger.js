@@ -39,7 +39,7 @@
         model: "deepseek-chat"
       },
       telemetryConfig: {
-        autoProbe: true,
+        autoProbe: false,
         instruments: {}
       },
       // Phase 4B: D5 网页琥珀封存库（siteId → 拓片对象）。与 aiConfig 一样，
@@ -171,7 +171,7 @@
     base.aiConfig.model = String(base.aiConfig.model || "deepseek-chat");
     base.telemetryConfig = Object.assign({}, base.telemetryConfig,
       isObject(raw.telemetryConfig) ? raw.telemetryConfig : {});
-    base.telemetryConfig.autoProbe = base.telemetryConfig.autoProbe !== false;
+    base.telemetryConfig.autoProbe = base.telemetryConfig.autoProbe === true;
     base.telemetryConfig.instruments = isObject(base.telemetryConfig.instruments)
       ? base.telemetryConfig.instruments
       : {};
@@ -550,7 +550,7 @@
   function getTelemetryConfig() {
     ensureLoaded();
     return {
-      autoProbe: ledger.telemetryConfig.autoProbe !== false,
+      autoProbe: ledger.telemetryConfig.autoProbe === true,
       instruments: Object.assign({}, ledger.telemetryConfig.instruments)
     };
   }
@@ -559,7 +559,7 @@
     ensureLoaded();
     const next = Object.assign({}, ledger.telemetryConfig, isObject(patch) ? patch : {});
     ledger.telemetryConfig = {
-      autoProbe: next.autoProbe !== false,
+      autoProbe: next.autoProbe === true,
       instruments: isObject(next.instruments) ? next.instruments : {}
     };
     persist(true);
