@@ -33,7 +33,7 @@
   
   --text-main: #24251F;
   --text-muted: #66685F;
-  --text-faint: #989A90;
+  --text-faint: #6E7066;
   
   --color-accent: #3F523E;         /* 沉静橄榄墨绿 */
   --color-accent-soft: #EBF0E9;
@@ -127,7 +127,7 @@
 
   --text-main: #24221E;        /* 对比度 9.5:1, 远超 WCAG AA 4.5:1 */
   --text-muted: #534F47;       /* 对比度 5.1:1, 超越 WCAG AA */
-  --text-faint: #787469;
+  --text-faint: #514E45;
 
   --color-accent: #374433;      /* 沉静橄榄青墨 */
   --color-accent-soft: #C5BFAC;
@@ -3528,6 +3528,12 @@ body.modal-open {
   line-height: 1.55;
 }
 
+/* 刊头卷号在窄书脊里必须保持单行，避免 1440 等桌面宽度折成两行 */
+.ex-libris-plate .masthead-issue > span:nth-child(2) {
+  white-space: nowrap;
+  letter-spacing: 0.08em;
+}
+
 .plate-meta-row {
   display: flex;
   flex-wrap: wrap;
@@ -4642,7 +4648,7 @@ body.modal-open {
   }
 
   .ex-libris-plate .masthead-issue > span:nth-child(2) {
-    max-width: 190px;
+    max-width: none;
   }
 
   .plate-orbit {
@@ -7580,6 +7586,22 @@ html.deco-pending .archive-wrapper::before { display: none !important; }
   font-size: 10px;
   letter-spacing: 0.12em;
   line-height: 1.6;
+}
+
+/* 触屏没有 hover：关闭依赖悬停的抬升/光泽，同时让卡片操作常显 */
+@media (hover: none), (pointer: coarse) {
+  .entry-card:hover {
+    transform: none;
+  }
+  .folio-main .entry-card:hover::after,
+  .folio-main .entry-card:focus-within::after {
+    opacity: 0;
+  }
+  .card-tag-pill,
+  .btn-bookplate,
+  .card-slip-marginalia-trigger {
+    color: var(--text-muted);
+  }
 }
 .card-slip-marginalia-trigger,
 .card-jump-mark {
