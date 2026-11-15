@@ -274,42 +274,58 @@
     if (state.inFlight) return false;
     state.inFlight = true;
     state.status = "fetching";
+    mark("fetching");
     state.lastCheck = Date.now();
     try {
       const result = await fetchPayload();
       if (result.unchanged) {
         state.status = "current";
+        mark("current");
         return false;
       }
       const payload = normalizePayload(result.payload);
       if (!payload) {
         state.status = "invalid";
         state.lastError = "payload invalid";
+        mark("invalid");
         return false;
       }
       if (payload.version === state.version) {
         state.status = "current";
+        mark("current");
         return false;
       }
       if (!applyPayload(payload)) {
         state.status = "invalid";
+        mark("invalid");
         return false;
       }
       writeCache(payload);
       notifyRefresh();
       state.status = "updated";
+      mark("updated");
       return true;
     } catch (e) {
       state.status = "error";
       state.lastError = e && e.name === "AbortError" ? "timeout" : String((e && e.message) || e);
+      mark("error");
       return false;
     } finally {
       state.inFlight = false;
     }
   }
 
+  function mark(value) {
+    try {
+      if (document && document.documentElement) {
+        document.documentElement.setAttribute("data-notion-cards", value);
+      }
+    } catch (e) {}
+  }
+
   function scheduleRefresh() {
     if (typeof window === "undefined") return;
+    mark("scheduled");
     const run = function () { refresh(); };
     if (typeof window.requestIdleCallback === "function") {
       window.requestIdleCallback(run, { timeout: 2500 });
@@ -324,6 +340,7 @@
   }
 
   function boot() {
+    mark("booted");
     const cached = readCache();
     if (cached) {
       applyPayload(cached);
