@@ -33,9 +33,9 @@
     status: "idle",
     lastError: "",
     lastCheck: 0,
+    inFlight: false,
     source: "data.js"
   };
-  let refreshPending = false;
 
   function getData() {
     if (typeof window !== "undefined") return window.NAV_DATA || null;
@@ -271,6 +271,8 @@
       state.status = "offline";
       return false;
     }
+    if (state.inFlight) return false;
+    state.inFlight = true;
     state.status = "fetching";
     state.lastCheck = Date.now();
     try {
@@ -301,16 +303,14 @@
       state.status = "error";
       state.lastError = e && e.name === "AbortError" ? "timeout" : String((e && e.message) || e);
       return false;
+    } finally {
+      state.inFlight = false;
     }
   }
 
   function scheduleRefresh() {
-    if (typeof window === "undefined" || refreshPending) return;
-    const run = function () {
-      refreshPending = false;
-      refresh();
-    };
-    refreshPending = true;
+    if (typeof window === "undefined") return;
+    const run = function () { refresh(); };
     if (typeof window.requestIdleCallback === "function") {
       window.requestIdleCallback(run, { timeout: 2500 });
     } else {
