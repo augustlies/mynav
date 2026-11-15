@@ -70,6 +70,6 @@
 - [x] Batch 2：首帧主题、SW 离线、馆务抽屉 `.`、四项功能下线归档、12 个懒模块、CSS 拆分、`_headers`（见 `CHANGELOG_PHASE5_BATCH2.md`）
 - [x] Batch 3：入口缓存优先、懒 DOM、常驻案头按点击排序、Bing、无结果外搜、最近检索词、疑似失效朱砂点、卡片外围降噪（见 `CHANGELOG_BATCH3.md`）
 - [ ] `hark/batch3` 真机验收后合入 main
-- [ ] 视觉底座校准余项（`STEP7B_VISUAL_PROMPT.md`）：浅色 `--text-faint` 对比度、小字下限、`--space-*` / `--z-*` 变量化、触屏常显悬停入口
-- [ ] 疑似失效：国内网络下被墙站点会被判离线，考虑加「忽略此站」或白名单
-- [ ] 1440 宽刊头「VOL. 2026 · PRIVATE COLLECTION」仍折两行，可再收窄
+- [x] 视觉底座校准余项（`STEP7B_VISUAL_PROMPT.md`）：浅色 `--text-faint` 对比度、触屏常显悬停入口已修；`--space-*` / `--z-*` 变量化未做，不影响使用
+- [x] 疑似失效：已加卡片菜单「忽略此站的联通巡检/恢复联通巡检」，忽略后不参与探测也不标红
+- [x] 1440 宽刊头「VOL. 2026 · PRIVATE COLLECTION」已强制单行，`height=16`
