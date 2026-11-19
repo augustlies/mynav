@@ -532,7 +532,11 @@
           "status", "whySaved", "notes", "visibility", "snapshotUrl"
         ];
         optionalFields.forEach(function (field) {
-          const value = site[field];
+          let value = site[field];
+          if (field === "notes" && (typeof value !== "string" || !value) &&
+            typeof window !== "undefined" && window.NavLedger && typeof window.NavLedger.getMarginalia === "function") {
+            value = window.NavLedger.getMarginalia(site.id);
+          }
           if (field === "status" && value !== "uncatalogued") return;
           if (field === "visibility" && value !== "shadow") return;
           if ((field === "whySaved" || field === "notes" || field === "snapshotUrl") &&

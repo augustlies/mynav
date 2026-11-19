@@ -30,22 +30,36 @@
   }
 
   function isModalOpen() {
-    const ids = [
-      "bookplate-modal",
-      "shortcuts-modal",
-      "colophon-modal",
-      "today-open-modal",
-      "card-edit-modal",
-      "hidden-cards-modal",
-      "snippets-modal"
+    const displayIds = [
+      "#bookplate-modal",
+      "#shortcuts-modal",
+      "#colophon-modal",
+      "#today-open-modal",
+      "#card-edit-modal",
+      "#hidden-cards-modal",
+      "#snippets-modal",
+      "#librarian-config-modal"
     ];
-    return ids.some(function (id) {
-      const modal = document.getElementById(id);
+    if (displayIds.some(function (sel) {
+      const modal = document.querySelector(sel);
       return modal && modal.style.display !== "none";
-    }) || (function () {
-      const drawer = document.getElementById("uncatalogued-drawer");
+    })) {
+      return true;
+    }
+    const drawerIds = [
+      "#uncatalogued-drawer",
+      "#brass-workbench",
+      "#amber-modal",
+      "#courier-modal",
+      "#hall-drawer"
+    ];
+    if (drawerIds.some(function (sel) {
+      const drawer = document.querySelector(sel);
       return drawer && !drawer.hidden;
-    })();
+    })) {
+      return true;
+    }
+    return Boolean(document.querySelector(".nav-auth-overlay") || document.body.classList.contains("modal-open"));
   }
 
   function showStamp(title, subtitle, tone) {

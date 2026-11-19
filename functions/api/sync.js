@@ -2,8 +2,9 @@
  * Cloudflare Pages Function: /api/sync —— 个人数据的云端读写
  *
  * - GET  /api/sync  读取云端数据 → { updatedAt, data } / 404 { empty: true }
- * - PUT  /api/sync  写入云端数据，body { updatedAt, data }；
- *                    云端更新时返回 409 + 云端版本（last-write-wins）
+ * - PUT  /api/sync  写入云端数据，body { updatedAt, baseUpdatedAt, data }；
+ *                    baseUpdatedAt 与当前有效版本不一致时返回 409 + 云端版本，
+ *                    由客户端基于上次同步快照做三方合并
  *
  * 认证：账号会话制。请求头 Authorization: Bearer <会话 token>，
  * 服务端查 KV 的 session:<token> 得到用户名；无/过期 → 401。
@@ -84,19 +85,177 @@ function isPlainObject(v) {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
+function isForbiddenKey(k) {
+  return k === "__proto__" || k === "constructor" || k === "prototype";
+}
+
+function isSafeHttpUrl(raw) {
+  if (typeof raw !== "string") return false;
+  return /^https?:\/\/[^\s"'<>]+$/i.test(raw.trim());
+}
+
+function sanitizeSiteEntry(raw, requireUrl) {
+  if (!isPlainObject(raw)) return null;
+  const out = {};
+  Object.keys(raw).forEach((k) => {
+    if (!isForbiddenKey(k)) out[k] = raw[k];
+  });
+  if (out.url !== undefined) {
+    if (isSafeHttpUrl(out.url)) {
+      out.url = out.url.trim();
+    } else if (requireUrl) {
+      return null;
+    } else {
+      delete out.url;
+    }
+  } else if (requireUrl) {
+    return null;
+  }
+  ["snapshotUrl", "favicon", "iconUrl"].forEach((field) => {
+    if (out[field] === undefined) return;
+    if (isSafeHttpUrl(out[field])) out[field] = out[field].trim();
+    else delete out[field];
+  });
+  if (Array.isArray(out.subLinks)) {
+    out.subLinks = out.subLinks
+      .filter((item) => isPlainObject(item) && isSafeHttpUrl(item.url))
+      .slice(0, 4)
+      .map((item) => ({
+        label: String(item.label || "子路由").slice(0, 80),
+        url: item.url.trim(),
+      }));
+  } else if (out.subLinks !== undefined) {
+    delete out.subLinks;
+  }
+  return out;
+}
+
 // 清洗修改层：结构不合法的字段各自降级为空，不整单拒绝
 function sanitizeOverrides(raw) {
   const out = emptyOverrides();
   if (!isPlainObject(raw)) return out;
-  if (isPlainObject(raw.modified)) out.modified = raw.modified;
+  if (isPlainObject(raw.modified)) {
+    const mod = {};
+    Object.keys(raw.modified).slice(0, 2000).forEach((id) => {
+      if (isForbiddenKey(id) || typeof id !== "string" || !id) return;
+      const cleanPatch = sanitizeSiteEntry(raw.modified[id], false);
+      if (cleanPatch && Object.keys(cleanPatch).length > 0) {
+        mod[id] = cleanPatch;
+      }
+    });
+    out.modified = mod;
+  }
   if (Array.isArray(raw.added)) {
-    out.added = raw.added.filter((s) => isPlainObject(s)).slice(0, 500);
+    out.added = raw.added
+      .map((s) => sanitizeSiteEntry(s, true))
+      .filter(Boolean)
+      .slice(0, 500);
   }
   ["hidden", "deleted", "unhidden"].forEach((k) => {
     if (Array.isArray(raw[k])) {
       out[k] = raw[k].filter((s) => typeof s === "string").slice(0, 2000);
     }
   });
+  return out;
+}
+
+function sanitizeLedger(raw) {
+  const out = {
+    accessLog: {},
+    almanac: {},
+    marginalia: {},
+    snippets: [],
+    constellations: [],
+    dustResetAt: 0,
+  };
+  if (!isPlainObject(raw)) return out;
+  if (isPlainObject(raw.accessLog)) {
+    Object.keys(raw.accessLog).slice(0, 2000).forEach((id) => {
+      if (isForbiddenKey(id) || !id) return;
+      const e = raw.accessLog[id];
+      if (!isPlainObject(e)) return;
+      const count = Number.isFinite(e.count) ? Math.max(0, Math.floor(e.count)) : 0;
+      const lastVisited = Number.isFinite(e.lastVisited)
+        ? Math.max(0, e.lastVisited)
+        : (Number.isFinite(e.lastVisit) ? Math.max(0, e.lastVisit) : 0);
+      const firstSeenAt = Number.isFinite(e.firstSeenAt) ? Math.max(0, e.firstSeenAt) : 0;
+      const history = Array.isArray(e.history)
+        ? e.history
+            .filter((h) => isPlainObject(h) && /^\d{4}-\d{2}-\d{2}$/.test(String(h.date || "")))
+            .slice(-180)
+            .map((h) => ({
+              date: String(h.date),
+              count: Number.isFinite(h.count) ? Math.max(0, Math.floor(h.count)) : 0,
+            }))
+            .filter((h) => h.count > 0)
+        : [];
+      out.accessLog[id] = { count, lastVisited, firstSeenAt, history };
+    });
+  }
+  if (isPlainObject(raw.almanac)) {
+    Object.keys(raw.almanac).slice(0, 1000).forEach((day) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isPlainObject(raw.almanac[day])) return;
+      const a = raw.almanac[day];
+      const clicks = Number.isFinite(a.clicks) ? Math.max(0, Math.floor(a.clicks)) : 0;
+      const count = Number.isFinite(a.count) ? Math.max(0, Math.floor(a.count)) : clicks;
+      const aiCalls = Number.isFinite(a.aiCalls) ? Math.max(0, Math.floor(a.aiCalls)) : 0;
+      const sites = Array.isArray(a.sites)
+        ? Array.from(new Set(a.sites.filter((s) => typeof s === "string" && s).slice(0, 500)))
+        : [];
+      out.almanac[day] = { count, clicks, aiCalls, sites };
+    });
+  }
+  if (isPlainObject(raw.marginalia)) {
+    Object.keys(raw.marginalia).slice(0, 2000).forEach((id) => {
+      if (!isForbiddenKey(id) && typeof raw.marginalia[id] === "string" && raw.marginalia[id]) {
+        out.marginalia[id] = raw.marginalia[id].slice(0, 4000);
+      }
+    });
+  }
+  if (Array.isArray(raw.snippets)) {
+    out.snippets = raw.snippets
+      .filter((item) => typeof item === "string" || isPlainObject(item))
+      .slice(0, 1000)
+      .map((item) => {
+        if (typeof item === "string") return item.slice(0, 4000);
+        const copy = {};
+        Object.keys(item).forEach((k) => {
+          if (!isForbiddenKey(k)) copy[k] = item[k];
+        });
+        return copy;
+      });
+  }
+  if (Array.isArray(raw.constellations)) {
+    out.constellations = raw.constellations
+      .filter((item) => isPlainObject(item))
+      .slice(0, 200)
+      .map((item) => {
+        const copy = {};
+        Object.keys(item).forEach((k) => {
+          if (!isForbiddenKey(k)) copy[k] = item[k];
+        });
+        return copy;
+      });
+  }
+  if (Number.isFinite(raw.dustResetAt)) {
+    out.dustResetAt = Math.max(0, raw.dustResetAt);
+  }
+  return out;
+}
+
+function sanitizePreferences(raw) {
+  const out = {};
+  if (!isPlainObject(raw)) return out;
+  if (typeof raw.nierBg === "boolean") out.nierBg = raw.nierBg;
+  if (typeof raw.particles === "boolean") out.particles = raw.particles;
+  if (typeof raw.searchEngine === "string" && raw.searchEngine) {
+    out.searchEngine = raw.searchEngine.trim().slice(0, 32);
+  }
+  if (Array.isArray(raw.probeIgnored)) {
+    out.probeIgnored = Array.from(
+      new Set(raw.probeIgnored.filter((s) => typeof s === "string" && s).slice(0, 1000))
+    );
+  }
   return out;
 }
 
@@ -121,6 +280,12 @@ function sanitize(data) {
     out.order = {};
   }
   out.overrides = sanitizeOverrides(data.overrides);
+  if (isPlainObject(data.ledger)) {
+    out.ledger = sanitizeLedger(data.ledger);
+  }
+  if (isPlainObject(data.preferences)) {
+    out.preferences = sanitizePreferences(data.preferences);
+  }
   return out;
 }
 
@@ -172,10 +337,23 @@ export async function onRequestPut(context) {
     return json({ error: "数据过大，拒绝写入" }, 413);
   }
 
-  // last-write-wins：当前有效档案（v2，缺失时回落 v1）更新则拒绝，并把该版本还给客户端
+  // 乐观并发：新客户端必须声明本次编辑基于哪个云端版本。
+  // 这样另一台设备已先写入时会返回 409，由客户端三方合并，而不是整份覆盖。
   const loaded = await loadProfile(kv, auth.username);
-  if (loaded.doc && typeof loaded.doc.updatedAt === "number" && loaded.doc.updatedAt > doc.updatedAt) {
-    return json(loaded.doc, 409);
+  if (loaded.corrupt) return json({ error: "云端数据损坏" }, 500);
+  const remoteUpdatedAt = loaded.doc && Number.isFinite(loaded.doc.updatedAt)
+    ? Math.max(0, loaded.doc.updatedAt)
+    : 0;
+  const hasBaseVersion = body.baseUpdatedAt !== undefined && body.baseUpdatedAt !== null;
+  if (hasBaseVersion &&
+      (!Number.isFinite(body.baseUpdatedAt) || body.baseUpdatedAt < 0)) {
+    return json({ error: "baseUpdatedAt 格式无效" }, 400);
+  }
+  const conflict = hasBaseVersion
+    ? body.baseUpdatedAt !== remoteUpdatedAt || doc.updatedAt <= remoteUpdatedAt
+    : remoteUpdatedAt > doc.updatedAt;
+  if (conflict) {
+    return json(loaded.doc || { empty: true, updatedAt: 0 }, 409);
   }
 
   // 写入 v2；此后该用户以 v2 为准（v1 保持原样，只读遗留）

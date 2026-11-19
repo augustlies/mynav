@@ -39,7 +39,7 @@
         model: "deepseek-chat"
       },
       telemetryConfig: {
-        autoProbe: true,
+        autoProbe: false,
         instruments: {}
       },
       // Phase 4B: D5 网页琥珀封存库（siteId → 拓片对象）。与 aiConfig 一样，
@@ -148,16 +148,37 @@
     };
   }
 
+  function normalizeAccessLogMap(rawMap) {
+    const out = {};
+    if (!isObject(rawMap)) return out;
+    Object.keys(rawMap).forEach(function (siteId) {
+      const entry = normalizeAccessEntry(rawMap[siteId]);
+      if (entry) out[siteId] = entry;
+    });
+    return out;
+  }
+
+  function normalizeMarginaliaMap(raw) {
+    const out = {};
+    if (!isObject(raw)) return out;
+    Object.keys(raw).forEach(function (siteId) {
+      if (typeof raw[siteId] === "string" && raw[siteId]) {
+        out[siteId] = raw[siteId];
+      }
+    });
+    return out;
+  }
+
   function normalizeLedger(raw) {
     const base = createDefaultLedger();
     if (!isObject(raw)) return base;
 
-    base.snippets = Array.isArray(raw.snippets) ? raw.snippets.slice() : [];
-    base.constellations = Array.isArray(raw.constellations) ? raw.constellations.slice() : [];
-    base.marginalia = isObject(raw.marginalia) ? Object.assign({}, raw.marginalia) : {};
+    base.snippets = Array.isArray(raw.snippets) ? JSON.parse(JSON.stringify(raw.snippets)) : [];
+    base.constellations = Array.isArray(raw.constellations) ? JSON.parse(JSON.stringify(raw.constellations)) : [];
+    base.marginalia = normalizeMarginaliaMap(raw.marginalia);
     base.firstSeenAt = isObject(raw.firstSeenAt) ? Object.assign({}, raw.firstSeenAt) : {};
     base.almanac = normalizeAlmanac(raw.almanac);
-    base.dustResetAt = Number.isFinite(raw.dustResetAt) ? raw.dustResetAt : 0;
+    base.dustResetAt = Number.isFinite(raw.dustResetAt) ? Math.max(0, raw.dustResetAt) : 0;
     base.migratedLegacyVisitsAt = Number.isFinite(raw.migratedLegacyVisitsAt)
       ? raw.migratedLegacyVisitsAt
       : 0;
@@ -171,7 +192,7 @@
     base.aiConfig.model = String(base.aiConfig.model || "deepseek-chat");
     base.telemetryConfig = Object.assign({}, base.telemetryConfig,
       isObject(raw.telemetryConfig) ? raw.telemetryConfig : {});
-    base.telemetryConfig.autoProbe = base.telemetryConfig.autoProbe !== false;
+    base.telemetryConfig.autoProbe = base.telemetryConfig.autoProbe === true;
     base.telemetryConfig.instruments = isObject(base.telemetryConfig.instruments)
       ? base.telemetryConfig.instruments
       : {};
@@ -179,13 +200,7 @@
     // Phase 4B 兼容：旧账本没有 amberVault，缺省为空对象；已写入的拓片
     // 逐条合并，保证升级不丢用户已封存的碑拓。
     base.amberVault = isObject(raw.amberVault) ? Object.assign({}, raw.amberVault) : {};
-
-    if (isObject(raw.accessLog)) {
-      Object.keys(raw.accessLog).forEach(function (siteId) {
-        const entry = normalizeAccessEntry(raw.accessLog[siteId]);
-        if (entry) base.accessLog[siteId] = entry;
-      });
-    }
+    base.accessLog = normalizeAccessLogMap(raw.accessLog);
 
     return base;
   }
@@ -211,12 +226,16 @@
     return true;
   }
 
-  function persist(notify) {
+  function persist(notify, meta) {
     if (typeof window === "undefined") return false;
     const saved = writeRaw(STORAGE_KEY, ledger);
     if (saved && notify !== false && typeof window.dispatchEvent === "function") {
+      const detail = { ledger: ledger };
+      if (meta && typeof meta === "object") {
+        Object.assign(detail, meta);
+      }
       window.dispatchEvent(new CustomEvent("mynav-ledger-changed", {
-        detail: { ledger: ledger }
+        detail: detail
       }));
     }
     return saved;
@@ -550,7 +569,7 @@
   function getTelemetryConfig() {
     ensureLoaded();
     return {
-      autoProbe: ledger.telemetryConfig.autoProbe !== false,
+      autoProbe: ledger.telemetryConfig.autoProbe === true,
       instruments: Object.assign({}, ledger.telemetryConfig.instruments)
     };
   }
@@ -559,7 +578,7 @@
     ensureLoaded();
     const next = Object.assign({}, ledger.telemetryConfig, isObject(patch) ? patch : {});
     ledger.telemetryConfig = {
-      autoProbe: next.autoProbe !== false,
+      autoProbe: next.autoProbe === true,
       instruments: isObject(next.instruments) ? next.instruments : {}
     };
     persist(true);
@@ -606,6 +625,44 @@
   function getAll() {
     ensureLoaded();
     return JSON.parse(JSON.stringify(ledger));
+  }
+
+  function exportSyncSlice() {
+    ensureLoaded();
+    return JSON.parse(JSON.stringify({
+      accessLog: normalizeAccessLogMap(ledger.accessLog),
+      almanac: normalizeAlmanac(ledger.almanac),
+      marginalia: normalizeMarginaliaMap(ledger.marginalia),
+      snippets: Array.isArray(ledger.snippets) ? ledger.snippets : [],
+      constellations: Array.isArray(ledger.constellations) ? ledger.constellations : [],
+      dustResetAt: Number.isFinite(ledger.dustResetAt) ? Math.max(0, ledger.dustResetAt) : 0
+    }));
+  }
+
+  function applySyncSlice(syncSlice, fallbackVisits, options) {
+    ensureLoaded();
+    const hasSlice = isObject(syncSlice);
+    ledger.accessLog = hasSlice && isObject(syncSlice.accessLog)
+      ? normalizeAccessLogMap(syncSlice.accessLog)
+      : normalizeAccessLogMap(fallbackVisits);
+    if (hasSlice) {
+      ledger.almanac = normalizeAlmanac(syncSlice.almanac);
+      ledger.marginalia = normalizeMarginaliaMap(syncSlice.marginalia);
+      ledger.snippets = Array.isArray(syncSlice.snippets) ? JSON.parse(JSON.stringify(syncSlice.snippets)) : [];
+      ledger.constellations = Array.isArray(syncSlice.constellations)
+        ? JSON.parse(JSON.stringify(syncSlice.constellations))
+        : [];
+      ledger.dustResetAt = Number.isFinite(syncSlice.dustResetAt) ? Math.max(0, syncSlice.dustResetAt) : 0;
+    }
+    ledger.migratedLegacyVisitsAt = ledger.migratedLegacyVisitsAt || Date.now();
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.removeItem(LEGACY_VISITS_KEY);
+      }
+    } catch (error) {}
+    const notify = !options || options.notify !== false;
+    persist(notify, { syncOrigin: "remote" });
+    return exportSyncSlice();
   }
 
   function importData(raw) {
@@ -675,6 +732,8 @@
     setAmberRubbing,
     removeAmberRubbing,
     getAll,
+    exportSyncSlice,
+    applySyncSlice,
     importData,
     localDateKey,
     LEGACY_VISITS_KEY

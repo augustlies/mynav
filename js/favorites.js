@@ -20,6 +20,8 @@
     const raw = NavStorage.get(NavStorage.KEYS.FAVORITES, []);
     if (Array.isArray(raw)) {
       favoriteIds = new Set(raw);
+    } else {
+      favoriteIds = new Set();
     }
   }
 
@@ -46,6 +48,20 @@
     has(siteId) {
       if (!siteId) return false;
       return favoriteIds.has(siteId);
+    },
+
+    remove(siteId) {
+      if (!siteId || !favoriteIds.has(siteId)) return false;
+      favoriteIds.delete(siteId);
+      save();
+      notify();
+      return true;
+    },
+
+    reload() {
+      load();
+      notify();
+      return Array.from(favoriteIds);
     },
 
     toggle(siteId) {

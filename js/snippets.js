@@ -238,11 +238,9 @@
     const list = document.getElementById("snippets-list");
     const menu = document.getElementById("snippets-copy-menu");
     const entry = document.getElementById("btn-snippets-entry");
-    const spineEntry = document.getElementById("btn-snippets-spine-entry");
     const closeBtn = document.getElementById("btn-close-snippets");
     const addBtn = document.getElementById("btn-add-snippet");
     if (entry) entry.addEventListener("click", open);
-    if (spineEntry) spineEntry.addEventListener("click", open);
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (addBtn) addBtn.addEventListener("click", function () { addOrEdit(null); });
     if (modal) {

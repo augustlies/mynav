@@ -207,14 +207,6 @@
     if (focusBtn) focusBtn.addEventListener("click", toggleFocus);
     const timerStop = document.getElementById("btn-stop-focus");
     if (timerStop) timerStop.addEventListener("click", function () { setFocus(false); });
-    const form = document.getElementById("sanctum-command-form");
-    if (form) {
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const input = document.getElementById("sanctum-command-input");
-        if (input) handleCommand(input.value);
-      });
-    }
   }
 
   function init() {

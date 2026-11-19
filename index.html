@@ -27,7 +27,7 @@
       });
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261030a">
+  <link rel="stylesheet" href="styles.css?v=20261114a">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
@@ -248,7 +248,7 @@
         <footer class="colophon-footer" role="contentinfo">
           <div class="footer-inner-rail">
             <p class="footer-quote">“博学之，审问之，慎思之，明辨之，笃行之。”</p>
-            <p>个人纯静态数字收藏馆 · 所有书签收藏与使用偏好均保存在您当前设备本地浏览器</p>
+            <p>个人数字收藏馆 · 默认本地存储，支持可选账号跨设备云同步与 Notion 卡片编辑</p>
             <p class="footer-hall-hint">
               按 <kbd class="kbd-tag">.</kbd> 打开馆务 · <kbd class="kbd-tag">/</kbd> 检索 · <kbd class="kbd-tag">?</kbd> 快捷键指南
             </p>
@@ -381,6 +381,7 @@
               <span class="cloud-label">登录 / 立即同步</span>
             </button>
           </div>
+          <p id="cloud-sync-status" class="courier-hint" role="status" aria-live="polite">登录后可同步收藏、访问记录、排序和书目编辑。</p>
         </section>
 
         <section class="courier-section" id="courier-pane-export" data-courier-pane="export" role="tabpanel" aria-labelledby="courier-export-title">
@@ -637,12 +638,12 @@
         <!-- 三大核心原则 -->
         <section class="colophon-pillars-grid">
           <div class="colophon-pillar-card">
-            <h4>🔒 私密自愈</h4>
-            <p>100% 留存于您本地浏览器。无中心数据库，无用户跟踪，数据所有权完全属于您。</p>
+            <h4>🔒 本地优先</h4>
+            <p>默认 100% 留存于您当前浏览器，零强制注册；仅在主动登录云同步、Notion 或 AI 时连接对应接口。</p>
           </div>
           <div class="colophon-pillar-card">
-            <h4>🌿 纯粹静谧</h4>
-            <p>零外部运行依赖、零打包构建链。哪怕断网或数十年后打开，依然纤细如初、随时可用。</p>
+            <h4>🌿 轻量静谧</h4>
+            <p>无打包构建链，首屏按需载入与离线缓存，哪怕断网仍可直接访问本机馆藏。</p>
           </div>
           <div class="colophon-pillar-card">
             <h4>🏛 装帧美学</h4>
@@ -658,7 +659,7 @@
             <div class="specs-row"><span>字体系统</span><span>Cinzel / Noto Serif SC / JetBrains Mono</span></div>
             <div class="specs-row"><span>色彩令牌</span><span>Ivory Paper (#F8F6F0) & Charcoal Ink (#1C1D19)</span></div>
             <div class="specs-row"><span>版印算法</span><span>FNV-1a 32-bit 确定性矢量几何星芒与藏书票</span></div>
-            <div class="specs-row"><span>馆藏编目</span><span>36 卷经典藏书 · 5 大分类专栏 · 151 组索引词</span></div>
+            <div class="specs-row"><span>馆藏编目</span><span id="colophon-catalog-stats">36 卷经典藏书 · 5 大分类专栏 · 151 组索引词</span></div>
           </div>
         </section>
 
@@ -1021,26 +1022,27 @@
   </script>
   <!-- 纯静态模块化脚本装配 (原生加载，无构建步骤，添加版本戳防浏览器与CDN缓存) -->
   <script src="data.js?v=1.8.0" defer></script>
-  <script src="js/lazy.js?v=b3.9" defer></script>
+  <script src="js/notion-cards.js?v=1.0.3" defer></script>
+  <script src="js/lazy.js?v=b4.1" defer></script>
   <script src="js/storage.js?v=2.0.0" defer></script>
   <script src="js/schema.js?v=b3.9" defer></script>
-  <script src="js/ledger.js?v=4.1.0" defer></script>
-  <script src="js/overrides.js?v=4.2.0" defer></script>
-  <script src="js/theme.js?v=1.7.0" defer></script>
-  <script src="js/favorites.js?v=1.7.0" defer></script>
+  <script src="js/ledger.js?v=4.2.1" defer></script>
+  <script src="js/overrides.js?v=4.2.1" defer></script>
+  <script src="js/theme.js?v=1.7.1" defer></script>
+  <script src="js/favorites.js?v=1.7.1" defer></script>
   <script src="js/visits.js?v=2.0.0" defer></script>
   <script src="js/search.js?v=1.7.0" defer></script>
-  <script src="js/engine.js?v=b3.9" defer></script>
+  <script src="js/engine.js?v=b3.10" defer></script>
   <script src="js/motion.js?v=1.7.0" defer></script>
-  <script src="js/sortable.js?v=1.7.0" defer></script>
-  <script src="js/shortcuts.js?v=b3.9" defer></script>
+  <script src="js/sortable.js?v=1.7.1" defer></script>
+  <script src="js/shortcuts.js?v=b3.10" defer></script>
   <script src="js/commands.js?v=b3.9" defer></script>
   <script src="js/hall.js?v=b3.9" defer></script>
-  <script src="js/folio-keys.js?v=2.0.0" defer></script>
+  <script src="js/folio-keys.js?v=2.0.1" defer></script>
   <script src="js/marginalia.js?v=2.0.0" defer></script>
   <script src="js/constellations.js?v=2.0.0" defer></script>
-  <script src="js/sanctum.js?v=2.0.0" defer></script>
-  <script src="app.js?v=20261031a" defer></script>
+  <script src="js/sanctum.js?v=2.0.1" defer></script>
+  <script src="app.js?v=20261117a" defer></script>
   <div id="net-status" class="net-status" role="status" aria-live="polite" hidden></div>
   <script>
     /* 离线开馆：注册 Service Worker（入口页缓存优先，秒开）；离线小签与「已更新，下次打开生效」提示 */

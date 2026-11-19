@@ -69,6 +69,16 @@
       motto: "“善假于物 · 案头运斤成风”",
       latin: "INSTRUMENTA PRAESTANTIA ET DISCIPLINA",
       motifCategory: "precision"
+    },
+    social: {
+      ink: "#2E3A40",       // 墨青灰蓝
+      accent: "#B35A38",    // 陶朱暖橙
+      bg: "#F6F5F0",        // 笺纸米白
+      subtle: "rgba(46, 58, 64, 0.12)",
+      line: "rgba(46, 58, 64, 0.28)",
+      motto: "“声气相求 · 雅集于方寸之间”",
+      latin: "COMMUNITAS ET SERMO HUMANUS",
+      motifCategory: "astral"
     }
   };
 
@@ -392,14 +402,7 @@
         if (typeof callback === "function") {
           callback(null, pngDataUrl);
         } else {
-          // 默认直接触发文件下载
-          const a = document.createElement("a");
-          const safeName = (site.name || site.id).replace(/[^\w\u4e00-\u9fa5-_]/g, "_");
-          a.download = `ExLibris_${safeName}_2026.png`;
-          a.href = pngDataUrl;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+          downloadPngDataUrl(site, pngDataUrl);
         }
       } catch (err) {
         console.error("[NavExLibris] Canvas 导出 PNG 异常:", err);
@@ -414,6 +417,17 @@
     };
 
     img.src = blobUrl;
+  }
+
+  function downloadPngDataUrl(site, pngDataUrl) {
+    if (!site || !pngDataUrl || typeof document === "undefined") return;
+    const a = document.createElement("a");
+    const safeName = (site.name || site.id || "bookplate").replace(/[^\w\u4e00-\u9fa5-_]/g, "_");
+    a.download = `ExLibris_${safeName}_2026.png`;
+    a.href = pngDataUrl;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   // 7. 模态画框控制器 (Modal Viewer)
@@ -474,10 +488,15 @@
         exportBtn.innerHTML = "<span>⏳ 正在生成印画...</span>";
         exportBtn.disabled = true;
 
-        exportBookplatePng(currentSite, (err) => {
+        const siteToExport = currentSite;
+        exportBookplatePng(siteToExport, (err, pngDataUrl) => {
           exportBtn.disabled = false;
           exportBtn.innerHTML = origText;
-          if (err) alert("导出 PNG 失败，请检查浏览器权限。");
+          if (err || !pngDataUrl) {
+            alert("导出 PNG 失败，请检查浏览器权限。");
+            return;
+          }
+          downloadPngDataUrl(siteToExport, pngDataUrl);
         });
       });
     }
@@ -493,7 +512,7 @@
     // 快捷键 Esc 关闭
     window.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
-        const m = document.getElementById("bookplate-modal");
+        const m = document.querySelector("#bookplate-modal");
         if (m && m.style.display !== "none") {
           closeModal();
         }

@@ -751,6 +751,18 @@
     } else {
       stopAnimation();
     }
+    try {
+      window.dispatchEvent(new CustomEvent("mynav-preferences-changed", { detail: { key: "particles" } }));
+    } catch (e) {}
+    return isStoredEnabled();
+  }
+
+  function reload() {
+    if (isStoredEnabled() && !prefersReducedMotion() && !prefersSaveData()) {
+      startAnimation();
+    } else {
+      stopAnimation();
+    }
     return isStoredEnabled();
   }
 
@@ -799,6 +811,7 @@
     stop: stopAnimation,
     toggle,
     setEnabled,
+    reload,
     isEnabled,
     resize,
     triggerMeteor: function () {

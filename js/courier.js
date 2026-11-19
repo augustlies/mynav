@@ -696,7 +696,6 @@
     bound = true;
 
     var entry = document.getElementById("btn-courier-entry");
-    var mobileEntry = document.getElementById("btn-courier-mobile");
     var closeBtn = document.getElementById("btn-close-courier");
     var dismissBtn = document.getElementById("btn-dismiss-courier");
     var backdrop = document.getElementById("courier-backdrop");
@@ -711,10 +710,6 @@
     if (entry) entry.addEventListener("click", function (event) {
       event.preventDefault();
       toggle();
-    });
-    if (mobileEntry) mobileEntry.addEventListener("click", function (event) {
-      event.preventDefault();
-      open();
     });
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (dismissBtn) dismissBtn.addEventListener("click", close);

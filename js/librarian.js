@@ -457,6 +457,9 @@
   let lastCards = [];
   let lastSource = "local";
   let busy = false;
+  let runSeq = 0;
+  let activeLlmController = null;
+  let configModalBound = false;
 
   // --------------------------------------------------------------------------
   // 工具函数
@@ -780,6 +783,7 @@
     if (!config.apiKey) return null;
     const endpoint = config.baseUrl.replace(/\/+$/, "") + "/chat/completions";
     const controller = new AbortController();
+    activeLlmController = controller;
     const timer = setTimeout(function () { controller.abort(); }, 12000);
     try {
       const response = await fetch(endpoint, {
@@ -805,6 +809,9 @@
       return null;
     } finally {
       clearTimeout(timer);
+      if (activeLlmController === controller) {
+        activeLlmController = null;
+      }
     }
   }
 
@@ -970,6 +977,12 @@
   }
 
   function close() {
+    runSeq += 1;
+    busy = false;
+    if (activeLlmController) {
+      try { activeLlmController.abort(); } catch (error) {}
+      activeLlmController = null;
+    }
     if (!folio) return;
     if (streamTimer) {
       clearInterval(streamTimer);
@@ -1020,6 +1033,7 @@
   // --------------------------------------------------------------------------
   async function run(mode, payload) {
     if (busy) return false;
+    const mySeq = ++runSeq;
     busy = true;
     currentMode = mode;
     currentRaw = payload;
@@ -1038,67 +1052,75 @@
     let answer = "";
     let source = "local";
 
-    if (!payload) {
-      answer = mode === MODE_EXEC
-        ? "请在 `!` 之后写下需要就地作答的轻任务，例如 `! 端口转发 443 到 8080`。"
-        : "请在 `?` 之后写下馆主的疑问，例如 `? 帮我挑个适合处理切图或代码的工具`。";
-      await streamInto(outputEl, answer);
+    try {
+      if (!payload) {
+        answer = mode === MODE_EXEC
+          ? "请在 `!` 之后写下需要就地作答的轻任务，例如 `! 端口转发 443 到 8080`。"
+          : "请在 `?` 之后写下馆主的疑问，例如 `? 帮我挑个适合处理切图或代码的工具`。";
+        await streamInto(outputEl, answer);
+        if (mySeq !== runSeq || !opened) return false;
+        lastResult = answer;
+        lastSource = "local";
+        setStatus("待补充提问");
+        return true;
+      }
+
+      if (mode === MODE_RAG) {
+        picks = recommend(payload, MAX_CARDS);
+        const remote = hasApiKey() ? await callLlm([{ role: "user", content: buildCatalogPrompt(picks, payload) }]) : null;
+        if (mySeq !== runSeq || !opened) return false;
+        if (remote) {
+          const remoteIds = parsePickIds(remote);
+          if (remoteIds.length > 0) {
+            const corpusMap = new Map();
+            collectCorpus().forEach(function (entry) { corpusMap.set(entry.site.id, entry); });
+            const remotePicks = remoteIds
+              .map(function (id) { return corpusMap.get(id); })
+              .filter(Boolean)
+              .slice(0, MAX_CARDS)
+              .map(function (entry) { return { entry: entry, score: 999 }; });
+            if (remotePicks.length > 0) picks = remotePicks;
+          }
+          answer = String(remote).replace(/^.*PICK:.*$/gm, "").replace(/\n{3,}/g, "\n\n").trim();
+          if (!answer) answer = buildLocalRagAnswer(payload, picks);
+          source = "llm";
+        } else {
+          answer = buildLocalRagAnswer(payload, picks);
+        }
+      } else {
+        const remote = hasApiKey() ? await callLlm([
+          {
+            role: "user",
+            content: "你是「守馆人 · 司天监」，古雅克制、直接给可执行答案。" +
+              "若涉及命令或代码，请用 ``` 围栏代码块输出。馆主所问：" + payload
+          }
+        ]) : null;
+        if (mySeq !== runSeq || !opened) return false;
+        if (remote) {
+          answer = String(remote).trim();
+          source = "llm";
+        } else {
+          answer = buildLocalExecAnswer(payload);
+        }
+      }
+
       lastResult = answer;
-      lastSource = "local";
-      setStatus("待补充提问");
-      busy = false;
+      lastSource = source;
+      lastCards = picks;
+      await streamInto(outputEl, answer);
+      if (mySeq !== runSeq || !opened) return false;
+      renderCards(picks);
+      positionFolio();
+      setStatus(
+        (source === "llm" ? "司天监实时推演完成" : "本地确定性引擎完成") +
+        (picks.length ? " · 荐书 " + picks.length + " 卷" : "")
+      );
       return true;
-    }
-
-    if (mode === MODE_RAG) {
-      picks = recommend(payload, MAX_CARDS);
-      const remote = hasApiKey() ? await callLlm([{ role: "user", content: buildCatalogPrompt(picks, payload) }]) : null;
-      if (remote) {
-        const remoteIds = parsePickIds(remote);
-        if (remoteIds.length > 0) {
-          const corpusMap = new Map();
-          collectCorpus().forEach(function (entry) { corpusMap.set(entry.site.id, entry); });
-          const remotePicks = remoteIds
-            .map(function (id) { return corpusMap.get(id); })
-            .filter(Boolean)
-            .slice(0, MAX_CARDS)
-            .map(function (entry) { return { entry: entry, score: 999 }; });
-          if (remotePicks.length > 0) picks = remotePicks;
-        }
-        answer = String(remote).replace(/^.*PICK:.*$/gm, "").replace(/\n{3,}/g, "\n\n").trim();
-        if (!answer) answer = buildLocalRagAnswer(payload, picks);
-        source = "llm";
-      } else {
-        answer = buildLocalRagAnswer(payload, picks);
-      }
-    } else {
-      const remote = hasApiKey() ? await callLlm([
-        {
-          role: "user",
-          content: "你是「守馆人 · 司天监」，古雅克制、直接给可执行答案。" +
-            "若涉及命令或代码，请用 ``` 围栏代码块输出。馆主所问：" + payload
-        }
-      ]) : null;
-      if (remote) {
-        answer = String(remote).trim();
-        source = "llm";
-      } else {
-        answer = buildLocalExecAnswer(payload);
+    } finally {
+      if (mySeq === runSeq) {
+        busy = false;
       }
     }
-
-    lastResult = answer;
-    lastSource = source;
-    lastCards = picks;
-    await streamInto(outputEl, answer);
-    renderCards(picks);
-    positionFolio();
-    setStatus(
-      (source === "llm" ? "司天监实时推演完成" : "本地确定性引擎完成") +
-      (picks.length ? " · 荐书 " + picks.length + " 卷" : "")
-    );
-    busy = false;
-    return true;
   }
 
   function handleInput(value) {
@@ -1191,9 +1213,26 @@
   // --------------------------------------------------------------------------
   // 司天监密钥配置
   // --------------------------------------------------------------------------
+  function ensureConfigModalBound() {
+    if (configModalBound) return;
+    const configModal = document.getElementById("librarian-config-modal");
+    if (!configModal) return;
+    configModalBound = true;
+    const configClose = document.getElementById("btn-close-librarian-config");
+    const configDismiss = document.getElementById("btn-dismiss-librarian-config");
+    const configSave = document.getElementById("btn-save-librarian-config");
+    if (configClose) configClose.addEventListener("click", closeConfig);
+    if (configDismiss) configDismiss.addEventListener("click", closeConfig);
+    if (configSave) configSave.addEventListener("click", saveConfig);
+    configModal.addEventListener("click", function (event) {
+      if (event.target === configModal) closeConfig();
+    });
+  }
+
   function openConfig() {
     const modal = document.getElementById("librarian-config-modal");
     if (!modal) return;
+    ensureConfigModalBound();
     const config = getAiConfig();
     const baseUrl = document.getElementById("librarian-config-base-url");
     const apiKey = document.getElementById("librarian-config-api-key");
@@ -1208,11 +1247,15 @@
         : "当前使用本地确定性引擎（免 Key 兜底）";
     }
     modal.style.display = "flex";
+    document.body.classList.add("modal-open");
   }
 
   function closeConfig() {
-    const modal = document.getElementById("librarian-config-modal");
-    if (modal) modal.style.display = "none";
+    const modal = document.querySelector("#librarian-config-modal");
+    if (modal) {
+      modal.style.display = "none";
+      document.body.classList.remove("modal-open");
+    }
   }
 
   function saveConfig() {
@@ -1277,24 +1320,21 @@
     const copyBtn = document.getElementById("btn-librarian-copy");
     const snippetBtn = document.getElementById("btn-librarian-snippet");
     const configBtn = document.getElementById("btn-librarian-config");
-    const configClose = document.getElementById("btn-close-librarian-config");
-    const configDismiss = document.getElementById("btn-dismiss-librarian-config");
-    const configSave = document.getElementById("btn-save-librarian-config");
-    const configModal = document.getElementById("librarian-config-modal");
 
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (dismissBtn) dismissBtn.addEventListener("click", close);
     if (copyBtn) copyBtn.addEventListener("click", copyResult);
     if (snippetBtn) snippetBtn.addEventListener("click", saveToCodex);
     if (configBtn) configBtn.addEventListener("click", openConfig);
-    if (configClose) configClose.addEventListener("click", closeConfig);
-    if (configDismiss) configDismiss.addEventListener("click", closeConfig);
-    if (configSave) configSave.addEventListener("click", saveConfig);
-    if (configModal) {
-      configModal.addEventListener("click", function (event) {
-        if (event.target === configModal) closeConfig();
-      });
-    }
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") return;
+      const modal = document.querySelector("#librarian-config-modal");
+      if (modal && modal.style.display !== "none") {
+        event.preventDefault();
+        closeConfig();
+      }
+    });
 
     if (cardsEl) {
       cardsEl.addEventListener("click", function (event) {
@@ -1330,7 +1370,7 @@
       if (folio.contains(event.target)) return;
       const section = document.querySelector(".archive-search-section");
       if (section && section.contains(event.target)) return;
-      const modal = document.getElementById("librarian-config-modal");
+      const modal = document.querySelector("#librarian-config-modal");
       if (modal && modal.contains(event.target)) return;
       close();
     }, true);

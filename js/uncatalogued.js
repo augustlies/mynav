@@ -27,6 +27,12 @@
       : "";
   }
 
+  function safeHttpUrl(value) {
+    if (typeof value !== "string") return "#";
+    const trimmed = value.trim();
+    return /^https?:\/\/[^\s"'<>]+$/i.test(trimmed) ? trimmed : "#";
+  }
+
   function escapeHtml(value) {
     return String(value || "")
       .replace(/&/g, "&amp;")
@@ -120,7 +126,7 @@
       sealed ? '<span class="uncatalogued-hourglass">⌛ 已封存三月</span>' : "",
       '</div>',
       '<h3 class="uncatalogued-card-title">',
-      '<a href="', escapeHtml(site.url), '" target="_blank" rel="noopener noreferrer" data-uncatalogued-open="', escapeHtml(site.id), '">',
+      '<a href="', escapeHtml(safeHttpUrl(site.url)), '" target="_blank" rel="noopener noreferrer" data-uncatalogued-open="', escapeHtml(site.id), '">',
       escapeHtml(site.name || site.title || site.id), '</a></h3>',
       '<div class="uncatalogued-card-meta">', escapeHtml(category ? category.name : site.category || "未分类"),
       ' · ', escapeHtml((function () {
@@ -324,9 +330,7 @@
     if (bound) return;
     bound = true;
     const entry = document.getElementById("btn-uncatalogued-entry");
-    const mobileEntry = document.getElementById("btn-uncatalogued-mobile");
     if (entry) entry.addEventListener("click", open);
-    if (mobileEntry) mobileEntry.addEventListener("click", open);
     document.addEventListener("keydown", function (event) {
       if (event.key === "u" || event.key === "U") {
         const target = event.target;

@@ -2,15 +2,18 @@
  * Cloudflare Pages Function: /api/auth/* —— 账号体系（用户名 + 密码）
  *
  * 路由（catch-all，[[path]] 可零段可多段）：
- *   POST /api/auth/register  {username, password} → {token, username}
+ *   POST /api/auth/register  {username, password} → {token, username, recoveryCode}
  *   POST /api/auth/login     {username, password} → {token, username}
  *   GET  /api/auth/me        Bearer 会话       → {username}
  *   POST /api/auth/logout    Bearer 会话       → {ok: true}
+ *   POST /api/auth/recovery-code  Bearer 会话  → {recoveryCode}（重新生成）
+ *   POST /api/auth/recover   {username, recoveryCode, newPassword} → 新会话 + 新恢复码
  *
  * 存储（沿用 Pages 现有 KV 绑定 MYNAV_KV，不需要新绑定）：
  *   users:index       已注册用户名数组（小写），非空即关闭注册
  *   user:<name>       {salt, hash, createdAt}，salt/hash 均为 base64
  *   session:<token>   {username, expiresAt}，put 时带 expirationTtl = 30 天
+ *   recovery:<name>   一次性恢复码的 PBKDF2 摘要，不明文保存
  *
  * 安全：
  * - 密码只以 PBKDF2-HMAC-SHA256（迭代 100000，随机 16 字节 salt）的摘要形式落库，
@@ -22,6 +25,7 @@
 const KV_USERS_INDEX = "users:index";
 const KV_USER_PREFIX = "user:";
 const KV_SESSION_PREFIX = "session:";
+const KV_RECOVERY_PREFIX = "recovery:";
 
 const PBKDF2_ITERATIONS = 100000;
 const SALT_BYTES = 16;
@@ -133,6 +137,33 @@ async function readUser(kv, name) {
   }
 }
 
+// users:index 只是加速索引，不作为账号是否存在的唯一事实来源。
+// 同时核对 user: 记录并自愈索引，避免残留索引锁死注册、丢失索引放号。
+async function readValidAccounts(kv) {
+  const names = new Set(await readUsersIndex(kv));
+  if (typeof kv.list === "function") {
+    let cursor;
+    do {
+      const page = await kv.list({ prefix: KV_USER_PREFIX, cursor });
+      (page.keys || []).forEach((entry) => {
+        const name = String(entry.name || "").slice(KV_USER_PREFIX.length);
+        if (USERNAME_RE.test(name)) names.add(name);
+      });
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+  }
+  const valid = [];
+  for (const name of names) {
+    if (await readUser(kv, name)) valid.push(name);
+  }
+  valid.sort();
+  const previous = (await readUsersIndex(kv)).slice().sort();
+  if (JSON.stringify(previous) !== JSON.stringify(valid)) {
+    await kv.put(KV_USERS_INDEX, JSON.stringify(valid));
+  }
+  return valid;
+}
+
 async function createSession(kv, username) {
   const token = bytesToBase64Url(randomBytes(SESSION_BYTES));
   const expiresAt = Date.now() + SESSION_TTL_SECONDS * 1000;
@@ -142,6 +173,48 @@ async function createSession(kv, username) {
     { expirationTtl: SESSION_TTL_SECONDS }
   );
   return { token, username, expiresAt };
+}
+
+async function issueRecoveryCode(kv, username) {
+  const code = bytesToBase64Url(randomBytes(SESSION_BYTES));
+  const saltBytes = randomBytes(SALT_BYTES);
+  const hashBytes = await deriveHash(code, saltBytes);
+  await kv.put(KV_RECOVERY_PREFIX + username, JSON.stringify({
+    salt: bytesToBase64(saltBytes),
+    hash: bytesToBase64(hashBytes),
+    createdAt: Date.now(),
+  }));
+  return code;
+}
+
+async function readRecoveryUser(kv, username, code) {
+  if (!validPassword(code)) return null;
+  const raw = await kv.get(KV_RECOVERY_PREFIX + username);
+  if (!raw) return null;
+  try {
+    const rec = JSON.parse(raw);
+    const saltBytes = base64ToBytes(rec.salt);
+    const hashBytes = await deriveHash(code, saltBytes);
+    return timingSafeEqualStr(bytesToBase64(hashBytes), rec.hash) ? rec : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function deleteSessionsForUser(kv, username) {
+  if (typeof kv.list !== "function") return;
+  let cursor;
+  do {
+    const page = await kv.list({ prefix: KV_SESSION_PREFIX, cursor });
+    for (const entry of page.keys || []) {
+      const raw = await kv.get(entry.name);
+      try {
+        const session = JSON.parse(raw);
+        if (session && session.username === username) await kv.delete(entry.name);
+      } catch (e) {}
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
 }
 
 async function readSession(context) {
@@ -190,13 +263,13 @@ async function handleRegister(context) {
     return json({ error: "密码至少 8 位（上限 200 位）" }, 400);
   }
 
-  // 注册开放条件：系统内尚无任何账号
-  const index = await readUsersIndex(kv);
-  if (index.length > 0) {
-    return json({ error: "registration closed", message: "注册已关闭：本站已有账号" }, 403);
+  // 注册开放条件：KV 中尚无任何有效账号；残留索引会被自动清理。
+  const accounts = await readValidAccounts(kv);
+  if (accounts.length > 0) {
+    return json({ error: "registration closed", message: "注册已关闭：本站已有账号，请直接登录或使用恢复码" }, 403);
   }
 
-  // 理论上 index 为空时不会命中，但防止 index 与 user 记录不一致
+  // 防止并发请求在索引修复后重复占用同一用户名。
   const existing = await readUser(kv, name);
   if (existing) {
     return json({ error: "username taken", message: "用户名已被占用" }, 409);
@@ -213,10 +286,11 @@ async function handleRegister(context) {
       createdAt: Date.now(),
     })
   );
-  await kv.put(KV_USERS_INDEX, JSON.stringify(index.concat([name])));
+  await kv.put(KV_USERS_INDEX, JSON.stringify([name]));
 
   const session = await createSession(kv, name);
-  return json({ token: session.token, username: name }, 200);
+  const recoveryCode = await issueRecoveryCode(kv, name);
+  return json({ token: session.token, username: name, recoveryCode }, 200);
 }
 
 async function handleLogin(context) {
@@ -264,6 +338,40 @@ async function handleLogout(context) {
   return json({ ok: true }, 200);
 }
 
+async function handleRecoveryCode(context) {
+  const s = await readSession(context);
+  if (s.error) return json({ error: s.error.message }, s.error.status);
+  const recoveryCode = await issueRecoveryCode(s.kv, s.username);
+  return json({ recoveryCode }, 200);
+}
+
+async function handleRecover(context) {
+  const kv = context.env.MYNAV_KV;
+  if (!kv) return json({ error: "KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定" }, 500);
+  const body = await readBody(context);
+  if (!body) return json({ error: "请求体不是合法 JSON" }, 400);
+  const name = normalizeUsername(body.username);
+  const code = typeof body.recoveryCode === "string" ? body.recoveryCode.trim() : "";
+  if (!name || !validPassword(body.newPassword)) {
+    return json({ error: "请输入有效用户名、恢复码和至少 8 位的新密码" }, 400);
+  }
+  const user = await readUser(kv, name);
+  const recovery = user ? await readRecoveryUser(kv, name, code) : null;
+  if (!user || !recovery) return json({ error: "unauthorized", message: "用户名或恢复码不正确" }, 401);
+
+  const saltBytes = randomBytes(SALT_BYTES);
+  const hashBytes = await deriveHash(body.newPassword, saltBytes);
+  await kv.put(KV_USER_PREFIX + name, JSON.stringify({
+    salt: bytesToBase64(saltBytes),
+    hash: bytesToBase64(hashBytes),
+    createdAt: user.createdAt || Date.now(),
+  }));
+  const recoveryCode = await issueRecoveryCode(kv, name); // 旧恢复码一次性失效
+  await deleteSessionsForUser(kv, name);
+  const session = await createSession(kv, name);
+  return json({ token: session.token, username: name, recoveryCode }, 200);
+}
+
 // ---------- 路由 ----------
 
 function segments(context) {
@@ -280,6 +388,10 @@ export async function onRequestPost(context) {
       return handleLogin(context);
     case "logout":
       return handleLogout(context);
+    case "recovery-code":
+      return handleRecoveryCode(context);
+    case "recover":
+      return handleRecover(context);
     default:
       return json({ error: "not found" }, 404);
   }

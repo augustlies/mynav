@@ -246,32 +246,35 @@
   ]);
 
   function isAnyModalOpen() {
-    const shortcutsModal = document.getElementById("shortcuts-modal");
-    const bookplateModal = document.getElementById("bookplate-modal");
-    const colophonModal = document.getElementById("colophon-modal");
-    const cardEditModal = document.getElementById("card-edit-modal");
-    const hiddenCardsModal = document.getElementById("hidden-cards-modal");
-    const snippetsModal = document.getElementById("snippets-modal");
-    const uncataloguedDrawer = document.getElementById("uncatalogued-drawer");
-    const brassWorkbench = document.getElementById("brass-workbench");
-    // Phase 4B：琥珀拓片 / 飞鸽传书 同属模态浮层；Batch 2：馆务抽屉同理。
-    // 打开时必须让出全局按键（j/k/h/l 等）给浮层自身的交互。
-    const amberModal = document.getElementById("amber-modal");
-    const courierModal = document.getElementById("courier-modal");
-    const hallDrawer = document.getElementById("hall-drawer");
-    return (
-      (shortcutsModal && shortcutsModal.style.display !== "none") ||
-      (bookplateModal && bookplateModal.style.display !== "none") ||
-      (colophonModal && colophonModal.style.display !== "none") ||
-      (cardEditModal && cardEditModal.style.display !== "none") ||
-      (hiddenCardsModal && hiddenCardsModal.style.display !== "none") ||
-      (snippetsModal && snippetsModal.style.display !== "none") ||
-      (uncataloguedDrawer && !uncataloguedDrawer.hidden) ||
-      (brassWorkbench && !brassWorkbench.hidden) ||
-      (amberModal && !amberModal.hidden) ||
-      (courierModal && !courierModal.hidden) ||
-      (hallDrawer && !hallDrawer.hidden)
-    );
+    // 用 querySelector 检查已挂载节点，避免把未展开的 <template data-lazy-dom> 提前水合
+    const displayModals = [
+      "#shortcuts-modal",
+      "#bookplate-modal",
+      "#colophon-modal",
+      "#card-edit-modal",
+      "#hidden-cards-modal",
+      "#snippets-modal",
+      "#librarian-config-modal"
+    ];
+    for (let i = 0; i < displayModals.length; i += 1) {
+      const el = document.querySelector(displayModals[i]);
+      if (el && el.style.display !== "none") return true;
+    }
+    const hiddenDrawers = [
+      "#uncatalogued-drawer",
+      "#brass-workbench",
+      "#amber-modal",
+      "#courier-modal",
+      "#hall-drawer"
+    ];
+    for (let i = 0; i < hiddenDrawers.length; i += 1) {
+      const el = document.querySelector(hiddenDrawers[i]);
+      if (el && !el.hidden) return true;
+    }
+    if (document.querySelector(".nav-auth-overlay") || document.body.classList.contains("modal-open")) {
+      return true;
+    }
+    return false;
   }
 
   function handleKeyDown(e) {
@@ -325,6 +328,18 @@
         }
         if (window.NavBrassTools && typeof window.NavBrassTools.close === "function") {
           window.NavBrassTools.close();
+        }
+        if (window.NavAmber && typeof window.NavAmber.close === "function") {
+          window.NavAmber.close();
+        }
+        if (window.NavCourier && typeof window.NavCourier.close === "function") {
+          window.NavCourier.close();
+        }
+        if (window.NavHall && typeof window.NavHall.close === "function") {
+          window.NavHall.close();
+        }
+        if (window.NavLibrarian && typeof window.NavLibrarian.closeConfig === "function") {
+          window.NavLibrarian.closeConfig();
         }
       }
       return; // 模态窗打开时，禁用背景卡片漫游
@@ -471,7 +486,11 @@
 
       // 卡片矩阵：如果处于整理模式，翻转卡片；否则跳转并统计
       if (hooks.isArrangeMode && hooks.isArrangeMode()) {
-        el.classList.toggle("flipped");
+        el.classList.toggle("is-flipped");
+        if (el.classList.contains("is-flipped") && window.NavApp &&
+          typeof window.NavApp.hydrateMarginalia === "function") {
+          window.NavApp.hydrateMarginalia(el);
+        }
       } else if (url) {
         if (siteId && window.NavApp && typeof window.NavApp.openSite === "function") {
           window.NavApp.openSite(siteId);
