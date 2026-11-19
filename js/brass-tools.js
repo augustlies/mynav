@@ -440,7 +440,6 @@
     if (bound) return;
     bound = true;
     const entry = $("btn-brass-tools-entry");
-    const mobileEntry = $("btn-brass-tools-mobile");
     const closeBtn = $("btn-close-brass-workbench");
     const backdrop = $("brass-tools-backdrop");
     const reprobe = $("btn-brass-reprobe");
@@ -451,7 +450,6 @@
     const cipherInput = $("brass-cipher-input");
     const shaInput = $("brass-sha-input");
     if (entry) entry.addEventListener("click", function () { open("compass"); });
-    if (mobileEntry) mobileEntry.addEventListener("click", function () { open("compass"); });
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (backdrop) backdrop.addEventListener("click", close);
     if (reprobe) reprobe.addEventListener("click", probeAll);

@@ -28,6 +28,16 @@
   // 站内卡片编辑（修改层）的存储键。overrides.js 用这个字面键经 NavStorage.set 保存，
   // 它不在 NavStorage.KEYS 里，所以单独列出并一并纳入同步白名单。
   const OVERRIDES_KEY = "nav_site_overrides";
+  const PARTICLES_KEY = "mynav_arch_particles";
+  const ENGINE_KEY = "mynav_search_engine_v2";
+  const ENGINE_LEGACY_KEY = "mynav_search_engine";
+  const PROBE_IGNORED_KEY = "mynav_probe_ignored_v1";
+  const BUILTIN_SNIPPET_IDS = new Set([
+    "snippet-architecture",
+    "snippet-port-forward",
+    "snippet-academic-polish",
+    "snippet-review",
+  ]);
 
   function emptyOverrides() {
     return { modified: {}, added: [], hidden: [], deleted: [], unhidden: [] };
@@ -36,13 +46,21 @@
   // 参与云同步的键（其余键只存本地）
   const SYNCED_KEYS = new Set(
     NavStorage
-      ? [NavStorage.KEYS.THEME, NavStorage.KEYS.FAVORITES, NavStorage.KEYS.VISITS, NavStorage.KEYS.ORDER, OVERRIDES_KEY]
+      ? [
+          NavStorage.KEYS.THEME,
+          NavStorage.KEYS.FAVORITES,
+          NavStorage.KEYS.VISITS,
+          NavStorage.KEYS.ORDER,
+          NavStorage.KEYS.NIER_BG,
+          OVERRIDES_KEY,
+        ]
       : []
   );
 
   // 状态：unknown | logged-out | syncing | synced | error | disabled
   let status = "unknown";
   let applyingRemote = false;
+  let lastPayloadSig = "";
   let pushTimer = null;
   let syncBtn = null;
   let syncLabel = null;
@@ -179,10 +197,106 @@
 
   // 统一的推送档案组装：基础四项 + 修改层。
   // pushNow 与 initialSync 共用，避免两处漏并 overrides。
+  function readLocalItem(key) {
+    try {
+      return typeof window !== "undefined" && window.localStorage
+        ? window.localStorage.getItem(key)
+        : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeLocalItem(key, rawValue) {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(key, rawValue);
+      }
+    } catch (e) {}
+  }
+
+  function readLedgerSyncSlice() {
+    if (typeof window !== "undefined" && window.NavLedger &&
+      typeof window.NavLedger.exportSyncSlice === "function") {
+      return window.NavLedger.exportSyncSlice();
+    }
+    return null;
+  }
+
+  function deriveLegacyVisits(accessLog) {
+    const visits = {};
+    if (!isObject(accessLog)) return visits;
+    Object.keys(accessLog).forEach((id) => {
+      const entry = accessLog[id];
+      if (!isObject(entry)) return;
+      const count = Number.isFinite(entry.count) ? Math.max(0, Math.floor(entry.count)) : 0;
+      const lastVisit = Number.isFinite(entry.lastVisited)
+        ? Math.max(0, entry.lastVisited)
+        : (Number.isFinite(entry.lastVisit) ? Math.max(0, entry.lastVisit) : 0);
+      if (count > 0 || lastVisit > 0) visits[id] = { count, lastVisit };
+    });
+    return visits;
+  }
+
+  function readLocalPreferences() {
+    const prefs = {};
+    let hasAny = false;
+    if (NavStorage) {
+      const nierBg = NavStorage.get(NavStorage.KEYS.NIER_BG, null);
+      if (typeof nierBg === "boolean") {
+        prefs.nierBg = nierBg;
+        hasAny = true;
+      }
+    }
+    const rawParticles = readLocalItem(PARTICLES_KEY);
+    if (rawParticles !== null) {
+      try {
+        const parsed = JSON.parse(rawParticles);
+        if (typeof parsed === "boolean") {
+          prefs.particles = parsed;
+          hasAny = true;
+        }
+      } catch (e) {}
+    }
+    const rawEngine = readLocalItem(ENGINE_KEY);
+    if (typeof rawEngine === "string" && rawEngine.trim()) {
+      prefs.searchEngine = rawEngine.trim().slice(0, 32);
+      hasAny = true;
+    }
+    const rawIgnored = readLocalItem(PROBE_IGNORED_KEY);
+    if (rawIgnored !== null) {
+      try {
+        const parsed = JSON.parse(rawIgnored);
+        if (Array.isArray(parsed)) {
+          prefs.probeIgnored = Array.from(new Set(parsed.filter((id) => typeof id === "string" && id)));
+          hasAny = true;
+        }
+      } catch (e) {}
+    }
+    return hasAny ? prefs : null;
+  }
+
   function buildPayloadData() {
     const data = NavStorage.exportBackup().data;
     data.overrides = getOverrides();
+    const ledgerSlice = readLedgerSyncSlice();
+    if (ledgerSlice) {
+      data.ledger = ledgerSlice;
+      if (!isObject(data.visits) || Object.keys(data.visits).length === 0) {
+        data.visits = deriveLegacyVisits(ledgerSlice.accessLog);
+      }
+    }
+    const prefs = readLocalPreferences();
+    if (prefs) {
+      data.preferences = prefs;
+    }
     return data;
+  }
+
+  function hasCustomSnippets(snippets) {
+    if (!Array.isArray(snippets) || snippets.length === 0) return false;
+    if (snippets.length !== BUILTIN_SNIPPET_IDS.size) return true;
+    return snippets.some((s) => !s || typeof s !== "object" || !BUILTIN_SNIPPET_IDS.has(s.id));
   }
 
   // 本地是否有值得同步的数据（避免空档案覆盖云端）
@@ -191,11 +305,22 @@
     const favs = NavStorage.get(NavStorage.KEYS.FAVORITES, []);
     const visits = NavStorage.get(NavStorage.KEYS.VISITS, {});
     const order = NavStorage.get(NavStorage.KEYS.ORDER, {});
+    const ledgerSlice = readLedgerSyncSlice();
+    const hasLedgerData = Boolean(
+      ledgerSlice && (
+        Object.keys(ledgerSlice.accessLog || {}).length > 0 ||
+        Object.keys(ledgerSlice.marginalia || {}).length > 0 ||
+        Object.keys(ledgerSlice.almanac || {}).length > 0 ||
+        (Array.isArray(ledgerSlice.constellations) && ledgerSlice.constellations.length > 0) ||
+        hasCustomSnippets(ledgerSlice.snippets)
+      )
+    );
     return (
       (Array.isArray(favs) && favs.length > 0) ||
       (visits && Object.keys(visits).length > 0) ||
       (order && Object.keys(order).length > 0) ||
-      hasOverridesData(getOverrides())
+      hasOverridesData(getOverrides()) ||
+      hasLedgerData
     );
   }
 
@@ -206,6 +331,83 @@
 
   function isObject(value) {
     return !!value && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function normalizeAccessHistory(history) {
+    if (!Array.isArray(history)) return [];
+    const byDay = {};
+    history.forEach((item) => {
+      if (!isObject(item)) return;
+      const day = String(item.date || item.day || "");
+      const count = Number.isFinite(item.count) ? Math.max(0, Math.floor(item.count)) : 0;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(day) && count > 0) {
+        byDay[day] = (byDay[day] || 0) + count;
+      }
+    });
+    return Object.keys(byDay).sort().slice(-180).map((date) => ({ date, count: byDay[date] }));
+  }
+
+  function normalizeLedgerSlice(raw) {
+    const src = isObject(raw) ? raw : {};
+    const accessLog = {};
+    if (isObject(src.accessLog)) {
+      Object.keys(src.accessLog).forEach((id) => {
+        if (!id || !isObject(src.accessLog[id])) return;
+        const e = src.accessLog[id];
+        accessLog[id] = {
+          count: Number.isFinite(e.count) ? Math.max(0, Math.floor(e.count)) : 0,
+          lastVisited: Number.isFinite(e.lastVisited)
+            ? Math.max(0, e.lastVisited)
+            : (Number.isFinite(e.lastVisit) ? Math.max(0, e.lastVisit) : 0),
+          firstSeenAt: Number.isFinite(e.firstSeenAt) ? Math.max(0, e.firstSeenAt) : 0,
+          history: normalizeAccessHistory(e.history),
+        };
+      });
+    }
+    const almanac = {};
+    if (isObject(src.almanac)) {
+      Object.keys(src.almanac).forEach((day) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isObject(src.almanac[day])) return;
+        const a = src.almanac[day];
+        const clicks = Number.isFinite(a.clicks) ? Math.max(0, Math.floor(a.clicks)) : 0;
+        const count = Number.isFinite(a.count) ? Math.max(0, Math.floor(a.count)) : clicks;
+        const aiCalls = Number.isFinite(a.aiCalls) ? Math.max(0, Math.floor(a.aiCalls)) : 0;
+        const sites = Array.isArray(a.sites)
+          ? Array.from(new Set(a.sites.filter((s) => typeof s === "string" && s)))
+          : [];
+        almanac[day] = { count, clicks, aiCalls, sites };
+      });
+    }
+    const marginalia = {};
+    if (isObject(src.marginalia)) {
+      Object.keys(src.marginalia).forEach((id) => {
+        if (typeof src.marginalia[id] === "string" && src.marginalia[id]) {
+          marginalia[id] = src.marginalia[id];
+        }
+      });
+    }
+    return {
+      accessLog,
+      almanac,
+      marginalia,
+      snippets: Array.isArray(src.snippets) ? clone(src.snippets) : [],
+      constellations: Array.isArray(src.constellations) ? clone(src.constellations) : [],
+      dustResetAt: Number.isFinite(src.dustResetAt) ? Math.max(0, src.dustResetAt) : 0,
+    };
+  }
+
+  function normalizePreferences(raw) {
+    const src = isObject(raw) ? raw : {};
+    const out = {};
+    if (typeof src.nierBg === "boolean") out.nierBg = src.nierBg;
+    if (typeof src.particles === "boolean") out.particles = src.particles;
+    if (typeof src.searchEngine === "string" && src.searchEngine) {
+      out.searchEngine = src.searchEngine.trim().slice(0, 32);
+    }
+    if (Array.isArray(src.probeIgnored)) {
+      out.probeIgnored = Array.from(new Set(src.probeIgnored.filter((id) => typeof id === "string" && id)));
+    }
+    return out;
   }
 
   function normalizeData(raw) {
@@ -233,6 +435,12 @@
     normalized.overrides.added = normalized.overrides.added.filter(
       (site) => isObject(site) && site.id && site.name && site.url
     );
+    if (isObject(data.ledger)) {
+      normalized.ledger = normalizeLedgerSlice(data.ledger);
+    }
+    if (isObject(data.preferences)) {
+      normalized.preferences = normalizePreferences(data.preferences);
+    }
     return normalized;
   }
 
@@ -337,11 +545,151 @@
       .filter((site) => site.id && site.name && site.url);
   }
 
+  function mergeListById(base, local, remote, prefer) {
+    const pickKey = (item) => (isObject(item) && typeof item.id === "string" && item.id ? item.id : null);
+    const toMap = (list) => {
+      const map = {};
+      (Array.isArray(list) ? list : []).forEach((item, idx) => {
+        const key = pickKey(item) || ("__str:" + idx + ":" + canonical(item));
+        map[key] = item;
+      });
+      return map;
+    };
+    const b = toMap(base);
+    const l = toMap(local);
+    const r = toMap(remote);
+    const ids = mergeIdList(Object.keys(b), Object.keys(l), Object.keys(r), prefer);
+    return ids.map((id) => {
+      if (isObject(l[id]) || isObject(r[id])) {
+        return mergeFields(b[id], l[id], r[id], prefer);
+      }
+      return pickThreeWay(b[id], l[id], r[id], prefer);
+    }).filter((item) => item !== undefined);
+  }
+
+  function mergeAccessLog(base, local, remote) {
+    base = isObject(base) ? base : {};
+    local = isObject(local) ? local : {};
+    remote = isObject(remote) ? remote : {};
+    if (equal(local, remote)) return clone(local);
+    if (equal(local, base)) return clone(remote);
+    if (equal(remote, base)) return clone(local);
+    const result = {};
+    const ids = Array.from(new Set(Object.keys(base).concat(Object.keys(local), Object.keys(remote))));
+    ids.forEach((id) => {
+      const hasBase = isObject(base[id]);
+      const b = hasBase ? base[id] : {};
+      const l = isObject(local[id]) ? local[id] : {};
+      const r = isObject(remote[id]) ? remote[id] : {};
+      const bc = Number(b.count) || 0;
+      const count = hasBase
+        ? Math.max(0, bc + ((Number(l.count) || 0) - bc) + ((Number(r.count) || 0) - bc))
+        : Math.max(Number(l.count) || 0, Number(r.count) || 0);
+      const lastVisited = Math.max(
+        Number(l.lastVisited) || Number(l.lastVisit) || 0,
+        Number(r.lastVisited) || Number(r.lastVisit) || 0
+      );
+      const firstSeenCandidates = [Number(b.firstSeenAt) || 0, Number(l.firstSeenAt) || 0, Number(r.firstSeenAt) || 0]
+        .filter((v) => v > 0);
+      const firstSeenAt = firstSeenCandidates.length ? Math.min(...firstSeenCandidates) : 0;
+
+      const histToMap = (arr) => {
+        const m = {};
+        (Array.isArray(arr) ? arr : []).forEach((h) => {
+          if (h && /^\d{4}-\d{2}-\d{2}$/.test(String(h.date || ""))) {
+            m[h.date] = (m[h.date] || 0) + (Number(h.count) || 0);
+          }
+        });
+        return m;
+      };
+      const bh = histToMap(b.history);
+      const lh = histToMap(l.history);
+      const rh = histToMap(r.history);
+      const days = Array.from(new Set(Object.keys(bh).concat(Object.keys(lh), Object.keys(rh)))).sort().slice(-180);
+      const history = days.map((date) => {
+        const bDay = bh[date] || 0;
+        const c = (hasBase && bDay > 0)
+          ? Math.max(0, bDay + ((lh[date] || 0) - bDay) + ((rh[date] || 0) - bDay))
+          : Math.max(lh[date] || 0, rh[date] || 0);
+        return { date, count: c };
+      }).filter((item) => item.count > 0);
+
+      if (count > 0 || lastVisited > 0 || history.length > 0) {
+        result[id] = { count, lastVisited, firstSeenAt, history };
+      }
+    });
+    return result;
+  }
+
+  function mergeAlmanac(base, local, remote) {
+    base = isObject(base) ? base : {};
+    local = isObject(local) ? local : {};
+    remote = isObject(remote) ? remote : {};
+    if (equal(local, remote)) return clone(local);
+    if (equal(local, base)) return clone(remote);
+    if (equal(remote, base)) return clone(local);
+    const result = {};
+    const days = Array.from(new Set(Object.keys(base).concat(Object.keys(local), Object.keys(remote)))).sort();
+    days.forEach((day) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+      const hasBase = isObject(base[day]);
+      const b = hasBase ? base[day] : {};
+      const l = isObject(local[day]) ? local[day] : {};
+      const r = isObject(remote[day]) ? remote[day] : {};
+      const bClicks = Number(b.clicks) || Number(b.count) || 0;
+      const lClicks = Number(l.clicks) || Number(l.count) || 0;
+      const rClicks = Number(r.clicks) || Number(r.count) || 0;
+      const clicks = hasBase
+        ? Math.max(0, bClicks + (lClicks - bClicks) + (rClicks - bClicks))
+        : Math.max(lClicks, rClicks);
+      const bAi = Number(b.aiCalls) || 0;
+      const aiCalls = hasBase
+        ? Math.max(0, bAi + ((Number(l.aiCalls) || 0) - bAi) + ((Number(r.aiCalls) || 0) - bAi))
+        : Math.max(Number(l.aiCalls) || 0, Number(r.aiCalls) || 0);
+      const sites = mergeIdList(b.sites, l.sites, r.sites, "local");
+      const count = Math.max(clicks, hasBase
+        ? Math.max(0, (Number(b.count) || 0) + ((Number(l.count) || 0) - (Number(b.count) || 0)) + ((Number(r.count) || 0) - (Number(b.count) || 0)))
+        : Math.max(Number(l.count) || 0, Number(r.count) || 0));
+      if (count > 0 || clicks > 0 || aiCalls > 0 || sites.length > 0) {
+        result[day] = { count, clicks, aiCalls, sites };
+      }
+    });
+    return result;
+  }
+
+  function mergeLedgerSlice(base, local, remote, prefer) {
+    const b = normalizeLedgerSlice(base);
+    const l = normalizeLedgerSlice(local);
+    const r = normalizeLedgerSlice(remote);
+    const dustResetAt = l.dustResetAt === b.dustResetAt
+      ? r.dustResetAt
+      : (r.dustResetAt === b.dustResetAt ? l.dustResetAt : Math.max(l.dustResetAt, r.dustResetAt));
+    return {
+      accessLog: mergeAccessLog(b.accessLog, l.accessLog, r.accessLog),
+      almanac: mergeAlmanac(b.almanac, l.almanac, r.almanac),
+      marginalia: mergeFields(b.marginalia, l.marginalia, r.marginalia, prefer),
+      snippets: mergeListById(b.snippets, l.snippets, r.snippets, prefer),
+      constellations: mergeListById(b.constellations, l.constellations, r.constellations, prefer),
+      dustResetAt,
+    };
+  }
+
+  function mergePreferences(base, local, remote, prefer) {
+    const b = normalizePreferences(base);
+    const l = normalizePreferences(local);
+    const r = normalizePreferences(remote);
+    const out = mergeFields(b, l, r, prefer);
+    if (b.probeIgnored || l.probeIgnored || r.probeIgnored) {
+      out.probeIgnored = mergeIdList(b.probeIgnored, l.probeIgnored, r.probeIgnored, prefer);
+    }
+    return normalizePreferences(out);
+  }
+
   function mergeData(base, local, remote, prefer) {
     base = normalizeData(base);
     local = normalizeData(local);
     remote = normalizeData(remote);
-    return {
+    const merged = {
       theme: pickThreeWay(base.theme, local.theme, remote.theme, prefer),
       favorites: mergeIdList(base.favorites, local.favorites, remote.favorites, prefer),
       visits: mergeVisits(base.visits, local.visits, remote.visits),
@@ -354,22 +702,31 @@
         unhidden: mergeIdList(base.overrides.unhidden, local.overrides.unhidden, remote.overrides.unhidden, prefer),
       },
     };
+    if (base.ledger || local.ledger || remote.ledger) {
+      merged.ledger = mergeLedgerSlice(base.ledger, local.ledger, remote.ledger, prefer);
+    }
+    if (base.preferences || local.preferences || remote.preferences) {
+      merged.preferences = mergePreferences(base.preferences, local.preferences, remote.preferences, prefer);
+    }
+    return merged;
   }
 
+  let syncStatusLabel = "";
   let syncDetail = "";
 
   function setStatus(next, labelText, detail) {
     status = next;
+    syncStatusLabel = labelText || "";
     syncDetail = detail || "";
     if (syncBtn) {
       syncBtn.setAttribute("data-sync-status", next);
-      syncBtn.setAttribute("aria-label", "云同步：" + (labelText || next) + (syncDetail ? "。" + syncDetail : ""));
-      syncBtn.title = "云同步（" + (labelText || next) + "）" + (syncDetail ? "：" + syncDetail : "");
+      syncBtn.setAttribute("aria-label", "云同步：" + (syncStatusLabel || next) + (syncDetail ? "。" + syncDetail : ""));
+      syncBtn.title = "云同步（" + (syncStatusLabel || next) + "）" + (syncDetail ? "：" + syncDetail : "");
     }
     if (typeof document !== "undefined") {
       const statusEl = document.querySelector("#cloud-sync-status");
       if (statusEl) {
-        statusEl.textContent = (labelText || next) + (syncDetail ? "：" + syncDetail : "");
+        statusEl.textContent = (syncStatusLabel || next) + (syncDetail ? "：" + syncDetail : "");
         statusEl.setAttribute("data-state", next);
       }
     }
@@ -471,29 +828,77 @@
     return data;
   }
 
+  function applyRemotePreferences(prefs) {
+    if (!isObject(prefs)) return;
+    if (typeof prefs.nierBg === "boolean" && NavStorage && NavStorage.KEYS.NIER_BG) {
+      NavStorage.set(NavStorage.KEYS.NIER_BG, prefs.nierBg);
+    }
+    if (typeof prefs.particles === "boolean") {
+      writeLocalItem(PARTICLES_KEY, JSON.stringify(prefs.particles));
+    }
+    if (typeof prefs.searchEngine === "string" && prefs.searchEngine) {
+      writeLocalItem(ENGINE_KEY, prefs.searchEngine);
+      writeLocalItem(ENGINE_LEGACY_KEY, prefs.searchEngine);
+    }
+    if (Array.isArray(prefs.probeIgnored)) {
+      writeLocalItem(PROBE_IGNORED_KEY, JSON.stringify(prefs.probeIgnored));
+    }
+  }
+
+  function refreshUiAfterSync() {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.NavTheme && typeof window.NavTheme.reload === "function") window.NavTheme.reload();
+      if (window.NavFavorites && typeof window.NavFavorites.reload === "function") window.NavFavorites.reload();
+      if (window.NavParticlesBg && typeof window.NavParticlesBg.reload === "function") window.NavParticlesBg.reload();
+      if (window.NavEngine && typeof window.NavEngine.reload === "function") window.NavEngine.reload();
+      if (window.NavProbe && typeof window.NavProbe.reloadIgnored === "function") window.NavProbe.reloadIgnored();
+      if (window.NavConstellations && typeof window.NavConstellations.renderRail === "function") {
+        window.NavConstellations.renderRail();
+      }
+      if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") window.NavAlmanac.refresh();
+      if (window.NavUncatalogued && typeof window.NavUncatalogued.renderDrawer === "function") {
+        window.NavUncatalogued.renderDrawer();
+      }
+      if (window.NavApp && typeof window.NavApp.refresh === "function") {
+        window.NavApp.refresh();
+      }
+    } catch (e) {}
+  }
+
   // 写入本机但不刷新；合并上传失败时，合并结果也已经安全留在本机。
   function writeDocData(data) {
     if (!data || !NavStorage) throw new Error("本机存储模块尚未就绪");
     applyingRemote = true;
     try {
-      const result = NavStorage.importBackup({ data: normalizeData(data) });
+      const normalized = normalizeData(data);
+      const result = NavStorage.importBackup({ data: normalized });
       if (!result || result.success !== true) {
         throw new Error("本机数据写入失败" + (result && result.message ? "：" + result.message : ""));
       }
-      NavStorage.set(OVERRIDES_KEY, normalizeData(data).overrides);
+      NavStorage.set(OVERRIDES_KEY, normalized.overrides);
+      if (typeof window !== "undefined" && window.NavLedger &&
+        typeof window.NavLedger.applySyncSlice === "function") {
+        window.NavLedger.applySyncSlice(normalized.ledger, normalized.visits, { notify: false });
+      }
+      if (normalized.preferences) {
+        applyRemotePreferences(normalized.preferences);
+      }
     } finally {
       applyingRemote = false;
     }
   }
 
   function finishSynced(doc) {
+    const normalized = normalizeData(doc.data);
+    lastPayloadSig = canonical(normalized);
     setMeta({
       updatedAt: doc.updatedAt || 0,
       baseUpdatedAt: doc.updatedAt || 0,
-      baseData: normalizeData(doc.data),
+      baseData: normalized,
       lastSyncAt: Date.now(),
     });
-    setStatus("synced", "已同步", "收藏、访问记录、排序和书目编辑已同步");
+    setStatus("synced", "已同步", "收藏、访问账本、排序、批注与书目编辑已同步");
   }
 
   function applyDoc(doc) {
@@ -501,7 +906,7 @@
     const normalized = normalizeData(doc.data);
     writeDocData(normalized);
     finishSynced({ updatedAt: doc.updatedAt || 0, data: normalized });
-    window.location.reload();
+    refreshUiAfterSync();
   }
 
   async function pushNow(keepalive) {
@@ -553,17 +958,46 @@
     if (getToken()) schedulePush();
   }
 
-  // 包裹 NavStorage.set：同步键变更即标记脏（导入云端数据时不触发）
+  function maybeMarkDirty() {
+    if (applyingRemote) return;
+    const nextSig = canonical(normalizeData(buildPayloadData()));
+    if (nextSig === lastPayloadSig) return;
+    lastPayloadSig = nextSig;
+    markDirty();
+  }
+
+  // 包裹 NavStorage.set / remove + 监听账本与偏好变化：仅在可同步数据实质改变时标记脏
   function hookStorage() {
     if (!NavStorage || NavStorage.__cloudSyncHooked) return;
+    lastPayloadSig = canonical(normalizeData(buildPayloadData()));
     const origSet = NavStorage.set.bind(NavStorage);
     NavStorage.set = function (key, value) {
       const r = origSet(key, value);
       if (r && !applyingRemote && SYNCED_KEYS.has(key)) {
-        markDirty();
+        maybeMarkDirty();
       }
       return r;
     };
+    if (typeof NavStorage.remove === "function") {
+      const origRemove = NavStorage.remove.bind(NavStorage);
+      NavStorage.remove = function (key) {
+        const r = origRemove(key);
+        if (r && !applyingRemote && SYNCED_KEYS.has(key)) {
+          maybeMarkDirty();
+        }
+        return r;
+      };
+    }
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+      window.addEventListener("mynav-ledger-changed", (ev) => {
+        if (applyingRemote || (ev && ev.detail && ev.detail.syncOrigin === "remote")) return;
+        maybeMarkDirty();
+      });
+      window.addEventListener("mynav-preferences-changed", () => {
+        if (applyingRemote) return;
+        maybeMarkDirty();
+      });
+    }
     NavStorage.__cloudSyncHooked = true;
   }
 
@@ -647,7 +1081,7 @@
           throw e;
         }
         finishSynced({ updatedAt: ts, data: merged });
-        if (changedLocal) window.location.reload();
+        if (changedLocal) refreshUiAfterSync();
         return true;
       }
       throw new Error("云端持续有其他设备更新，请稍后重试");
@@ -1020,16 +1454,38 @@
     openAccountMenu(ev && ev.currentTarget ? ev.currentTarget : syncBtn);
   }
 
+  function refreshSyncButtonRefs() {
+    if (typeof document === "undefined") return;
+    // 用 querySelector 读取已挂载 DOM，避免未展开时意外触发 data-lazy-dom 模板水合
+    syncBtn = document.querySelector("#btn-cloud-sync");
+    syncLabel = syncBtn ? syncBtn.querySelector(".cloud-label") : null;
+    if (status !== "unknown") {
+      setStatus(status, syncStatusLabel, syncDetail);
+    } else if (syncBtn) {
+      renderButton();
+    }
+  }
+
   function init() {
     if (typeof document === "undefined" || !NavStorage) return;
     hookStorage();
+    refreshSyncButtonRefs();
 
-    syncBtn = document.getElementById("btn-cloud-sync");
-    if (syncBtn) {
-      syncLabel = syncBtn.querySelector(".cloud-label");
-      syncBtn.addEventListener("click", onButtonClick);
-      renderButton();
-    }
+    document.addEventListener("click", (ev) => {
+      const btn = ev.target && ev.target.closest ? ev.target.closest("#btn-cloud-sync") : null;
+      if (!btn) return;
+      syncBtn = btn;
+      syncLabel = btn.querySelector(".cloud-label");
+      onButtonClick(ev);
+    });
+    window.addEventListener("mynav-lazy-ready", () => {
+      refreshSyncButtonRefs();
+    });
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Escape") return;
+      if (accountMenuEl) closeAccountMenu();
+      if (authOverlayEl) closeAuthDialog();
+    });
 
     // 页面切后台前把未推送的变更刷出去
     document.addEventListener("visibilitychange", () => {

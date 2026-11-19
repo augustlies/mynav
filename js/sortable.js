@@ -70,13 +70,48 @@
     return Array.isArray(list) ? list : null;
   }
 
+  function mergePartialOrder(prevOrder, nextPartial) {
+    const cleanPartial = Array.isArray(nextPartial) ? nextPartial.filter(Boolean) : [];
+    if (!Array.isArray(prevOrder) || prevOrder.length === 0) return cleanPartial;
+    const partialSet = new Set(cleanPartial);
+    const seen = new Set();
+    const out = [];
+    let cursor = 0;
+
+    prevOrder.forEach((id) => {
+      if (partialSet.has(id)) {
+        while (cursor < cleanPartial.length && seen.has(cleanPartial[cursor])) {
+          cursor += 1;
+        }
+        if (cursor < cleanPartial.length) {
+          seen.add(cleanPartial[cursor]);
+          out.push(cleanPartial[cursor]);
+          cursor += 1;
+        }
+      } else if (!seen.has(id)) {
+        seen.add(id);
+        out.push(id);
+      }
+    });
+
+    while (cursor < cleanPartial.length) {
+      if (!seen.has(cleanPartial[cursor])) {
+        seen.add(cleanPartial[cursor]);
+        out.push(cleanPartial[cursor]);
+      }
+      cursor += 1;
+    }
+    return out;
+  }
+
   function saveCategoryOrder(categoryKey, siteIds) {
-    if (!categoryKey || !NavStorage) return;
+    if (!categoryKey || categoryKey === "frequent" || !NavStorage) return;
     const orders = getAllOrders();
-    orders[categoryKey] = siteIds;
+    const mergedOrder = mergePartialOrder(orders[categoryKey], siteIds);
+    orders[categoryKey] = mergedOrder;
     NavStorage.set(NavStorage.KEYS.ORDER, orders);
     if (typeof callbacks.onOrderChange === "function") {
-      callbacks.onOrderChange(categoryKey, siteIds);
+      callbacks.onOrderChange(categoryKey, mergedOrder);
     }
   }
 
@@ -394,6 +429,7 @@
     const grid = focusedCard.closest(".entries-grid");
     if (!grid) return;
     const categoryKey = grid.getAttribute("data-category-key") || "default";
+    if (categoryKey === "frequent") return;
 
     // 1. 空格键拿起/放下
     if (e.key === " " || e.key === "Spacebar") {
@@ -529,6 +565,8 @@
 
       const card = e.target.closest(".entry-card");
       if (!card) return;
+      const grid = card.closest(".entries-grid");
+      if (grid && grid.getAttribute("data-category-key") === "frequent") return;
 
       startX = e.clientX;
       startY = e.clientY;

@@ -39,7 +39,7 @@ function notionResponse(results) {
 
 const apiPromise = import(pathToFileURL(path.join(__dirname, "../functions/api/cards.js")).href);
 
-test("坏行跳过，有效行缓存进 KV，版本号稳定", async () => {
+test("口令保护的发布跳过坏行、缓存有效行并保持版本号稳定", async () => {
   const api = await apiPromise;
   const kv = new MockKV();
   const results = [
@@ -51,19 +51,51 @@ test("坏行跳过，有效行缓存进 KV，版本号稳定", async () => {
   const original = global.fetch;
   global.fetch = async () => notionResponse(results);
   try {
-    const res = await api.onRequestGet({
-      env: { MYNAV_KV: kv, NOTION_TOKEN: "token", NOTION_DB_ID: "db" },
-      request: new Request("https://mynav.test/api/cards")
+    const res = await api.onRequestPost({
+      env: {
+        MYNAV_KV: kv,
+        NOTION_TOKEN: "token",
+        NOTION_DB_ID: "db",
+        MYNAV_CARDS_REFRESH_TOKEN: "refresh-secret",
+      },
+      request: new Request("https://mynav.test/api/cards", {
+        method: "POST",
+        headers: { "x-mynav-refresh-token": "refresh-secret" },
+      })
     });
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.count, 1);
     assert.equal(body.skippedCount, 3);
-    assert.equal(body.sites[0].id, "ai-good");
     assert.equal(kv.values.size, 1);
 
     const cached = await kv.get("cards:v1:published");
-    assert.equal(JSON.parse(cached).version, body.version);
+    const published = JSON.parse(cached);
+    assert.equal(published.version, body.version);
+    assert.equal(published.sites[0].id, "ai-good");
+  } finally {
+    global.fetch = original;
+  }
+});
+
+test("公开 GET 在缓存为空时不访问 Notion，也不写入 KV", async () => {
+  const api = await apiPromise;
+  const kv = new MockKV();
+  const original = global.fetch;
+  let fetchCount = 0;
+  global.fetch = async () => {
+    fetchCount += 1;
+    return notionResponse([row("should-not-publish")]);
+  };
+  try {
+    const res = await api.onRequestGet({
+      env: { MYNAV_KV: kv, NOTION_TOKEN: "token", NOTION_DB_ID: "db" },
+      request: new Request("https://mynav.test/api/cards"),
+    });
+    assert.equal(res.status, 404);
+    assert.deepEqual(await res.json(), { empty: true });
+    assert.equal(fetchCount, 0);
+    assert.equal(kv.values.size, 0);
   } finally {
     global.fetch = original;
   }

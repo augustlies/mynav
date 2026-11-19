@@ -92,7 +92,7 @@
       : [];
 
     const sort = Number(raw.sort);
-    return {
+    const normalized = {
       id: id,
       name: name,
       url: url,
@@ -103,6 +103,28 @@
       sort: Number.isFinite(sort) ? sort : 0,
       hidden: raw.hidden === true
     };
+    const whySaved = cleanText(raw.whySaved, 1200);
+    if (whySaved) normalized.whySaved = whySaved;
+    const notes = cleanText(raw.notes, 2000);
+    if (notes) normalized.notes = notes;
+    const favicon = cleanText(raw.favicon, 2048);
+    if (/^https?:\/\/[^\s"'<>]+$/i.test(favicon)) normalized.favicon = favicon;
+    if (Array.isArray(raw.subLinks)) {
+      const subLinks = raw.subLinks
+        .filter(function (item) {
+          return item && typeof item === "object" &&
+            typeof item.url === "string" && /^https?:\/\/[^\s"'<>]+$/i.test(item.url.trim());
+        })
+        .slice(0, 4)
+        .map(function (item) {
+          return {
+            label: cleanText(item.label || "子路由", 60) || "子路由",
+            url: item.url.trim().slice(0, 2048)
+          };
+        });
+      if (subLinks.length > 0) normalized.subLinks = subLinks;
+    }
+    return normalized;
   }
 
   function normalizePayload(raw) {
@@ -181,6 +203,10 @@
         site.icon = patch.icon;
         site.tags = patch.tags.slice();
         site.hidden = patch.hidden;
+        if (patch.whySaved) site.whySaved = patch.whySaved;
+        if (patch.notes) site.notes = patch.notes;
+        if (patch.favicon) site.favicon = patch.favicon;
+        if (Array.isArray(patch.subLinks)) site.subLinks = patch.subLinks.map(function (l) { return Object.assign({}, l); });
         site._notionSort = patch.sort;
         overlay.delete(site.id);
       }
@@ -188,7 +214,7 @@
     });
 
     overlay.forEach(function (patch) {
-      merged.push({
+      const nextSite = {
         id: patch.id,
         name: patch.name,
         url: patch.url,
@@ -199,7 +225,12 @@
         hidden: patch.hidden,
         _notionSort: patch.sort,
         source: "notion"
-      });
+      };
+      if (patch.whySaved) nextSite.whySaved = patch.whySaved;
+      if (patch.notes) nextSite.notes = patch.notes;
+      if (patch.favicon) nextSite.favicon = patch.favicon;
+      if (Array.isArray(patch.subLinks)) nextSite.subLinks = patch.subLinks.map(function (l) { return Object.assign({}, l); });
+      merged.push(nextSite);
     });
 
     const categories = categoryIds();

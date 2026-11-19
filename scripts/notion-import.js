@@ -61,10 +61,10 @@ function plain(prop) {
   return arr.map((item) => (item && item.plain_text) || "").join("").trim();
 }
 
-async function notionRequest(pathname, body) {
+async function notionRequest(pathname, body, method) {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const res = await fetch("https://api.notion.com/v1" + pathname, {
-      method: "POST",
+      method: method || "POST",
       headers: {
         authorization: "Bearer " + TOKEN,
         "notion-version": NOTION_VERSION,
@@ -87,15 +87,17 @@ async function notionRequest(pathname, body) {
 }
 
 async function listExisting() {
-  const existing = new Set();
+  const existing = new Map();
   let cursor = null;
   for (;;) {
     const body = { page_size: 100 };
     if (cursor) body.start_cursor = cursor;
-    const data = await notionRequest("/databases/" + encodeURIComponent(DB_ID) + "/query", body);
+    const data = await notionRequest("/databases/" + encodeURIComponent(DB_ID) + "/query", body, "POST");
     (data.results || []).forEach((page) => {
       const id = plain(page.properties && page.properties.CardID);
-      if (id) existing.add(id);
+      if (id && page.id && !existing.has(id)) {
+        existing.set(id, page.id);
+      }
     });
     if (!data.has_more || !data.next_cursor) break;
     cursor = data.next_cursor;
@@ -138,14 +140,19 @@ async function main() {
 
   for (let i = 0; i < sites.length; i += 1) {
     const site = sites[i];
-    if (existing.has(site.id) && !UPDATE) {
+    const pageId = existing.get(site.id);
+    if (pageId && !UPDATE) {
       skipped += 1;
       continue;
     }
     const props = propertiesFor(site, sortValue(site, i));
-    await notionRequest("/pages", { parent: { database_id: DB_ID }, properties: props });
-    if (existing.has(site.id)) updated += 1;
-    else created += 1;
+    if (pageId) {
+      await notionRequest("/pages/" + encodeURIComponent(pageId), { properties: props }, "PATCH");
+      updated += 1;
+    } else {
+      await notionRequest("/pages", { parent: { database_id: DB_ID }, properties: props }, "POST");
+      created += 1;
+    }
     if ((i + 1) % 10 === 0) console.log("进度 " + (i + 1) + "/" + sites.length);
     await new Promise((resolve) => setTimeout(resolve, 320));
   }

@@ -242,18 +242,6 @@
         bindHiddenModalEvents();
       }
     }
-
-    // 5. 绑定页脚“导出”快捷入口按钮
-    const footerExportBtn = document.getElementById("btn-footer-export");
-    if (footerExportBtn && !footerExportBtn.dataset.bound) {
-      footerExportBtn.dataset.bound = "1";
-      footerExportBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const rect = footerExportBtn.getBoundingClientRect();
-        openBlankMenu(rect.left, rect.top - 8, true);
-      });
-    }
   }
 
   // ==========================================================================
@@ -589,16 +577,23 @@
         openHiddenModal();
         break;
 
-      case "toggle-particles":
-        if (window.NavParticlesBg) {
+      case "toggle-particles": {
+        const runToggleParticles = function () {
+          if (!window.NavParticlesBg) return;
           const nextState = window.NavParticlesBg.toggle();
           showToast(
             nextState ? "背景动效已开启" : "背景动效已关闭",
             nextState ? "满屏方块微粒子漂移与鼠标引力连线" : "已暂停背景粒子渲染以节省系统资源",
             nextState ? "✨" : "💤"
           );
+        };
+        if (window.NavParticlesBg) {
+          runToggleParticles();
+        } else if (window.NavLazy && typeof window.NavLazy.ensure === "function") {
+          window.NavLazy.ensure("particles").then(runToggleParticles).catch(function () {});
         }
         break;
+      }
 
       case "toggle-nier-bg":
         if (window.NavTheme && typeof window.NavTheme.toggleNierBg === "function") {
@@ -1037,7 +1032,7 @@
           closeHiddenModal();
           return;
         }
-        const snippetsModal = document.getElementById("snippets-modal");
+        const snippetsModal = document.querySelector("#snippets-modal");
         if (snippetsModal && snippetsModal.style.display !== "none" && window.NavSnippets) {
           e.preventDefault();
           window.NavSnippets.close();

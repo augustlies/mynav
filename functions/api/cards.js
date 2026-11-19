@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages Function: /api/cards —— Notion 卡片覆盖层
  *
- * GET  /api/cards            读取 KV 中的已发布版本；首次无缓存时才拉 Notion
+ * GET  /api/cards            只读 KV 中的已发布版本；无缓存时返回 404
  * GET  /api/cards?v=<ver>    版本相同返回 { unchanged: true }
  * POST /api/cards            用 NOTION_TOKEN / NOTION_DB_ID 拉取 Notion 并覆盖发布
  *
@@ -99,6 +99,40 @@ function hash(input) {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
+function isSafeHttpUrl(raw) {
+  return typeof raw === "string" && /^https?:\/\/[^\s"'<>]+$/i.test(raw.trim());
+}
+
+function subLinksValue(props) {
+  const raw = textValue(props, ["SubLinks", "Sub Links", "子路由"]);
+  if (!raw) return [];
+  if (raw.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((item) => item && typeof item === "object" && isSafeHttpUrl(item.url))
+          .slice(0, 4)
+          .map((item) => ({
+            label: String(item.label || "子路由").trim().slice(0, 60),
+            url: item.url.trim(),
+          }));
+      }
+    } catch (e) {}
+  }
+  return raw
+    .split(/\r?\n/)
+    .map((line) => {
+      const idx = line.indexOf("|");
+      if (idx <= 0) return null;
+      const label = line.slice(0, idx).trim().slice(0, 60);
+      const url = line.slice(idx + 1).trim();
+      return label && isSafeHttpUrl(url) ? { label, url } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
 function normalizeRow(page, index) {
   const props = (page && page.properties) || {};
   const id = textValue(props, ["CardID", "卡片ID", "站点ID", "ID"]);
@@ -110,30 +144,38 @@ function normalizeRow(page, index) {
   const sort = numberValue(props);
   const hidden = checkboxValue(props);
   const tags = tagsValue(props);
+  const whySaved = textValue(props, ["WhySaved", "Why Saved", "收录动机"]);
+  const notes = textValue(props, ["Notes", "Note", "批注", "备注"]);
+  const favicon = textValue(props, ["Favicon", "IconURL", "Icon URL", "图标URL"]);
+  const subLinks = subLinksValue(props);
 
   const errors = [];
   if (!id) errors.push("缺少 CardID");
   if (!name) errors.push("缺少 Name");
-  if (!/^https?:\/\/[^\s]+$/i.test(url)) errors.push("URL 必须是 http/https");
+  if (!isSafeHttpUrl(url)) errors.push("URL 必须是 http/https");
   if (!VALID_CATEGORIES.includes(category)) errors.push("Category 不在已支持分类");
 
   if (errors.length) {
     return { error: { id: id || "(无 ID)", pageId: page && page.id, errors } };
   }
 
-  return {
-    row: {
-      id,
-      name,
-      url,
-      description,
-      category,
-      icon,
-      tags,
-      sort: sort === null ? index : sort,
-      hidden,
-    },
+  const row = {
+    id,
+    name,
+    url,
+    description,
+    category,
+    icon,
+    tags,
+    sort: sort === null ? index : sort,
+    hidden,
   };
+  if (whySaved) row.whySaved = whySaved;
+  if (notes) row.notes = notes;
+  if (isSafeHttpUrl(favicon)) row.favicon = favicon.trim();
+  if (subLinks.length > 0) row.subLinks = subLinks;
+
+  return { row };
 }
 
 async function queryAllPages(dbId, token) {
@@ -214,11 +256,23 @@ async function fetchNotion(env) {
   };
 }
 
+function timingSafeEqualStr(a, b) {
+  const enc = new TextEncoder();
+  const ba = enc.encode(String(a || ""));
+  const bb = enc.encode(String(b || ""));
+  const len = Math.max(ba.length, bb.length);
+  let diff = ba.length ^ bb.length;
+  for (let i = 0; i < len; i += 1) {
+    diff |= (ba[i] || 0) ^ (bb[i] || 0);
+  }
+  return diff === 0;
+}
+
 function authorizedRefresh(context, env) {
   const secret = env.MYNAV_CARDS_REFRESH_TOKEN;
   if (!secret) return { ok: false, code: "REFRESH_TOKEN_MISSING" };
   const provided = context.request.headers.get("x-mynav-refresh-token") || "";
-  if (!provided || provided !== secret) return { ok: false, code: "UNAUTHORIZED" };
+  if (!provided || !timingSafeEqualStr(provided, secret)) return { ok: false, code: "UNAUTHORIZED" };
   return { ok: true };
 }
 
@@ -252,15 +306,7 @@ export async function onRequestGet(context) {
     }
     return json(cached);
   }
-
-  try {
-    const fresh = await fetchNotion(env);
-    await kv.put(KV_KEY, JSON.stringify(fresh));
-    return json(fresh);
-  } catch (e) {
-    const code = e && e.code === "NOTION_ENV_MISSING" ? "NOTION_ENV_MISSING" : "NOTION_FETCH_FAILED";
-    return fail("尚无已发布卡片缓存，且 Notion 拉取失败", 502, code);
-  }
+  return json({ empty: true }, 404);
 }
 
 export async function onRequestPost(context) {

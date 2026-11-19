@@ -222,6 +222,21 @@
       }
     }
 
+    // 动态刷新馆藏编目统计行
+    const catalogStatsEl = document.getElementById("colophon-catalog-stats");
+    if (catalogStatsEl && window.NavApp && typeof window.NavApp.getAllSites === "function") {
+      const liveSites = window.NavApp.getAllSites();
+      const liveCats = typeof window.NavApp.getCategories === "function" ? window.NavApp.getCategories() : [];
+      const tagSet = new Set();
+      liveSites.forEach((site) => {
+        if (Array.isArray(site.tags)) {
+          site.tags.forEach((t) => { if (t) tagSet.add(t); });
+        }
+      });
+      catalogStatsEl.textContent =
+        `${liveSites.length} 卷经典藏书 · ${liveCats.length} 大分类专栏 · ${tagSet.size} 组索引词`;
+    }
+
     // 动态载入朱砂印章
     const sealSlot = document.getElementById("colophon-seal-slot");
     if (sealSlot && !sealSlot.hasChildNodes()) {

@@ -91,6 +91,8 @@ curl.exe -X POST "https://go.sueexin.dev/api/cards" `
 
 刷新接口只接受 `POST`，口令只放在请求头，不放 URL。智能体有该口令时也可以直接调用；没有口令时只能改 Notion，不能发布。
 
+部署后先调用一次带刷新口令的 `POST /api/cards` 发布初始缓存。公开的 `GET /api/cards` 只读 KV，缓存尚未发布时返回 `404 {"empty":true}`，不会代替管理员抓取或发布 Notion 数据。
+
 普通访客的浏览器会在页面加载后的空闲时间请求 `/api/cards?v=<当前版本>`。版本没变时服务端只回 `{"unchanged":true}`，不传全量数据；版本变了才替换本地缓存并重绘卡片。
 
 已打开的标签页切回前台时会在 1 分钟后补查一次，后台保持打开时每 10 分钟查一次。因此刷新后：新打开页面立即拿到新版，已打开的页面最迟约 10 分钟内自动更新；不用清缓存，也不用重新部署。
@@ -139,7 +141,7 @@ curl.exe -X POST "https://go.sueexin.dev/api/cards" `
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/cards` | 返回 KV 已发布版本；无缓存时才现场拉 Notion |
+| GET | `/api/cards` | 只读 KV 已发布版本；无缓存时返回 `404 {"empty":true}` |
 | GET | `/api/cards?v=<version>` | 版本一致返回 `{"unchanged":true}` |
 | POST | `/api/cards` | 校验 `x-mynav-refresh-token` 后拉 Notion、校验、写 KV |
 

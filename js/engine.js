@@ -111,6 +111,9 @@
     try {
       localStorage.setItem(STORAGE_KEY, currentEngineId);
       localStorage.setItem("mynav_search_engine", currentEngineId);
+      if (options.userInitiated !== false && !options.silent) {
+        window.dispatchEvent(new CustomEvent("mynav-preferences-changed", { detail: { key: "searchEngine" } }));
+      }
     } catch (e) {}
 
     // 处理已输入文字与站内筛选的联动。文字本身不应驱动筛选状态，
@@ -271,6 +274,17 @@
   return {
     ENGINES,
     init,
+    reload() {
+      let savedEngine = DEFAULT_ENGINE;
+      try {
+        const v2 = localStorage.getItem(STORAGE_KEY);
+        if (v2 && ENGINES.some(e => e.id === v2)) {
+          savedEngine = v2;
+        }
+      } catch (e) {}
+      setEngine(savedEngine, { userInitiated: false, silent: true });
+      return currentEngineId;
+    },
     isSiteSearch,
     getCurrent,
     setEngine,

@@ -34,22 +34,11 @@
     randomBtn: document.getElementById("btn-random-open")
   };
 
-  // 隐藏探针入口：暗号与地址不再写死在源码中，改为从本机 localStorage 读取。
-  // 在站点页面控制台执行一次即可启用：
+  // 可选的本机探针入口只使用 localStorage 配置，不在公开源码中提供默认凭据或地址。
   //   localStorage.setItem("MYNAV_AGENT_CODE", "你的暗号")
   //   localStorage.setItem("MYNAV_PROBE_URL", "你的探针地址")
-  // 隐藏探针入口：本机 localStorage（MYNAV_AGENT_CODE / MYNAV_PROBE_URL）优先；
-  // 未配置时用内置口令指纹与混淆地址兜底，源码里不出现明文口令和 IP。
   const AGENT_SECRET_CODE = localStorage.getItem("MYNAV_AGENT_CODE") || "";
-  const AGENT_CODE_FINGERPRINT = 4274260597;
-  const AGENT_PROBE_URL = localStorage.getItem("MYNAV_PROBE_URL") ||
-    (function () { try { return atob("==wLj8COwADO6ATOuAjMy4iMxIjL1MzLvoDc0RHa".split("").reverse().join("")); } catch (_) { return ""; } })();
-  function agentFingerprint(text) {
-    let h = 0x811c9dc5;
-    const bytes = new TextEncoder().encode(String(text));
-    for (let i = 0; i < bytes.length; i++) { h ^= bytes[i]; h = Math.imul(h, 0x01000193) >>> 0; }
-    return h >>> 0;
-  }
+  const AGENT_PROBE_URL = localStorage.getItem("MYNAV_PROBE_URL") || "";
   const RECENT_DESK_DAYS = 7;
   const RECENT_DESK_LIMIT = 6;
   // ==========================================================================
@@ -388,6 +377,12 @@
     return shadowDefaults.find(function (site) { return site.id === siteId; }) || null;
   }
 
+  function safeHttpUrl(url) {
+    if (typeof url !== "string") return "#";
+    const trimmed = url.trim();
+    return /^https?:\/\/[^\s"'<>]+$/i.test(trimmed) ? trimmed : "#";
+  }
+
   function openSubLink(siteId, subLinkUrl) {
     const site = getSiteById(siteId);
     if (!site || !subLinkUrl || !/^https?:\/\//i.test(subLinkUrl)) return false;
@@ -410,8 +405,10 @@
 
   function openSite(siteId, targetUrl, source) {
     const site = getSiteById(siteId);
-    if (!site || !site.url) return false;
-    const url = targetUrl && /^https?:\/\//i.test(targetUrl) ? targetUrl : site.url;
+    if (!site) return false;
+    const candidate = targetUrl && /^https?:\/\/[^\s"'<>]+$/i.test(targetUrl) ? targetUrl : site.url;
+    const url = safeHttpUrl(candidate);
+    if (url === "#") return false;
     recordSiteAccess(site.id, source);
     window.open(url, "_blank", "noopener,noreferrer");
     return true;
@@ -503,9 +500,7 @@
 
   function isSecretCode(query) {
     const value = String(query || "").trim();
-    if (!value) return false;
-    if (AGENT_SECRET_CODE) return value === AGENT_SECRET_CODE;
-    return agentFingerprint(value) === AGENT_CODE_FINGERPRINT;
+    return Boolean(value && AGENT_SECRET_CODE && value === AGENT_SECRET_CODE);
   }
 
   function setSearchValue(value) {
@@ -549,7 +544,8 @@
       if (event.stopPropagation) event.stopPropagation();
     }
     resetSearch({ render: true, focus: false });
-    if (AGENT_PROBE_URL) window.open(AGENT_PROBE_URL, "_blank");
+    const probeUrl = safeHttpUrl(AGENT_PROBE_URL);
+    if (probeUrl !== "#") window.open(probeUrl, "_blank", "noopener,noreferrer");
   }
 
   // ==========================================================================
@@ -797,11 +793,12 @@
         aria-label="${escapeHtml(label)}"
       >№ ${indexStr}</button>`;
 
+    const safeSiteUrl = safeHttpUrl(site.url);
     return `
       <article
         class="entry-card ${tierClass}${isDusty ? " card--dusty" : ""}${isShadow ? " card--shadow" : ""}${isFocusSealed ? " card--sealed" : ""}"
         data-site-id="${escapeHtml(site.id)}"
-        data-site-url="${escapeHtml(site.url)}"
+        data-site-url="${escapeHtml(safeSiteUrl)}"
         data-call-number="${escapeHtml(indexStr)}"
         data-visibility="${escapeHtml(site.visibility || "public")}"
       >
@@ -814,7 +811,7 @@
             <div class="card-titles">
               <h3 class="card-title-text">
                 <a
-                  href="${escapeHtml(site.url)}"
+                  href="${escapeHtml(safeSiteUrl)}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="card-title-link"
@@ -860,7 +857,7 @@
             </button>
             ${marginaliaTriggerHtml("card-slip-marginalia-trigger", "翻开 " + name + " 的批注面")}
             <a
-              href="${escapeHtml(site.url)}"
+              href="${escapeHtml(safeSiteUrl)}"
               target="_blank"
               rel="noopener noreferrer"
               class="card-jump-mark"
@@ -893,7 +890,7 @@
           ${marginaliaTriggerHtml("card-slip-index", "翻开 " + name + " 的批注面")}
           <span class="card-emblem card-slip-emblem" aria-hidden="true">${iconImg}<span class="emblem-fallback-text">${emblemText}</span></span>
           <a
-            href="${escapeHtml(site.url)}"
+            href="${escapeHtml(safeSiteUrl)}"
             target="_blank"
             rel="noopener noreferrer"
             class="card-slip-link"
@@ -943,10 +940,11 @@
     const subLinks = Array.isArray(site.subLinks) ? site.subLinks.slice(0, 4) : [];
     const stat = window.NavLedger ? window.NavLedger.getStat(site.id) : null;
     const subLinksHtml = subLinks.map(function (link) {
+      const safeSubUrl = safeHttpUrl(link && link.url);
       return [
         "<button type=\"button\" class=\"marginalia-sublink\" data-marginalia-sublink=\"",
-        escapeHtml(link.url), "\" title=\"", escapeHtml(link.url), "\">",
-        escapeHtml(link.label || "子路由"), " <span aria-hidden=\"true\">↗</span></button>"
+        escapeHtml(safeSubUrl), "\" title=\"", escapeHtml(safeSubUrl), "\">",
+        escapeHtml((link && link.label) || "子路由"), " <span aria-hidden=\"true\">↗</span></button>"
       ].join("");
     }).join("");
     return `
@@ -1061,7 +1059,7 @@
     }
 
     const recCardsHtml = recSites.map(s => `
-      <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="empty-rec-card" title="${escapeHtml(s.name)}">
+      <a href="${escapeHtml(safeHttpUrl(s.url))}" target="_blank" rel="noopener noreferrer" class="empty-rec-card" title="${escapeHtml(s.name)}">
         <span class="empty-rec-icon">${(() => {
           const attrs = window.NavSchema && typeof window.NavSchema.iconAttributes === "function" ? window.NavSchema.iconAttributes(s) : "";
           return attrs
@@ -2266,8 +2264,9 @@
         window.NavApp.refresh();
       }
     });
-    window.addEventListener("mynav-ledger-changed", function () {
-      if (state.activeCategory === "frequent") renderContent();
+    window.addEventListener("mynav-ledger-changed", function (event) {
+      const isRemoteSync = Boolean(event && event.detail && event.detail.syncOrigin === "remote");
+      if (!isRemoteSync && state.activeCategory === "frequent") renderContent();
       if (!stage2Done) return; // 账本事件早于 Stage 2 时不必惊动尚未挂载的模块
       if (window.NavAlmanac && typeof window.NavAlmanac.refresh === "function") {
         window.NavAlmanac.refresh();

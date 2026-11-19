@@ -105,6 +105,7 @@
     else ignoredSites.delete(id);
     try {
       window.localStorage.setItem(IGNORE_KEY, JSON.stringify(Array.from(ignoredSites)));
+      window.dispatchEvent(new CustomEvent("mynav-preferences-changed", { detail: { key: "probeIgnored" } }));
     } catch (e) {}
     probes.delete(id);
     if (typeof document !== "undefined") {
@@ -498,6 +499,15 @@
     return autoProbeEnabled;
   }
 
+  function reloadIgnored() {
+    ignoredSites = readIgnored();
+    ignoredSites.forEach(function (id) {
+      probes.delete(id);
+    });
+    syncCards();
+    return Array.from(ignoredSites);
+  }
+
   // 已下线的机关台接口保留为空操作，旧调用方不会抛错（retired in Batch 2）。
   function retired() { return false; }
 
@@ -514,6 +524,7 @@
     setAutoProbe,
     isProbeIgnored,
     setProbeIgnored,
+    reloadIgnored,
     hashString,
     openDeck: retired,
     closeDeck: retired,

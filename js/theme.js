@@ -171,6 +171,25 @@
       applyMode(mode, true);
     },
 
+    reload() {
+      const saved = NavStorage ? NavStorage.get(NavStorage.KEYS.THEME) : null;
+      const next = (saved === "light" || saved === "dark" || saved === "auto") ? saved : MODES.AUTO;
+      applyMode(next, false);
+      if (NavStorage && typeof document !== "undefined") {
+        const isNier = NavStorage.get(NavStorage.KEYS.NIER_BG, false);
+        if (isNier) {
+          document.documentElement.setAttribute("data-nier-bg", "true");
+        } else {
+          document.documentElement.removeAttribute("data-nier-bg");
+        }
+      }
+      return {
+        mode: currentMode,
+        theme: effectiveTheme,
+        nierBg: this.isNierBg()
+      };
+    },
+
     getMode() {
       return currentMode;
     },

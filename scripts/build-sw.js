@@ -8,8 +8,12 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+
+const CHECK_MODE = process.argv.includes("--check");
 const root = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const html404 = fs.readFileSync(path.join(root, "404.html"), "utf8");
+
 const urls = new Set(["./", "./index.html", "./404.html"]);
 for (const m of html.matchAll(/<(?:script|link)[^>]+(?:src|href)="([^"]+)"/g)) {
   const u = m[1];
@@ -25,11 +29,14 @@ for (const m of lazySrc.matchAll(/\b(?:src|css):\s*"([^"]+\.(?:js|css)(?:\?[^"]*
 // 兜底：js/ 下实际存在、却既不在 index.html 也不在懒加载表里的脚本，打印提醒（不静默漏缓存）。
 const listed = new Set([...urls].map((u) => u.replace(/^\.\//, "").replace(/\?.*$/, "")));
 for (const f of fs.readdirSync(path.join(root, "js"))) {
-  if (f.endsWith(".js") && !listed.has("js/" + f)) console.warn(`提醒：js/${f} 未被 index.html 或 js/lazy.js 引用，未加入离线清单`);
+  if (f.endsWith(".js") && !listed.has("js/" + f)) {
+    console.warn(`提醒：js/${f} 未被 index.html 或 js/lazy.js 引用，未加入离线清单`);
+  }
 }
 for (const f of fs.readdirSync(path.join(root, "icons"))) {
   if (!f.startsWith(".")) urls.add("./icons/" + f);
 }
+
 const list = [...urls];
 const hash = crypto.createHash("sha1");
 for (const u of list) {
@@ -39,8 +46,35 @@ for (const u of list) {
 }
 const version = hash.digest("hex").slice(0, 10);
 const swPath = path.join(root, "sw.js");
-let sw = fs.readFileSync(swPath, "utf8");
-sw = sw.replace(/const CACHE_VERSION = "[^"]*";/, `const CACHE_VERSION = "${version}";`);
-sw = sw.replace(/const PRECACHE = \[[\s\S]*?\];/, "const PRECACHE = " + JSON.stringify(list, null, 2) + ";");
-fs.writeFileSync(swPath, sw);
+const sw = fs.readFileSync(swPath, "utf8");
+const expectedPrecacheBlock = "const PRECACHE = " + JSON.stringify(list, null, 2) + ";";
+
+if (CHECK_MODE) {
+  const issues = [];
+  const verMatch = /const CACHE_VERSION = "([^"]*)";/.exec(sw);
+  if (!verMatch || verMatch[1] !== version) {
+    issues.push(`sw.js CACHE_VERSION 过期：当前 ${verMatch ? verMatch[1] : "(缺失)"}，应为 ${version}`);
+  }
+  const precacheMatch = /const PRECACHE = \[[\s\S]*?\];/.exec(sw);
+  if (!precacheMatch || precacheMatch[0] !== expectedPrecacheBlock) {
+    issues.push("sw.js PRECACHE 清单与 index.html / js/lazy.js / icons 不一致");
+  }
+  const indexCssMatch = /href="(styles\.css(?:\?[^"]*)?)"/.exec(html);
+  const notFoundCssMatch = /href="(styles\.css(?:\?[^"]*)?)"/.exec(html404);
+  if (indexCssMatch && (!notFoundCssMatch || notFoundCssMatch[1] !== indexCssMatch[1])) {
+    issues.push(
+      `404.html 样式版本与 index.html 不一致：404=${notFoundCssMatch ? notFoundCssMatch[1] : "(缺失)"}，index=${indexCssMatch[1]}`
+    );
+  }
+  if (issues.length > 0) {
+    console.error("SW / 静态资源一致性检查失败：\n- " + issues.join("\n- "));
+    process.exit(1);
+  }
+  console.log(`校验通过：sw.js 已同步（${list.length} 个文件，版本 ${version}），404.html 样式版本一致`);
+  process.exit(0);
+}
+
+let updatedSw = sw.replace(/const CACHE_VERSION = "[^"]*";/, `const CACHE_VERSION = "${version}";`);
+updatedSw = updatedSw.replace(/const PRECACHE = \[[\s\S]*?\];/, expectedPrecacheBlock);
+fs.writeFileSync(swPath, updatedSw);
 console.log(`sw.js 已更新：${list.length} 个文件，版本 ${version}`);
