@@ -245,7 +245,7 @@ test("notion-import --apply --update uses PATCH /pages/<id> instead of creating 
             return {
               results: [{
                 id: "notion-page-uuid-chatgpt",
-                properties: { CardID: { title: [{ plain_text: "ai-hark" }] } }
+                properties: { CardID: { title: [{ plain_text: "ai-muse" }] } }
               }],
               has_more: false
             };
