@@ -363,10 +363,10 @@
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible") refreshIfStale(60000);
       });
-      // 已打开的标签页每 10 分钟对一次版本；unchanged 时只传几十字节，不拉全量。
+      // 已打开的页面每两分钟检查版本；unchanged 时只传几十字节，不拉全量。
       setInterval(function () {
-        if (document.visibilityState !== "hidden") refreshIfStale(600000);
-      }, 600000);
+        if (document.visibilityState !== "hidden") refreshIfStale(120000);
+      }, 120000);
     }
   }
 

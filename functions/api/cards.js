@@ -1,13 +1,13 @@
 /**
  * Cloudflare Pages Function: /api/cards —— Notion 卡片覆盖层
  *
- * GET  /api/cards            只读 KV 中的已发布版本；无缓存时返回 404
+ * GET  /api/cards            返回 KV 目录；缓存缺失或过期时限频检查 Notion
  * GET  /api/cards?v=<ver>    版本相同返回 { unchanged: true }
- * POST /api/cards            用 NOTION_TOKEN / NOTION_DB_ID 拉取 Notion 并覆盖发布
+ * POST /api/cards            用 NOTION_TOKEN 拉取 Notion 并立即覆盖发布
  *
  * 安全：POST 需要请求头 x-mynav-refresh-token，值来自环境变量
  *       MYNAV_CARDS_REFRESH_TOKEN。令牌只走环境变量，不出现在 URL。
- * 缓存：KV 键 cards:v1:published；过期数据只有在显式刷新成功后才替换。
+ * 缓存：KV 键 cards:v1:published；公开读取每两分钟至多触发一次更新。
  * 失败：保留上一版并返回错误，不返回空数组覆盖。
  */
 

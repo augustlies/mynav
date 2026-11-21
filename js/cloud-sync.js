@@ -1553,7 +1553,7 @@
   };
 
   if (typeof module === "object" && module.exports) {
-    api.__test = { normalizeData, mergeData, mergeIdList, equal, writeDocData, finishSynced };
+    api.__test = { normalizeData, mergeData, mergeIdList, equal, writeDocData, finishSynced, hookStorage };
   }
   return api;
 });
