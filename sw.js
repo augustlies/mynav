@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "notion-sync-20261121";
+const CACHE_VERSION = "01cb58665d";
 const PRECACHE = [
   "./",
   "./index.html",
