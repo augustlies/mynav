@@ -156,7 +156,7 @@ function normalizeRow(page, index) {
   if (!id) errors.push("缺少 CardID");
   if (!name) errors.push("缺少 Name");
   if (!isSafeHttpUrl(url)) errors.push("URL 必须是 http/https");
-  if (!VALID_CATEGORIES.includes(category)) errors.push("Category 不在已支持分类");
+  if (!/^[a-z0-9_-]{1,40}$/i.test(category)) errors.push("Category 不在有效格式");
 
   if (errors.length) {
     return { error: { id: id || "(无 ID)", pageId: page && page.id, errors } };
