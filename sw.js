@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "catalogue-20261121-r2";
+const CACHE_VERSION = "catalogue-20261121-notes";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -33,7 +33,7 @@ const PRECACHE = [
   "./js/commands.js?v=b3.9",
   "./js/hall.js?v=b3.9",
   "./js/folio-keys.js?v=2.0.1",
-  "./js/marginalia.js?v=2.0.0",
+  "./js/marginalia.js?v=20261121-notes",
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.1",
   "./app.js?v=20261117a",
