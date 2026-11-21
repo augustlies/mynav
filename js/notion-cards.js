@@ -131,7 +131,22 @@
     if (!raw || typeof raw !== "object" || !Array.isArray(raw.sites)) return null;
     if (raw.sites.length > 1000) return null;
 
-    const allowed = categoryIds();
+    const categories = Array.isArray(raw.categories)
+      ? raw.categories
+          .filter(function (item) {
+            return item && typeof item.id === "string" &&
+              /^[a-z0-9_-]{1,40}$/i.test(item.id) && typeof item.name === "string" && item.name.trim();
+          })
+          .map(function (item) {
+            return {
+              id: cleanText(item.id, 40).toLowerCase(),
+              name: cleanText(item.name, 120),
+              desc: cleanText(item.desc, 1200),
+              code: cleanText(item.code, 20)
+            };
+          })
+      : [];
+    const allowed = categories.length ? categories.map(function (item) { return item.id; }) : categoryIds();
     const sites = [];
     const seen = new Set();
     let skipped = 0;
@@ -159,6 +174,7 @@
       updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
       count: sites.length,
       skipped: skipped,
+      categories: categories,
       sites: sites
     };
   }
@@ -188,62 +204,22 @@
     const data = getData();
     if (!normalized || !data || !Array.isArray(data.sites)) return false;
 
-    const base = getBaseSites();
-    const overlay = new Map(normalized.sites.map(function (site) { return [site.id, site]; }));
-    const merged = [];
-
-    base.forEach(function (source) {
-      const site = cloneSite(source);
-      const patch = overlay.get(site.id);
-      if (patch) {
-        site.name = patch.name;
-        site.url = patch.url;
-        site.description = patch.description;
-        site.category = patch.category;
-        site.icon = patch.icon;
-        site.tags = patch.tags.slice();
-        site.hidden = patch.hidden;
-        if (patch.whySaved) site.whySaved = patch.whySaved;
-        if (patch.notes) site.notes = patch.notes;
-        if (patch.favicon) site.favicon = patch.favicon;
-        if (Array.isArray(patch.subLinks)) site.subLinks = patch.subLinks.map(function (l) { return Object.assign({}, l); });
-        site._notionSort = patch.sort;
-        overlay.delete(site.id);
-      }
-      merged.push(site);
+    data.categories = normalized.categories.length
+      ? normalized.categories.map(function (category) { return Object.assign({}, category); })
+      : data.categories;
+    const merged = normalized.sites.map(function (site) {
+      const copy = cloneSite(site);
+      copy._notionSort = site.sort;
+      copy.source = "notion";
+      return copy;
     });
-
-    overlay.forEach(function (patch) {
-      const nextSite = {
-        id: patch.id,
-        name: patch.name,
-        url: patch.url,
-        description: patch.description,
-        category: patch.category,
-        icon: patch.icon,
-        tags: patch.tags.slice(),
-        hidden: patch.hidden,
-        _notionSort: patch.sort,
-        source: "notion"
-      };
-      if (patch.whySaved) nextSite.whySaved = patch.whySaved;
-      if (patch.notes) nextSite.notes = patch.notes;
-      if (patch.favicon) nextSite.favicon = patch.favicon;
-      if (Array.isArray(patch.subLinks)) nextSite.subLinks = patch.subLinks.map(function (l) { return Object.assign({}, l); });
-      merged.push(nextSite);
-    });
-
-    const categories = categoryIds();
-    const categoryOrder = new Map(categories.map(function (id, index) { return [id, index]; }));
+    const categoryOrder = new Map(data.categories.map(function (category, index) { return [category.id, index]; }));
     merged.sort(function (a, b) {
       const ca = categoryOrder.has(a.category) ? categoryOrder.get(a.category) : 999;
       const cb = categoryOrder.has(b.category) ? categoryOrder.get(b.category) : 999;
       if (ca !== cb) return ca - cb;
-      const sa = Number.isFinite(a._notionSort) ? a._notionSort : Number.MAX_SAFE_INTEGER;
-      const sb = Number.isFinite(b._notionSort) ? b._notionSort : Number.MAX_SAFE_INTEGER;
-      return sa - sb;
+      return a._notionSort - b._notionSort;
     });
-
     data.sites = merged;
     state.version = normalized.version;
     state.updatedAt = normalized.updatedAt;
