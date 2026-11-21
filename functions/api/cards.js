@@ -1,3 +1,5 @@
+import { catalogue } from "../_catalogue.js";
+
 /**
  * Cloudflare Pages Function: /api/cards —— Notion 卡片覆盖层
  *
@@ -344,7 +346,8 @@ export async function onRequestGet(context) {
   const kv = env.MYNAV_KV;
   if (!kv) return fail("KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定", 500, "KV_MISSING");
 
-  const cached = await refreshIfDue(env, kv, await readCache(kv));
+  let cached = await refreshIfDue(env, kv, await readCache(kv));
+  if (!cached || Number(cached.updatedAt || 0) <= catalogue.updatedAt) cached = catalogue;
   const requestedVersion = new URL(context.request.url).searchParams.get("v");
   if (cached) {
     if (requestedVersion && requestedVersion === cached.version) {
