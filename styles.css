@@ -3523,9 +3523,20 @@ body.modal-open {
 }
 
 .ex-libris-plate .masthead-issue {
+  flex-wrap: wrap;
   gap: 5px;
   align-items: flex-start;
   line-height: 1.55;
+}
+
+/* Keep earned seals inside the cover when the issue line fills the spine. */
+.ex-libris-plate .masthead-milestone-slot {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.ex-libris-plate .milestone-seal-badge {
+  white-space: nowrap;
 }
 
 /* 刊头卷号在窄书脊里必须保持单行，避免 1440 等桌面宽度折成两行 */

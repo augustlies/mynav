@@ -8,12 +8,12 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "23376e405a";
+const CACHE_VERSION = "f50bcf79f7";
 const PRECACHE = [
   "./",
   "./index.html",
   "./404.html",
-  "./styles.css?v=20261119a",
+  "./styles.css?v=20261121a",
   "./favicon.svg",
   "./data.js?v=1.8.0",
   "./js/notion-cards.js?v=1.0.3",
