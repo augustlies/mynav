@@ -10,39 +10,14 @@
 const NAV_DATA = {
   // 藏馆分类定义列表
   categories: [
-    {
-      id: "ai",
-      name: "AI 思考与生成",
-      desc: "前沿大语言模型、深度推理与多模态创作工坊",
-      code: "AI"
-    },
-    {
-      id: "dev",
-      name: "开发与代码工坊",
-      desc: "开源托管、Web 标准规范与现代工程基础设施",
-      code: "DEV"
-    },
-    {
-      id: "knowledge",
-      name: "知识与研习",
-      desc: "深度技术专栏、独立思考媒体与系统化学习资源",
-      code: "LIB"
-    },
-    {
-      id: "tools",
-      name: "案头效率工具",
-      desc: "知识沉淀库、架构图解与高频轻量实用工具",
-      code: "EFF"
-    },
-    {
-      id: "social",
-      name: "联络与社交",
-      desc: "邮箱、即时通讯与社交网络，维系联络的日常工具",
-      code: "SOC"
-    }
+    { id: "ai", name: "AI 与智能助手", desc: "对话模型、AI 助手与提示词入口", code: "AI" },
+    { id: "dev", name: "开发、云与服务器", desc: "代码工具、云主机、部署和基础设施控制台", code: "DEV" },
+    { id: "knowledge", name: "学习、研究与校园", desc: "课程视频、论文检索、校园服务与学习社区", code: "LIB" },
+    { id: "tools", name: "账号、通信与日常服务", desc: "邮箱、短信、号码、支付和实用工具", code: "EFF" },
+    { id: "social", name: "社区与内容", desc: "社交网络、开发者社区和内容平台", code: "SOC" }
   ],
 
-  // 馆藏网站条目列表 (共 33 卷)
+  // 馆藏网站条目列表 (共 53 卷)
   sites: [
     // --- 1. AI 思考与生成 (8 卷) ---
     {
@@ -113,7 +88,7 @@ const NAV_DATA = {
       id: "ai-mw7xg0uw",
       name: "Mistral",
       url: "https://admin.mistral.ai/subscription",
-      description: "",
+      description: "Mistral AI 账号与订阅管理入口。",
       category: "ai",
       tags: [],
       icon: "MI",
@@ -188,7 +163,7 @@ const NAV_DATA = {
       id: "dev-mw28nin5",
       name: "InstaBox",
       url: "https://dashboard.instabox.sh/dashboard/machines",
-      description: "",
+      description: "InstaBox 云端机器管理台，用于查看和操作已创建的开发环境。",
       category: "dev",
       tags: [],
       icon: "IN",
@@ -272,8 +247,8 @@ const NAV_DATA = {
       id: "knowledge-mwdmmgo5",
       name: "LinuxDo",
       url: "https://linux.do/",
-      description: "",
-      category: "knowledge",
+      description: "LinuxDo 技术社区，浏览开发者讨论、经验分享与资源。",
+      category: "social",
       tags: [],
       icon: "LI",
       createdAt: 1794492704741
@@ -323,7 +298,7 @@ const NAV_DATA = {
       name: "Gmail",
       url: "https://mail.google.com/",
       description: "Google 免费邮箱，全球通用，垃圾邮件过滤出色",
-      category: "social",
+      category: "tools",
       tags: ["邮箱","gmail","谷歌","邮件","通讯"],
       icon: "邮"
     },
@@ -332,7 +307,7 @@ const NAV_DATA = {
       name: "163邮箱",
       url: "https://mail.163.com/",
       description: "网易旗下免费邮箱，国内常用的个人邮件服务，收发稳定",
-      category: "social",
+      category: "tools",
       tags: ["邮箱","163","网易","邮件","通讯"],
       icon: "163"
     },
@@ -353,6 +328,132 @@ const NAV_DATA = {
       category: "social",
       tags: ["社交","discord","社群","聊天","语音"],
       icon: "DC"
+    },
+    {
+      id: "user-xingchi",
+      name: "星驰 API",
+      url: "https://xingchiapi.com/dashboard",
+      description: "API 服务控制台，用于查看接口服务与账户用量。",
+      category: "dev",
+      tags: ["dev", "常用入口"],
+      icon: "星驰"
+    },
+    {
+      id: "user-apikey-casa",
+      name: "APIKey Casa 兑换",
+      url: "https://apikey.casa/redeem",
+      description: "API Key 兑换入口，用于兑换或激活模型服务额度。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "AP"
+    },
+    {
+      id: "user-google-ai-studio",
+      name: "Google AI Studio",
+      url: "https://aistudio.google.com/u/2/prompts/new_chat?pli=1",
+      description: "Google Gemini 提示词与对话工作区，可快速创建新对话。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "GO"
+    },
+    {
+      id: "user-guiyi",
+      name: "归一",
+      url: "https://guiyi.sueexin.dev/",
+      description: "归一 AI 对话入口，用于集中访问模型与开展对话。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "归一"
+    },
+    {
+      id: "user-simular-box",
+      name: "Simular Box",
+      url: "https://box.simular.ai/box/",
+      description: "Simular 云端 AI 工作空间入口。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "SI"
+    },
+    {
+      id: "user-raksmart",
+      name: "RAKsmart 客户中心",
+      url: "https://billing.raksmart.com/whmcs/clientarea.php?language=chinese-cn",
+      description: "RAKsmart 主机服务客户中心，管理产品、账单与工单。",
+      category: "dev",
+      tags: ["dev", "常用入口"],
+      icon: "RA"
+    },
+    {
+      id: "user-weeny-cloud",
+      name: "Weeny Cloud",
+      url: "https://weeny.cloud/dashboard",
+      description: "Weeny Cloud 云服务控制台，查看和管理云端资源。",
+      category: "dev",
+      tags: ["dev", "常用入口"],
+      icon: "WE"
+    },
+    {
+      id: "user-cloady",
+      name: "Cloady 项目部署",
+      url: "https://cloady.com/w/august-lies/jpn1/production",
+      description: "Cloady 工作区中的 production 环境入口，用于查看项目部署状态。",
+      category: "dev",
+      tags: ["dev", "常用入口"],
+      icon: "CL"
+    },
+    {
+      id: "user-esim-gg",
+      name: "eSIM.gg 线路",
+      url: "https://esim.gg/lines/ee/37254143017",
+      description: "eSIM.gg 指定线路详情页，用于查看该号码线路状态与管理选项。",
+      category: "tools",
+      tags: ["tools", "常用入口"],
+      icon: "ES"
+    },
+    {
+      id: "user-flame-mail",
+      name: "Flame Mail",
+      url: "https://mail.flame.edu.kg/inbox",
+      description: "Flame 邮箱收件箱，集中查看该邮箱收到的邮件。",
+      category: "tools",
+      tags: ["tools", "常用入口"],
+      icon: "FL"
+    },
+    {
+      id: "user-tiger-sms",
+      name: "Tiger SMS",
+      url: "https://tiger-sms.com/cn/cabinet/sms",
+      description: "Tiger SMS 短信控制台，用于查看短信与号码服务。",
+      category: "tools",
+      tags: ["tools", "常用入口"],
+      icon: "TI"
+    },
+    {
+      id: "user-qq-agent",
+      name: "QQ 智能体列表",
+      url: "https://agent.qq.com/page/list?alias_id=alias_lqNNiBpW-cM23Z1n588qj3gtquUDqnx-",
+      description: "QQ 智能体列表页，管理或打开对应智能体。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "QQ"
+    },
+    {
+      id: "user-sci-hub",
+      name: "Sci-Hub",
+      url: "https://www.sci-hub.ru/",
+      description: "论文检索入口，可用于查找学术文献。",
+      category: "knowledge",
+      tags: ["knowledge", "常用入口"],
+      icon: "SC"
+    },
+    {
+      id: "user-tutor-chat",
+      name: "Tutor 对话",
+      url: "https://tutor.sueexin.dev/chat?dt_workspace=",
+      description: "Tutor 工作区聊天入口，用于进入指定工作区继续对话。",
+      category: "ai",
+      tags: ["ai", "常用入口"],
+      icon: "TU"
     }
   ]
 };
