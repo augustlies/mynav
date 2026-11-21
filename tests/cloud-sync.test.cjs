@@ -21,11 +21,15 @@ MockKV.prototype.list = async function ({ prefix = "" } = {}) {
 };
 
 const placeholder = new LocalStorageMock();
+const eventListeners = new Map();
 global.window = {
   localStorage: placeholder,
   fetch: null,
   location: { reload() {} },
-  addEventListener() {},
+  addEventListener(name, listener) {
+    if (!eventListeners.has(name)) eventListeners.set(name, []);
+    eventListeners.get(name).push(listener);
+  },
   NavShortcuts: { showToast() {} },
 };
 Object.defineProperty(global, "navigator", { value: { onLine: true }, configurable: true });
@@ -55,6 +59,22 @@ function makeDevice(token, initial) {
   localStorage.setItem("nav_site_overrides", JSON.stringify(initial.overrides || emptyData().overrides));
   return { localStorage, reloads: 0 };
 }
+
+test("站内编辑事件会更新云同步的待上传版本", () => {
+  window.localStorage = new LocalStorageMock();
+  sync.__test.hookStorage();
+  const before = sync.getMeta().updatedAt;
+  window.localStorage.setItem("nav_site_overrides", JSON.stringify({
+    modified: { site: { name: "新名称" } },
+    added: [],
+    hidden: [],
+    deleted: [],
+    unhidden: []
+  }));
+  const handler = eventListeners.get("nav-overrides-changed")[0];
+  handler();
+  assert.ok(sync.getMeta().updatedAt > before);
+});
 
 test("三方合并保留新增、同步删除、累加访问增量并合并卡片字段", () => {
   const base = emptyData();

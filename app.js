@@ -1994,7 +1994,7 @@
 
   function loadBootModules() {
     if (!window.NavLazy || typeof window.NavLazy.ensure !== "function") return;
-    ["uncatalogued", "astronomy", "probe"].forEach(function (name) {
+    ["uncatalogued", "astronomy", "probe", "cloudsync"].forEach(function (name) {
       window.NavLazy.ensure(name).then(initBootModules).catch(function () {});
     });
   }

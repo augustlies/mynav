@@ -1,20 +1,23 @@
 /**
  * Cloudflare Pages Function: /api/cards —— Notion 卡片覆盖层
  *
- * GET  /api/cards            只读 KV 中的已发布版本；无缓存时返回 404
+ * GET  /api/cards            返回 KV 目录；缓存缺失或过期时限频检查 Notion
  * GET  /api/cards?v=<ver>    版本相同返回 { unchanged: true }
- * POST /api/cards            用 NOTION_TOKEN / NOTION_DB_ID 拉取 Notion 并覆盖发布
+ * POST /api/cards            用 NOTION_TOKEN 拉取 Notion 并立即覆盖发布
  *
  * 安全：POST 需要请求头 x-mynav-refresh-token，值来自环境变量
  *       MYNAV_CARDS_REFRESH_TOKEN。令牌只走环境变量，不出现在 URL。
- * 缓存：KV 键 cards:v1:published；过期数据只有在显式刷新成功后才替换。
+ * 缓存：KV 键 cards:v1:published；公开读取每两分钟至多触发一次更新。
  * 失败：保留上一版并返回错误，不返回空数组覆盖。
  */
 
 const KV_KEY = "cards:v1:published";
-const NOTION_VERSION = "2022-06-28";
-const NOTION_DB_PREFIX = "https://api.notion.com/v1/databases/";
-const VALID_CATEGORIES = ["ai", "dev", "knowledge", "tools", "social"];
+const NOTION_VERSION = "2025-09-03";
+const NOTION_DATA_SOURCE_PREFIX = "https://api.notion.com/v1/data_sources/";
+const DEFAULT_SITES_DATA_SOURCE_ID = "35983911-5875-438a-9777-7737a18cf94e";
+const DEFAULT_CATEGORIES_DATA_SOURCE_ID = "e27ec9e3-4644-4a04-9999-ccdacff6dc57";
+const REFRESH_LOCK_KEY = "cards:v1:refresh-lock";
+const REFRESH_INTERVAL_MS = 120000;
 const MAX_PAGES = 12;
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -153,7 +156,7 @@ function normalizeRow(page, index) {
   if (!id) errors.push("缺少 CardID");
   if (!name) errors.push("缺少 Name");
   if (!isSafeHttpUrl(url)) errors.push("URL 必须是 http/https");
-  if (!VALID_CATEGORIES.includes(category)) errors.push("Category 不在已支持分类");
+  if (!/^[a-z0-9_-]{1,40}$/i.test(category)) errors.push("Category 不在有效格式");
 
   if (errors.length) {
     return { error: { id: id || "(无 ID)", pageId: page && page.id, errors } };
@@ -178,13 +181,13 @@ function normalizeRow(page, index) {
   return { row };
 }
 
-async function queryAllPages(dbId, token) {
+async function queryAllPages(dataSourceId, token) {
   const rows = [];
   let cursor = null;
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const body = { page_size: 100 };
     if (cursor) body.start_cursor = cursor;
-    const res = await fetch(NOTION_DB_PREFIX + encodeURIComponent(dbId) + "/query", {
+    const res = await fetch(NOTION_DATA_SOURCE_PREFIX + encodeURIComponent(dataSourceId) + "/query", {
       method: "POST",
       headers: {
         authorization: "Bearer " + token,
@@ -207,40 +210,71 @@ async function queryAllPages(dbId, token) {
 
 async function fetchNotion(env) {
   const token = env.NOTION_TOKEN;
-  const dbId = env.NOTION_DB_ID;
-  if (!token || !dbId) {
+  if (!token) {
     throw Object.assign(new Error("Notion 环境变量未配置"), { code: "NOTION_ENV_MISSING" });
   }
-  const pages = await queryAllPages(dbId, token);
+  const sitesSourceId = env.NOTION_SITES_DATA_SOURCE_ID || DEFAULT_SITES_DATA_SOURCE_ID;
+  const categoriesSourceId = env.NOTION_CATEGORIES_DATA_SOURCE_ID || DEFAULT_CATEGORIES_DATA_SOURCE_ID;
+  const [pages, categoryPages] = await Promise.all([
+    queryAllPages(sitesSourceId, token),
+    queryAllPages(categoriesSourceId, token),
+  ]);
+
+  const categories = [];
+  const categoryByPageId = new Map();
+  categoryPages.forEach((page, index) => {
+    const props = (page && page.properties) || {};
+    const id = textValue(props, ["专栏ID", "CategoryID", "分类ID"])
+      .toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    const name = textValue(props, ["Name", "名称", "标题"]);
+    if (!id || !name || categories.some((category) => category.id === id)) return;
+    categories.push({
+      id,
+      name,
+      desc: textValue(props, ["简介", "Description", "描述"]),
+      code: textValue(props, ["代号", "Code"]) || String(index + 1),
+    });
+    if (page.id) categoryByPageId.set(page.id, id);
+  });
+  if (!categories.length) {
+    throw Object.assign(new Error("Notion 分类数据为空"), { code: "NOTION_CATEGORIES_EMPTY" });
+  }
+
   const sites = [];
   const skipped = [];
   const seen = new Set();
   pages.forEach((page, index) => {
+    const props = (page && page.properties) || {};
+    const status = textValue(props, ["状态"]);
+    if (status && status !== "活跃") return;
+    const relation = firstProp(props, ["专栏", "Category", "分类"]);
+    const relatedPage = relation && Array.isArray(relation.relation) && relation.relation[0];
+    if (relatedPage && relatedPage.id) {
+      props.Category = { select: { name: categoryByPageId.get(relatedPage.id) || "" } };
+    }
     const result = normalizeRow(page, index);
     if (result.error) {
       skipped.push(Object.assign({}, result.error, { pageIndex: index }));
       return;
     }
     if (seen.has(result.row.id)) {
-      skipped.push({ id: result.row.id, pageId: page.id, errors: ["CardID 重复"] });
+      skipped.push({ id: result.row.id, pageId: page.id, errors: ["站点ID 重复"] });
       return;
     }
     seen.add(result.row.id);
     sites.push(result.row);
   });
 
-  // 同一分类内按 Sort 升序；Sort 相同保持 Notion 返回顺序
-  const categoryOrder = new Map(VALID_CATEGORIES.map((id, i) => [id, i]));
+  const categoryOrder = new Map(categories.map((category, index) => [category.id, index]));
   sites.sort((a, b) => {
-    const ca = categoryOrder.get(a.category) || 0;
-    const cb = categoryOrder.get(b.category) || 0;
+    const ca = categoryOrder.has(a.category) ? categoryOrder.get(a.category) : 999;
+    const cb = categoryOrder.has(b.category) ? categoryOrder.get(b.category) : 999;
     if (ca !== cb) return ca - cb;
     return a.sort - b.sort;
   });
 
-  const payloadForHash = JSON.stringify(sites);
-  const version = "v1-" + hash(payloadForHash);
-  const updatedAt = pages.reduce((latest, page) => {
+  const version = "v1-" + hash(JSON.stringify({ categories, sites }));
+  const updatedAt = pages.concat(categoryPages).reduce((latest, page) => {
     const t = page && page.last_edited_time ? Date.parse(page.last_edited_time) : 0;
     return Number.isFinite(t) && t > latest ? t : latest;
   }, 0);
@@ -250,6 +284,7 @@ async function fetchNotion(env) {
     updatedAt: updatedAt || Date.now(),
     fetchedAt: Date.now(),
     count: sites.length,
+    categories,
     skipped: skipped.slice(0, 20),
     skippedCount: skipped.length,
     sites,
@@ -288,12 +323,28 @@ async function readCache(kv) {
   }
 }
 
+async function refreshIfDue(env, kv, cached) {
+  if (!env.NOTION_TOKEN) return cached;
+  const age = cached ? Date.now() - Number(cached.fetchedAt || 0) : Infinity;
+  if (age < REFRESH_INTERVAL_MS) return cached;
+  if (await kv.get(REFRESH_LOCK_KEY)) return cached;
+  await kv.put(REFRESH_LOCK_KEY, String(Date.now()), { expirationTtl: 120 });
+  try {
+    const fresh = await fetchNotion(env);
+    if (!fresh.sites.length) return cached;
+    await kv.put(KV_KEY, JSON.stringify(fresh));
+    return fresh;
+  } catch (error) {
+    return cached;
+  }
+}
+
 export async function onRequestGet(context) {
   const env = context.env || {};
   const kv = env.MYNAV_KV;
   if (!kv) return fail("KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定", 500, "KV_MISSING");
 
-  const cached = await readCache(kv);
+  const cached = await refreshIfDue(env, kv, await readCache(kv));
   const requestedVersion = new URL(context.request.url).searchParams.get("v");
   if (cached) {
     if (requestedVersion && requestedVersion === cached.version) {

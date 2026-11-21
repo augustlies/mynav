@@ -997,6 +997,10 @@
         if (applyingRemote) return;
         maybeMarkDirty();
       });
+      window.addEventListener("nav-overrides-changed", () => {
+        if (applyingRemote) return;
+        maybeMarkDirty();
+      });
     }
     NavStorage.__cloudSyncHooked = true;
   }
@@ -1513,6 +1517,11 @@
         initialSync({ silent: true });
       }
     });
+    window.setInterval(() => {
+      if (getToken() && document.visibilityState === "visible") {
+        initialSync({ silent: true });
+      }
+    }, 60000);
 
     // 后台静默首轮同步，不阻塞页面渲染；401 仍会明确要求重新登录。
     if (document.readyState === "loading") {
@@ -1544,7 +1553,7 @@
   };
 
   if (typeof module === "object" && module.exports) {
-    api.__test = { normalizeData, mergeData, mergeIdList, equal, writeDocData, finishSynced };
+    api.__test = { normalizeData, mergeData, mergeIdList, equal, writeDocData, finishSynced, hookStorage };
   }
   return api;
 });

@@ -33,9 +33,13 @@ global.window = {
 const overlay = require("../js/notion-cards.js");
 const overrides = require("../js/overrides.js");
 
-test("Notion 行按 CardID 叠加，新增卡片、隐藏和排序生效", () => {
+test("Notion 目录替换离线底稿，新增和删除均生效", () => {
   const payload = {
     version: "v1-test",
+    categories: [
+      { id: "ai", name: "AI 新名", desc: "AI 描述", code: "AI" },
+      { id: "tools", name: "工具" }
+    ],
     updatedAt: 100,
     sites: [
       { id: "b", name: "B 新名", url: "https://b.example/new", description: "新说明", category: "ai", icon: "BB", tags: ["b2"], sort: 1, hidden: true },
@@ -45,6 +49,7 @@ test("Notion 行按 CardID 叠加，新增卡片、隐藏和排序生效", () =>
   };
   assert.equal(overlay.applyPayload(payload), true);
   assert.deepEqual(window.NAV_DATA.sites.map((site) => site.id), ["b", "a", "notion-new"]);
+  assert.equal(window.NAV_DATA.categories[0].name, "AI 新名");
   const all = overrides.getAllMergedSites(true);
   const b = all.find((site) => site.id === "b");
   assert.equal(b.name, "B 新名");
