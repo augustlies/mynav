@@ -60,6 +60,7 @@
   // 状态：unknown | logged-out | syncing | synced | error | disabled
   let status = "unknown";
   let applyingRemote = false;
+  let syncPending = false;
   let lastPayloadSig = "";
   let pushTimer = null;
   let syncBtn = null;
@@ -1011,7 +1012,10 @@
       setStatus("disabled", "不可用", "当前浏览器不支持云同步");
       return false;
     }
-    if (status === "syncing") return false;
+    if (status === "syncing") {
+      syncPending = true;
+      return false;
+    }
     if (!getToken()) {
       setStatus("logged-out", "登录", "登录后可跨设备同步");
       return false;
@@ -1098,6 +1102,15 @@
         if (!options.silent) notify("云同步失败", message, "⚠");
       }
       return false;
+    } finally {
+      if (syncPending) {
+        syncPending = false;
+        setTimeout(() => {
+          if (getToken() && !document.hidden) {
+            initialSync({ silent: true });
+          }
+        }, 0);
+      }
     }
   }
 
@@ -1498,6 +1511,12 @@
         pushTimer = null;
         pushNow(true);
       }
+      if (!document.hidden && getToken()) {
+        initialSync({ silent: true });
+      }
+    });
+    window.addEventListener("pageshow", () => {
+      if (getToken()) initialSync({ silent: true });
     });
     window.addEventListener("pagehide", () => {
       if (pushTimer) {

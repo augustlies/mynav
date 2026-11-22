@@ -12,7 +12,7 @@ class MockKV {
 }
 
 function page(id, props) {
-  return { id, last_edited_time: "2026-11-14T10:00:00.000Z", properties: props };
+  return { id, last_edited_time: new Date(Date.now() + 1000).toISOString(), properties: props };
 }
 
 function rich(value) {
@@ -92,7 +92,7 @@ test("口令保护的发布跳过坏行、缓存有效行并保持版本号稳�
   }
 });
 
-test("公开 GET 在缓存为空时不访问 Notion，也不写入 KV", async () => {
+test("公开 GET 在缓存为空时返回内置目录，不访问 Notion 或写入 KV", async () => {
   const api = await apiPromise;
   const kv = new MockKV();
   const original = global.fetch;
@@ -106,8 +106,10 @@ test("公开 GET 在缓存为空时不访问 Notion，也不写入 KV", async ()
       env: { MYNAV_KV: kv },
       request: new Request("https://mynav.test/api/cards"),
     });
-    assert.equal(res.status, 404);
-    assert.deepEqual(await res.json(), { empty: true });
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.match(body.version, /^catalogue-/);
+    assert.ok(body.count > 0);
     assert.equal(fetchCount, 0);
     assert.equal(kv.values.size, 0);
   } finally {
@@ -119,7 +121,7 @@ test("有缓存时 Notion 失败仍返回上一版", async () => {
   const api = await apiPromise;
   const kv = new MockKV();
   await kv.put("cards:v1:published", JSON.stringify({
-    version: "v1-old", updatedAt: 1, fetchedAt: 1, count: 1, skipped: [], sites: [{ id: "old" }]
+    version: "v1-old", updatedAt: Date.now() + 1, fetchedAt: 1, count: 1, skipped: [], sites: [{ id: "old" }]
   }));
   const original = global.fetch;
   global.fetch = async () => new Response("boom", { status: 500 });
@@ -209,7 +211,7 @@ test("相同版本返回 unchanged，减少传输", async () => {
   const api = await apiPromise;
   const kv = new MockKV();
   await kv.put("cards:v1:published", JSON.stringify({
-    version: "v1-same", updatedAt: 1, fetchedAt: 1, count: 1, skipped: [], sites: [{ id: "a" }]
+    version: "v1-same", updatedAt: Date.now() + 1, fetchedAt: Date.now() + 1, count: 1, skipped: [], sites: [{ id: "a" }]
   }));
   const res = await api.onRequestGet({
     env: { MYNAV_KV: kv },

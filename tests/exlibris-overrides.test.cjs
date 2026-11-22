@@ -8,6 +8,7 @@ const vm = require("node:vm");
 const { execFileSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..");
+const firstSiteId = require("../data.js").sites[0].id;
 
 function createStorage() {
   const m = new Map();
@@ -245,7 +246,7 @@ test("notion-import --apply --update uses PATCH /pages/<id> instead of creating 
             return {
               results: [{
                 id: "notion-page-uuid-chatgpt",
-                properties: { CardID: { title: [{ plain_text: "ai-muse" }] } }
+                properties: { CardID: { title: [{ plain_text: "__FIRST_SITE_ID__" }] } }
               }],
               has_more: false
             };
@@ -259,7 +260,7 @@ test("notion-import --apply --update uses PATCH /pages/<id> instead of creating 
     });
   `;
   const tmpPreload = path.join(ROOT, ".tmp-notion-mock.cjs");
-  fs.writeFileSync(tmpPreload, preloadCode);
+  fs.writeFileSync(tmpPreload, preloadCode.replace("__FIRST_SITE_ID__", firstSiteId));
   try {
     const out = execFileSync(
       process.execPath,

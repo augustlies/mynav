@@ -3,7 +3,7 @@
  * 职责：
  * 1. 管理默认 Google 搜索、站内书目检索与 GitHub 快捷检索配置
  * 2. 无论当前引擎为何，输入始终驱动馆内实时筛选
- * 3. Enter 在唯一命中时开卷；否则或 Shift+Enter 跳转当前外部引擎
+ * 3. 外部引擎模式下 Enter 搜索；站内模式下唯一命中可直接开卷；Shift+Enter 外搜
  * 4. 防中文输入法回车误触 (e.isComposing / compositionstart / keyCode: 229)
  * 5. 输入框内按 Tab 循环切换引擎，placeholder 动态更新
  * 6. 本地持久化记住用户引擎选择 (localStorage: mynav_search_engine_v2)
@@ -26,13 +26,13 @@
     {
       id: "google",
       name: "Google",
-      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 Google... (Tab 切换引擎)",
+      placeholder: "输入时检索馆藏，Enter 全网 Google，/ 调出命令 (Tab 切换引擎)",
       url: "https://www.google.com/search?q=关键词"
     },
     {
       id: "bing",
       name: "Bing",
-      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 Bing... (Tab 切换引擎)",
+      placeholder: "输入时检索馆藏，Enter 全网 Bing，/ 调出命令 (Tab 切换引擎)",
       url: "https://www.bing.com/search?q=关键词"
     },
     {
@@ -44,13 +44,13 @@
     {
       id: "github",
       name: "GitHub",
-      placeholder: "馆内实时检索，/ 调出命令，⇧Enter 全网 GitHub... (Tab 切换引擎)",
+      placeholder: "输入时检索馆藏，Enter 全网 GitHub，/ 调出命令 (Tab 切换引擎)",
       url: "https://github.com/search?q=关键词&type=repositories"
     },
     {
       id: "constellation",
       name: "✦ 群星会诊",
-      placeholder: "馆内实时检索；⇧Enter 同时投射 Google / GitHub / Bing...",
+      placeholder: "输入时检索馆藏，Enter 同时投射 Google / GitHub / Bing...",
       url: null,
       multicast: true
     }
@@ -70,7 +70,7 @@
     if (engine.id === "site") {
       return engine.placeholder || "检索书名、简介、标签或域名，/ 调出馆内命令...";
     }
-    return `馆内实时检索，/ 调出命令，⇧Enter 全网 ${engine.name}... (Tab 切换引擎)`;
+    return "输入时检索馆藏，Enter 全网 " + engine.name + "，/ 调出命令 (Tab 切换引擎)";
   }
 
   function isSiteSearch() {
@@ -138,7 +138,7 @@
       if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
         const tip = currentEngineId === "site"
           ? "实时检索馆藏书目；唯一命中按 Enter 开卷"
-          : `馆内实时过滤；Shift+Enter 跳转 ${targetEngine.name}`;
+          : "输入时筛选馆藏；Enter 搜索 " + targetEngine.name;
         window.NavShortcuts.showToast(`搜索引擎：${targetEngine.name}`, tip, "🔍");
       }
     }
@@ -148,7 +148,7 @@
     const val = String(value || "").trim();
     if (!val) {
       if (window.NavShortcuts && typeof window.NavShortcuts.showToast === "function") {
-        window.NavShortcuts.showToast("请输入搜索关键词", "输入普通检索词后按 Shift+Enter", "ℹ");
+        window.NavShortcuts.showToast("请输入搜索关键词", "输入关键词后按 Enter", "ℹ");
       }
       return false;
     }
@@ -237,8 +237,7 @@
     } catch (e) {}
     setEngine(savedEngine, { userInitiated: false });
 
-    // 捕获阶段只接管 Tab；Enter 交给 app.js 的馆内路由，
-    // 从而保留隐藏口令、唯一命中开卷与 Shift+Enter 外搜。
+    // 捕获阶段只接管 Tab；Enter 交给 app.js 处理引擎与站内开卷路由。
     document.addEventListener(
       "keydown",
       function (e) {
@@ -255,7 +254,7 @@
             return;
           }
 
-          // Enter 由馆内路由处理：唯一命中开卷，否则按当前引擎外搜。
+          // Enter 由 app.js 按当前引擎处理。
         }
       },
       true // 捕获阶段
