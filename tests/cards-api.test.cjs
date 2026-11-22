@@ -92,6 +92,56 @@ test("口令保护的发布跳过坏行、缓存有效行并保持版本号稳�
   }
 });
 
+
+test("首次目录基线迁移按批次续跑，单次 Notion 请求不超过 50 个子请求", async () => {
+  const api = await apiPromise;
+  const kv = new MockKV();
+  await kv.put("session:owner-session", JSON.stringify({ username: "sueexin", expiresAt: Date.now() + 60000 }));
+  await kv.put("profile:v2:sueexin", JSON.stringify({
+    updatedAt: 51,
+    data: { overrides: { modified: {}, added: [], hidden: [], deleted: [], unhidden: [] } }
+  }));
+  const originalFetch = global.fetch;
+  const originalTimeout = global.setTimeout;
+  let requests = 0;
+  let created = 0;
+  global.setTimeout = (callback) => { callback(); return 0; };
+  global.fetch = async (url, init = {}) => {
+    requests += 1;
+    if (url.includes("/data_sources/")) {
+      return url.includes("e27ec9e3-4644-4a04-9999-ccdacff6dc57")
+        ? notionResponse([category("ai", "category-ai")])
+        : notionResponse([]);
+    }
+    if (url.endsWith("/pages") && init.method === "POST") {
+      created += 1;
+      return new Response(JSON.stringify({ id: "created-" + created }), { status: 200 });
+    }
+    if (url.includes("/pages/")) {
+      return new Response(JSON.stringify({ id: url.split("/").pop() }), { status: 200 });
+    }
+    return new Response("not found", { status: 404 });
+  };
+  try {
+    const response = await api.onRequestPost({
+      env: { MYNAV_KV: kv, NOTION_TOKEN: "token" },
+      request: new Request("https://mynav.test/api/cards", {
+        method: "POST",
+        headers: { authorization: "Bearer owner-session", "content-type": "application/json" },
+        body: JSON.stringify({ profileUpdatedAt: 51 })
+      })
+    });
+    assert.equal(response.status, 202);
+    assert.equal((await response.json()).inProgress, true);
+    assert.ok(requests <= 50);
+    assert.equal(JSON.parse(kv.values.get("cards:v1:baseline-progress")).siteIndex, 20);
+    assert.equal(kv.values.has("cards:v1:baseline-imported"), false);
+  } finally {
+    global.fetch = originalFetch;
+    global.setTimeout = originalTimeout;
+  }
+});
+
 test("公开 GET 在缓存为空时返回内置目录，不访问 Notion 或写入 KV", async () => {
   const api = await apiPromise;
   const kv = new MockKV();
@@ -221,4 +271,49 @@ test("相同版本返回 unchanged，减少传输", async () => {
   const body = await res.json();
   assert.equal(body.unchanged, true);
   assert.equal(body.version, "v1-same");
+});
+
+
+test("馆主账号的目录覆写会写回 Notion 并刷新公开目录缓存", async () => {
+  const api = await apiPromise;
+  const kv = new MockKV();
+  await kv.put("session:owner-session", JSON.stringify({ username: "sueexin", expiresAt: Date.now() + 60000 }));
+  await kv.put("profile:v2:sueexin", JSON.stringify({
+    updatedAt: 41,
+    data: { overrides: { modified: { "ai-good": { name: "新名称" } }, added: [], hidden: [], deleted: [], unhidden: [] } }
+  }));
+  await kv.put("cards:v1:baseline-imported", "catalogue-v1");
+  const original = global.fetch;
+  const writes = [];
+  global.fetch = async (url, init = {}) => {
+    if (url.includes("/data_sources/")) {
+      return url.includes("e27ec9e3-4644-4a04-9999-ccdacff6dc57")
+        ? notionResponse([category("ai")])
+        : notionResponse([row("ai-good")]);
+    }
+    if (url.includes("/pages/page-ai-good")) {
+      writes.push({ url, body: JSON.parse(init.body) });
+      return new Response(JSON.stringify({ id: "page-ai-good" }), { status: 200 });
+    }
+    return new Response("not found", { status: 404 });
+  };
+  try {
+    const response = await api.onRequestPost({
+      env: { MYNAV_KV: kv, NOTION_TOKEN: "token" },
+      request: new Request("https://mynav.test/api/cards", {
+        method: "POST",
+        headers: { authorization: "Bearer owner-session", "content-type": "application/json" },
+        body: JSON.stringify({ profileUpdatedAt: 41 })
+      })
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).clearOverrides, true);
+    assert.equal(writes.length, 1);
+    assert.deepEqual(writes[0].body.properties.Name.title[0].text.content, "新名称");
+    assert.ok(!("链接" in writes[0].body.properties));
+    const published = JSON.parse(kv.values.get("cards:v1:published"));
+    assert.equal(published.sites[0].id, "ai-good");
+  } finally {
+    global.fetch = original;
+  }
 });

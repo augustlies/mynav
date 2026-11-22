@@ -1,931 +1,552 @@
-/** Published catalogue. Stable IDs preserve favorites and history. */
+/**
+ * 个人数字收藏馆 · 网站与分类数据源 (data.js)
+ *
+ * 🏛 架构原则：
+ * 1. 内容与展示彻底分离：页面结构不硬编码任何具体网站或分类。
+ * 2. 稳定标识：每个分类与网站使用全局唯一且稳定的 id，收藏与点击统计基于此 ID 绑定。
+ * 3. 极简维护：新增网站直接在 sites 数组追加；新增分类直接在 categories 追加。
+ */
+
 const NAV_DATA = {
-  "categories": [
+  // 藏馆分类定义列表
+  categories: [
     {
-      "id": "ai",
-      "name": "AI 对话",
-      "desc": "聊天、写作、推理与多模态助手",
-      "code": "AI"
+      id: "api",
+      name: "模型 API 与调试",
+      desc: "试模型、调提示词、管理 API 接入、开发者计费与兑换码。",
+      code: "API"
     },
     {
-      "id": "api",
-      "name": "模型 API 与额度",
-      "desc": "接口密钥、用量、兑换与订阅",
-      "code": "API"
+      id: "cloud",
+      name: "云服务与部署",
+      desc: "云主机、云电脑、SSH 远程管理，以及网站部署、域名 DNS 和生产环境。",
+      code: "CLOUD"
     },
     {
-      "id": "agents",
-      "name": "智能体与自动化",
-      "desc": "智能体、云端操作与定时任务",
-      "code": "BOT"
+      id: "mail",
+      name: "邮箱与号码",
+      desc: "个人邮箱、聚合收件箱、智能体邮箱，以及 eSIM 电话线路和短信接码。",
+      code: "MAIL"
     },
     {
-      "id": "cloud",
-      "name": "云主机与远程环境",
-      "desc": "服务器、云电脑与远程终端",
-      "code": "VPS"
+      id: "social",
+      name: "社区与内容",
+      desc: "聊天群组、技术论坛、社交动态，以及视频、教程和数字生活文章。",
+      code: "FEED"
     },
     {
-      "id": "deploy",
-      "name": "建站与部署",
-      "desc": "域名、网站发布与项目环境",
-      "code": "WEB"
+      id: "knowledge",
+      name: "学习与资源",
+      desc: "论文检索、学习辅导、校园服务，以及图标、图片和媒体等实用资源。",
+      code: "LEARN"
     },
     {
-      "id": "dev",
-      "name": "编程与技术文档",
-      "desc": "代码托管、开发文档与技术问答",
-      "code": "DEV"
+      id: "tools",
+      name: "笔记与绘图",
+      desc: "整理文档和知识库、协作记录、绘制流程图与思维导图。",
+      code: "NOTE"
     },
     {
-      "id": "knowledge",
-      "name": "论文与校园",
-      "desc": "学术文献、校园服务与教学入口",
-      "code": "LIB"
+      id: "dev",
+      name: "代码与开发文档",
+      desc: "找开源项目、管理代码、查 Web 文档与浏览器兼容性、检索编程问题。",
+      code: "CODE"
     },
     {
-      "id": "content",
-      "name": "视频与社区",
-      "desc": "视频教程、资讯与社区讨论",
-      "code": "READ"
-    },
-    {
-      "id": "tools",
-      "name": "笔记与素材工具",
-      "desc": "文档、画图、图标与图片处理",
-      "code": "TOOL"
-    },
-    {
-      "id": "social",
-      "name": "邮箱与通信",
-      "desc": "邮件、聊天、短信与号码管理",
-      "code": "MAIL"
+      id: "ai",
+      name: "AI 与自动化",
+      desc: "AI 对话、写作和个人助手，智能体电脑操作，以及脚本定时任务。",
+      code: "AI"
     }
   ],
-  "sites": [
+
+  // 馆藏网站条目列表 (共 47 卷)
+  sites: [
+    // --- 1. 模型 API 与调试 (6 卷) ---
     {
-      "id": "social-telegram",
-      "name": "Telegram",
-      "url": "https://web.telegram.org/",
-      "description": "简洁快速的即时通讯应用，群组与频道生态活跃",
-      "category": "social",
-      "icon": "TG",
-      "tags": [
-        "社交",
-        "telegram",
-        "即时通讯",
-        "聊天",
-        "电报"
-      ],
-      "sort": 900,
-      "hidden": false
+      id: "user-google-ai-studio",
+      name: "Google AI Studio · 模型调试",
+      url: "https://aistudio.google.com/u/2/prompts/new_chat?pli=1",
+      description: "在 Playground 调试 Gemini 提示词、模型参数和工具调用，并获取接入代码。",
+      category: "api",
+      tags: ["Google AI Studio","Gemini API","Playground","提示词调试","模型参数","Get code"],
+      icon: "GO",
+      notes: "实际页面可见 Run settings、Get code、系统提示词和工具配置，属于开发者试验台；与普通 Gemini 聊天分开。保留 /u/2/ 路径，Google 可能按会话调整账号。依据：https://aistudio.google.com/；2026-11-21。"
     },
     {
-      "id": "mail-gmail",
-      "name": "Gmail",
-      "url": "https://mail.google.com/",
-      "description": "Google 免费邮箱，全球通用，垃圾邮件过滤出色",
-      "category": "social",
-      "icon": "邮",
-      "tags": [
-        "邮箱",
-        "gmail",
-        "谷歌",
-        "邮件",
-        "通讯"
-      ],
-      "sort": 901,
-      "hidden": false
+      id: "ai-deepseek-platform",
+      name: "DeepSeek 开放平台",
+      url: "https://platform.deepseek.com",
+      description: "DeepSeek 的开发者 API 平台，用于接入模型、管理密钥并查看用量和账单。",
+      category: "api",
+      tags: ["DeepSeek API","开发者","API密钥","用量","账单","接口文档"],
+      icon: "DP",
+      notes: "入口类型：开发者控制台，与 DeepSeek 日常聊天分开。保留 API Keys、Usage 和文档三个快捷入口。依据：https://platform.deepseek.com/、https://api-docs.deepseek.com/；本次只核对登录页与公开说明，2026-11-21。",
+      subLinks: [{"label":"API Keys","url":"https://platform.deepseek.com/api_keys"},{"label":"Usage 账单","url":"https://platform.deepseek.com/usage"},{"label":"Docs","url":"https://api-docs.deepseek.com/"}]
     },
     {
-      "id": "mail-163",
-      "name": "163邮箱",
-      "url": "https://mail.163.com/",
-      "description": "网易旗下免费邮箱，国内常用的个人邮件服务，收发稳定",
-      "category": "social",
-      "icon": "163",
-      "tags": [
-        "邮箱",
-        "163",
-        "网易",
-        "邮件",
-        "通讯"
-      ],
-      "sort": 902,
-      "hidden": false
+      id: "ai-mw7xg0uw",
+      name: "Mistral · 订阅与账单",
+      url: "https://admin.mistral.ai/subscription",
+      description: "Mistral Admin 的订阅管理入口，用于管理组织订阅与开发者平台计费。",
+      category: "api",
+      tags: ["Mistral","Admin","订阅","账单","组织管理","模型API"],
+      icon: "MI",
+      notes: "入口类型：Mistral Admin 的 subscription 页面，不是日常 AI 聊天页。官方文档将 Admin 定义为组织、账单和访问策略控制台；本次跳转登录页，未核实账号套餐。依据：https://docs.mistral.ai/；2026-11-21。"
     },
     {
-      "id": "social-discord",
-      "name": "Discord",
-      "url": "https://discord.com/",
-      "description": "游戏社群起家的聊天平台，支持文字、语音与直播互动",
-      "category": "social",
-      "icon": "DC",
-      "tags": [
-        "社交",
-        "discord",
-        "社群",
-        "聊天",
-        "语音"
-      ],
-      "sort": 903,
-      "hidden": false
+      id: "user-xingchi",
+      name: "星驰 API 公益站",
+      url: "https://xingchiapi.com/dashboard",
+      description: "星驰 API 公益站的仪表盘入口，登录后进入个人 API 服务后台。",
+      category: "api",
+      tags: ["星驰API","API公益站","API后台","模型接口","LinuxDO登录"],
+      icon: "星驰",
+      notes: "实际登录页标题为“星驰API公益站”，支持邮箱及 Linux.do 登录。未进入后台，不推断具体模型、额度、价格或可用性。依据：https://xingchiapi.com/dashboard；2026-11-21。"
     },
     {
-      "id": "social-x",
-      "name": "X",
-      "url": "https://x.com/",
-      "description": "全球实时动态社交平台，前沿资讯与公开讨论的集散地",
-      "category": "content",
-      "icon": "X",
-      "tags": [
-        "社交",
-        "x",
-        "推特",
-        "资讯",
-        "动态"
-      ],
-      "sort": 704,
-      "hidden": false
+      id: "user-apikey-casa",
+      name: "APIKey Casa · 福利站兑换",
+      url: "https://apikey.casa/redeem",
+      description: "福利站的兑换码入口；页面标注“订阅转 API”，兑换内容以登录后展示为准。",
+      category: "api",
+      tags: ["APIKey Casa","福利站","兑换码","订阅转API","模型接口"],
+      icon: "AP",
+      notes: "实际页眉为“福利站 / Subscription to API Conversion Platform”，redeem 链接会先要求登录。已确认产品定位与兑换路径，未验证兑换码的具体商品或额度，不承诺可兑换任何模型。依据：https://apikey.casa/redeem；2026-11-21。"
     },
     {
-      "id": "learn-youtube",
-      "name": "YouTube",
-      "url": "https://www.youtube.com/",
-      "description": "全球最大视频平台，教程、公开课与技术分享的宝库",
-      "category": "content",
-      "icon": "YT",
-      "tags": [
-        "视频",
-        "youtube",
-        "学习",
-        "教程",
-        "公开课"
-      ],
-      "sort": 705,
-      "hidden": false
+      id: "api-mwrmbimq",
+      name: "烨",
+      url: "https://elysiver.h-e.top/profile",
+      description: "",
+      category: "api",
+      tags: [],
+      icon: "烨",
+      createdAt: 1795338720530
+    },
+
+    // --- 2. 云服务与部署 (10 卷) ---
+    {
+      id: "dev-cloudflare",
+      name: "Cloudflare",
+      url: "https://dash.cloudflare.com",
+      description: "Cloudflare 控制台，用于管理域名 DNS、网络加速与安全，以及 Workers 和 Pages 部署。",
+      category: "cloud",
+      tags: ["Cloudflare","DNS","域名","CDN","Workers","Pages","部署"],
+      icon: "CF",
+      notes: "入口类型：Cloudflare 账号后台。域名解析、CDN 和应用发布都从这里进入；它不是传统 VPS 的 SSH 管理面板。依据：https://www.cloudflare.com/；未更改账号资源，2026-11-21。"
     },
     {
-      "id": "learn-scholar",
-      "name": "谷歌学术",
-      "url": "https://scholar.google.com/",
-      "description": "Google 学术文献搜索引擎，查论文、看引用、找学术资源",
-      "category": "knowledge",
-      "icon": "GS",
-      "tags": [
-        "学术",
-        "谷歌学术",
-        "论文",
-        "文献",
-        "scholar"
-      ],
-      "sort": 606,
-      "hidden": false
+      id: "dev-gcp-console",
+      name: "Google Cloud Console",
+      url: "https://console.cloud.google.com/home/dashboard?project=project-f423a41b-e415-4102-adc",
+      description: "指定 Google Cloud 项目的控制台，集中管理云资源、访问权限、API 服务与账单。",
+      category: "cloud",
+      tags: ["Google Cloud","GCP","项目控制台","云资源","IAM","账单"],
+      icon: "GCP",
+      notes: "入口类型：带 project 参数的 GCP 项目仪表盘，保留原项目地址。找虚拟机、IAM 或云服务配置时使用；不同于面向模型调试的 AI Studio。依据：https://docs.cloud.google.com/docs/overview；未核查项目内资源状态，2026-11-21。"
     },
     {
-      "id": "learn-ecut-ehall",
-      "name": "网上办事服务大厅",
-      "url": "https://ehall.ecut.edu.cn/new/index.html",
-      "description": "东华理工大学教务、成绩、课表与各类校园事务办理",
-      "category": "knowledge",
-      "icon": "办",
-      "tags": [
-        "ecut",
-        "ehall",
-        "办事大厅",
-        "教务",
-        "成绩",
-        "课表"
-      ],
-      "sort": 607,
-      "hidden": false
+      id: "user-raksmart",
+      name: "RAKsmart · 客户中心",
+      url: "https://billing.raksmart.com/whmcs/clientarea.php?language=chinese-cn",
+      description: "RAKsmart 主机服务账号入口，用于管理已购服务器、服务账单和支持工单。",
+      category: "cloud",
+      tags: ["RAKsmart","主机商","云服务器","客户中心","账单","工单"],
+      icon: "RA",
+      notes: "入口类型：主机商客户中心。原 billing 链接当前会跳转至 RAKsmart 新登录页，原始收藏地址已保留；产品范围由官网说明核实，未登录查看购买记录。依据：https://www.raksmart.com/、https://www.raksmart.com/login/index.html；2026-11-21。"
     },
     {
-      "id": "learn-bilibili",
-      "name": "哔哩哔哩",
-      "url": "https://www.bilibili.com",
-      "description": "优质长视频研习与弹幕社区，涵盖计算机科学、工业设计与通识学术讲座",
-      "category": "content",
-      "icon": "哔",
-      "tags": [
-        "视频",
-        "课程",
-        "教程",
-        "b站",
-        "公开课",
-        "学习"
-      ],
-      "sort": 708,
-      "hidden": false
+      id: "user-simular-box",
+      name: "Simular Box · 智能体云桌面",
+      url: "https://box.simular.ai/box/",
+      description: "给 AI 智能体使用的云端电脑，让智能体通过桌面和浏览器操作完成任务。",
+      category: "cloud",
+      tags: ["Simular","Box","智能体电脑","云桌面","Computer Use","浏览器操作"],
+      icon: "SI",
+      notes: "实际登录页标题为“box by Simular | Give your agents a computer”，介绍自己的云桌面和 Simular API key。重点是智能体的电脑操作环境；未登录核查个人 Box 状态。依据：https://box.simular.ai/box/；2026-11-21。"
     },
     {
-      "id": "learn-sspai",
-      "name": "少数派",
-      "url": "https://sspai.com",
-      "description": "高效数字生活指南，专注于优质软件测评、个人生产力与工作流思考",
-      "category": "content",
-      "icon": "派",
-      "tags": [
-        "效率",
-        "数字生活",
-        "工具",
-        "文章",
-        "生产力",
-        "工作流"
-      ],
-      "sort": 709,
-      "hidden": false
+      id: "user-weeny-cloud",
+      name: "Weeny Cloud · Linux 服务器",
+      url: "https://weeny.cloud/dashboard",
+      description: "面向编程智能体的 Linux 服务器平台，以 root 权限运行应用并提供 HTTPS 访问入口。",
+      category: "cloud",
+      tags: ["Weeny Cloud","Linux服务器","root","SSH","应用运行","HTTPS"],
+      icon: "WE",
+      notes: "官网明确提供真实 Linux 服务器、SSH、应用进程管理和暴露端口功能，不是模型 API 服务。当前 dashboard 会跳转邮箱验证码登录，未核实个人服务器状态。依据：https://weeny.cloud/；2026-11-21。"
     },
     {
-      "id": "learn-cnki",
-      "name": "中国知网",
-      "url": "https://www.cnki.net/",
-      "description": "中文学术期刊、学位论文与会议文献检索",
-      "category": "knowledge",
-      "icon": "知",
-      "tags": [
-        "cnki",
-        "知网",
-        "论文",
-        "文献",
-        "学术",
-        "期刊"
-      ],
-      "sort": 610,
-      "hidden": false
+      id: "dev-dujing",
+      name: "独角鲸 · Narwhal Cloud",
+      url: "https://dash.fuckip.me/",
+      description: "Narwhal Cloud 云服务账号入口，用于进入云资源后台；原收藏名称为“独角鲸”。",
+      category: "cloud",
+      tags: ["独角鲸","Narwhal Cloud","云服务","云主机","控制台"],
+      icon: "鲸",
+      notes: "实际登录页标题为 Narwhal Cloud，标注云服务并支持 Google、GitHub、通行密钥和邮箱登录。未登录核查具体套餐或实例，已删除“价格实惠”等无依据评价。依据：https://dash.fuckip.me/；2026-11-21。"
     },
     {
-      "id": "learn-ecut-atrust",
-      "name": "aTrust 校园 VPN",
-      "url": "https://atrust1.ecut.edu.cn/portal/#/app_center",
-      "description": "东华理工大学校外访问门户，在校外登录后使用校内系统与数据库",
-      "category": "knowledge",
-      "icon": "VP",
-      "tags": [
-        "ecut",
-        "atrust",
-        "vpn",
-        "校外访问",
-        "校园网",
-        "应用中心"
-      ],
-      "sort": 611,
-      "hidden": false
+      id: "dev-termius",
+      name: "Termius",
+      url: "https://termius.com/",
+      description: "SSH 与 SFTP 客户端官网，用于下载终端、管理远程主机和跨设备同步连接配置。",
+      category: "cloud",
+      tags: ["Termius","SSH","SFTP","远程终端","主机管理","端口转发"],
+      icon: "TM",
+      notes: "入口类型：Termius 产品官网，不是某台服务器的网页终端。SSH 连接、文件传输、端口转发和主机配置在客户端中使用。依据：https://termius.com/；2026-11-21。"
     },
     {
-      "id": "learn-ecut",
-      "name": "东华理工大学",
-      "url": "https://www.ecut.edu.cn/main.htm",
-      "description": "东华理工大学官网，学校新闻、通知公告与各类入口",
-      "category": "knowledge",
-      "icon": "东",
-      "tags": [
-        "ecut",
-        "东华理工",
-        "学校",
-        "官网",
-        "通知"
-      ],
-      "sort": 612,
-      "hidden": false
+      id: "user-altare-cloud",
+      name: "Altare 云服务",
+      url: "https://console.altare.gg/",
+      description: "Altare 云服务控制台，用于管理云端应用与运行沙箱，并进入存储、域名等服务入口。",
+      category: "cloud",
+      tags: ["Altare","云服务","云端应用","沙箱","部署","存储","域名"],
+      icon: "AL",
+      notes: "入口类型：Altare 云服务控制台。公开页面提供 Apps、Storage、Domains 等服务入口，并提示部署、沙箱及控制台可能因高负载而变慢或暂时不可用。依据：https://console.altare.gg/；2026-11-21。"
     },
     {
-      "id": "tool-cobalt",
-      "name": "cobalt",
-      "url": "https://cobalt.tools/",
-      "description": "无广告、无追踪的在线视频与音频下载工具，粘贴链接即可",
-      "category": "tools",
-      "icon": "CO",
-      "tags": [
-        "cobalt",
-        "视频下载",
-        "音频",
-        "解析",
-        "去水印"
-      ],
-      "sort": 813,
-      "hidden": false
+      id: "dev-vercel",
+      name: "Vercel",
+      url: "https://vercel.com",
+      description: "网站、Web 应用与智能体的部署平台，用于发布项目并管理托管运行环境。",
+      category: "cloud",
+      tags: ["Vercel","应用部署","网站托管","Web","生产环境"],
+      icon: "▲",
+      notes: "入口类型：Vercel 官网，登录后进入项目管理。用途是部署和运行应用；代码仓库本身在 GitHub 管理。当前官网已不只强调静态托管，故移除原说明中的范围限制。依据：https://vercel.com/；2026-11-21。"
     },
     {
-      "id": "tool-yuque",
-      "name": "语雀",
-      "url": "https://www.yuque.com",
-      "description": "优雅结构化知识库系统，适合个人体系化文献笔记管理与深度内容创作",
-      "category": "tools",
-      "icon": "雀",
-      "tags": [
-        "笔记",
-        "文档",
-        "知识库",
-        "写作",
-        "归档"
-      ],
-      "sort": 814,
-      "hidden": false
+      id: "user-cloady",
+      name: "Cloady · production 环境",
+      url: "https://cloady.com/w/august-lies/jpn1/production",
+      description: "Cloady 工作区内 jpn1 / production 环境的直达链接，用于返回已有项目环境。",
+      category: "cloud",
+      tags: ["Cloady","工作区","production","项目环境","待核实"],
+      icon: "CL",
+      notes: "URL 明确包含工作区及 production 环境路径；此次打开触发站点安全校验，未进入控制台，具体项目类型、部署能力和运行状态待核实。按生产环境入口归档，未杜撰支持的技术栈。依据：本卡片原始 URL；2026-11-21。"
+    },
+
+    // --- 3. 邮箱与号码 (7 卷) ---
+    {
+      id: "user-guiyi",
+      name: "归一 · Unifold 邮箱",
+      url: "https://guiyi.sueexin.dev/",
+      description: "多个邮箱的统一收件箱，集中收发和搜索邮件，管理邮箱账号、文件夹与待审批操作。",
+      category: "mail",
+      tags: ["归一","Unifold","聚合邮箱","统一收件箱","多账号","邮件搜索","审批"],
+      icon: "归一",
+      notes: "已实际核对页面标题“归一 Unifold”，可见 All inboxes、Email accounts、Drafts、Smart folders 和 Approvals。它是多邮箱聚合客户端，不是 AI 聊天页，原分类和介绍已纠正。依据：https://guiyi.sueexin.dev/；2026-11-21。"
     },
     {
-      "id": "tool-icon-icons",
-      "name": "icon-icons",
-      "url": "https://icon-icons.com/zh/",
-      "description": "免费 SVG、PNG、ICO 图标素材库，支持中文搜索",
-      "category": "tools",
-      "icon": "IC",
-      "tags": [
-        "图标",
-        "icon",
-        "svg",
-        "png",
-        "素材",
-        "设计"
-      ],
-      "sort": 815,
-      "hidden": false
+      id: "mail-gmail",
+      name: "Gmail",
+      url: "https://mail.google.com/",
+      description: "Google 邮箱的网页入口，用于收发邮件、搜索历史邮件并管理标签和附件。",
+      category: "mail",
+      tags: ["Gmail","Google邮箱","邮件","收件箱","标签","附件"],
+      icon: "邮",
+      notes: "入口类型：个人邮箱应用。单独处理 Gmail 邮件时从此进入；跨多个邮箱统一收件和搜索使用“归一 · Unifold 邮箱”。依据：https://workspace.google.com/gmail/；2026-11-21。"
     },
     {
-      "id": "tool-notion",
-      "name": "Notion",
-      "url": "https://www.notion.so",
-      "description": "集文档写作、表格知识库与项目排期于一体的模块化全能数字工作台",
-      "category": "tools",
-      "icon": "NO",
-      "tags": [
-        "笔记",
-        "知识库",
-        "任务",
-        "文档",
-        "效率",
-        "协同"
-      ],
-      "sort": 816,
-      "hidden": false
+      id: "mail-163",
+      name: "163邮箱",
+      url: "https://mail.163.com/",
+      description: "网易 163 邮箱的网页入口，用于登录邮箱、收发邮件和管理个人通信。",
+      category: "mail",
+      tags: ["163邮箱","网易邮箱","邮件","收件箱","网页邮箱"],
+      icon: "163",
+      notes: "入口类型：163 邮箱原生网页，不是“邮箱大师”多账号客户端。需要处理此邮箱的账号或原生设置时使用；聚合收件可另用归一。依据：https://mail.163.com/；2026-11-21。"
     },
     {
-      "id": "tool-tinypng",
-      "name": "TinyPNG",
-      "url": "https://tinypng.com",
-      "description": "优秀的 WebP、PNG 及 JPEG 图片智能在线无损压缩与视觉保真优化工具",
-      "category": "tools",
-      "icon": "PNG",
-      "tags": [
-        "图片",
-        "压缩",
-        "优化",
-        "轻量化",
-        "格式",
-        "工具"
-      ],
-      "sort": 817,
-      "hidden": false
+      id: "user-flame-mail",
+      name: "Flame · Cloud Mail 邮箱",
+      url: "https://mail.flame.edu.kg/inbox",
+      description: "flame.edu.kg 域名的 Cloud Mail 网页邮箱，此链接进入收件箱并支持邮件收发。",
+      category: "mail",
+      tags: ["Flame","Cloud Mail","网页邮箱","域名邮箱","收件箱","邮件收发"],
+      icon: "FL",
+      notes: "实际登录页标题为 Cloud Mail，元信息说明它是支持发信、可部署在 Cloudflare 的 Serverless 邮箱。本次跳转登录页，未验证账号或收件状态；域名带 edu 不等于已核实学校身份。依据：https://mail.flame.edu.kg/login；2026-11-21。"
     },
     {
-      "id": "tool-processon",
-      "name": "ProcessOn",
-      "url": "https://www.processon.com",
-      "description": "专业在线图形协作平台，支持架构流程图、思维导图与原型蓝图绘制",
-      "category": "tools",
-      "icon": "PO",
-      "tags": [
-        "流程图",
-        "思维导图",
-        "画图",
-        "架构",
-        "设计"
-      ],
-      "sort": 818,
-      "hidden": false
+      id: "user-qq-agent",
+      name: "QQ Agent Mail · 智能体邮箱",
+      url: "https://agent.qq.com/page/list?alias_id=alias_lqNNiBpW-cM23Z1n588qj3gtquUDqnx-",
+      description: "QQ 邮箱团队为 AI 智能体提供的专属邮箱服务，让智能体接入并收发邮件。",
+      category: "mail",
+      tags: ["QQ邮箱","Agent Mail","智能体邮箱","邮件收发","Agent接入","腾讯"],
+      icon: "QQ",
+      notes: "实际页面标题为 Agent Mail，并明确说明“与个人邮箱隔离，原生适配 Agent”。原先写成“QQ 智能体列表”是错误理解，已更正名称、说明和分类。保留原 alias_id 深链接。依据：https://agent.qq.com/；2026-11-21。"
     },
     {
-      "id": "dev-qinglong",
-      "name": "青龙面板",
-      "url": "https://ql.sueexin.dev/dashboard",
-      "description": "支持 Python、JS、Shell 的定时任务管理面板，可视化管理脚本、环境变量与任务日志",
-      "category": "agents",
-      "icon": "青",
-      "tags": [
-        "青龙",
-        "定时任务",
-        "qinglong",
-        "面板",
-        "脚本"
-      ],
-      "sort": 219,
-      "hidden": false
+      id: "user-esim-gg",
+      name: "eSIM.gg · 爱沙尼亚线路",
+      url: "https://esim.gg/lines/ee/37254143017",
+      description: "已收藏的爱沙尼亚 eSIM 电话线路入口，用于返回号码线路与通信服务管理。",
+      category: "mail",
+      tags: ["eSIM.gg","爱沙尼亚eSIM","电话线路","手机号","移动数据","短信","通话"],
+      icon: "ES",
+      notes: "官网说明其产品是带爱沙尼亚 +372 号码的预付费 eSIM，支持移动数据、短信和通话；与一次性接码号码分开。此链接指向具体线路，不在卡片文字中展开私人号码；未核实该线路余额和状态。依据：https://esim.gg/；2026-11-21。"
     },
     {
-      "id": "dev-gcp-console",
-      "name": "Google Cloud Console",
-      "url": "https://console.cloud.google.com/home/dashboard?project=project-f423a41b-e415-4102-adc",
-      "description": "谷歌云控制台，管理 GCP 项目、计算实例与账单",
-      "category": "cloud",
-      "icon": "GCP",
-      "tags": [
-        "云服务",
-        "gcp",
-        "谷歌云",
-        "控制台",
-        "服务器"
-      ],
-      "sort": 320,
-      "hidden": false
+      id: "user-tiger-sms",
+      name: "Tiger SMS · 临时号码接码",
+      url: "https://tiger-sms.com/cn/cabinet/sms",
+      description: "按国家和目标服务获取临时电话号码，用于在线接收短信验证码并查看接码记录。",
+      category: "mail",
+      tags: ["Tiger SMS","老虎接码","临时号码","短信验证码","接码记录"],
+      icon: "TI",
+      notes: "入口类型：Tiger SMS 接码控制台。官网将号码定义为一次激活使用的临时号码，不等同于长期持有的个人手机卡或 eSIM 线路；未购买号码或核查账号余额。依据：https://tiger-sms.com/cn；2026-11-21。"
+    },
+
+    // --- 4. 社区与内容 (6 卷) ---
+    {
+      id: "learn-bilibili",
+      name: "哔哩哔哩",
+      url: "https://www.bilibili.com",
+      description: "观看 UP 主视频、教程、番剧和娱乐内容，并通过弹幕、评论与社区互动。",
+      category: "social",
+      tags: ["哔哩哔哩","B站","bilibili","视频","弹幕","教程","娱乐"],
+      icon: "哔",
+      notes: "入口类型：哔哩哔哩综合视频平台，内容不只包含公开课或学术讲座。保留原中文首页链接；本站访问地区可能导致页面显示其他语言。依据：https://www.bilibili.com/；2026-11-21。"
     },
     {
-      "id": "dev-dujing",
-      "name": "独角鲸",
-      "url": "https://dash.fuckip.me/",
-      "description": "VPS 云服务器商家，价格实惠，适合个人建站与轻量应用",
-      "category": "cloud",
-      "icon": "鲸",
-      "tags": [
-        "vps",
-        "服务器",
-        "云服务",
-        "建站",
-        "独角鲸"
-      ],
-      "sort": 321,
-      "hidden": false
+      id: "learn-youtube",
+      name: "YouTube",
+      url: "https://www.youtube.com/",
+      description: "观看和搜索视频、音乐、教程与创作者频道，也可上传自己的视频内容。",
+      category: "social",
+      tags: ["YouTube","视频","频道","教程","音乐","创作者"],
+      icon: "YT",
+      notes: "入口类型：YouTube 视频平台首页。内容同时包含学习、娱乐与创作，因此归入视频与阅读，不把整个平台限定为课程站。依据：https://www.youtube.com/；2026-11-21。"
     },
     {
-      "id": "dev-termius",
-      "name": "Termius",
-      "url": "https://termius.com/",
-      "description": "现代 SSH 终端客户端，多设备同步，管理服务器的得力助手",
-      "category": "cloud",
-      "icon": "TM",
-      "tags": [
-        "开发",
-        "ssh",
-        "终端",
-        "服务器",
-        "termius"
-      ],
-      "sort": 322,
-      "hidden": false
+      id: "social-mwrkkhqa",
+      name: "LinuxDo",
+      url: "https://linux.do/",
+      description: "",
+      category: "social",
+      tags: [],
+      icon: "LI",
+      createdAt: 1795335780034
     },
     {
-      "id": "dev-vercel",
-      "name": "Vercel",
-      "url": "https://vercel.com",
-      "description": "现代前端自动化部署与静态托管基础设施，支持一键上线生产级 Web 项目",
-      "category": "deploy",
-      "icon": "▲",
-      "tags": [
-        "部署",
-        "托管",
-        "前端",
-        "静态网站",
-        "云服务"
-      ],
-      "sort": 423,
-      "hidden": false
+      id: "social-telegram",
+      name: "Telegram",
+      url: "https://web.telegram.org/",
+      description: "Telegram 网页版，在浏览器中收发私聊消息、参与群组并阅读频道内容。",
+      category: "social",
+      tags: ["Telegram","电报","网页聊天","私聊","群组","频道"],
+      icon: "TG",
+      notes: "入口类型：Telegram Web 聊天应用。此收藏直接进入网页版，而不是下载页或机器人开发文档。依据：https://web.telegram.org/、https://telegram.org/；2026-11-21。"
     },
     {
-      "id": "dev-caniuse",
-      "name": "Can I use",
-      "url": "https://caniuse.com",
-      "description": "权威的前端 Web 标准与主流浏览器特性兼容性一览与即时检索平台",
-      "category": "dev",
-      "icon": "USE",
-      "tags": [
-        "前端",
-        "兼容性",
-        "浏览器",
-        "css",
-        "html5",
-        "标准"
-      ],
-      "sort": 524,
-      "hidden": false
+      id: "social-x",
+      name: "X",
+      url: "https://x.com/",
+      description: "浏览和发布公开动态，关注账号与话题，参与实时资讯和社区讨论。",
+      category: "social",
+      tags: ["X","Twitter","推特","公开动态","话题","社交网络"],
+      icon: "X",
+      notes: "入口类型：X 社交平台首页，原称 Twitter。用于追踪公开动态和讨论，不是技术文档或即时通讯收件箱。依据：https://about.x.com/；2026-11-21。"
     },
     {
-      "id": "dev-github",
-      "name": "GitHub",
-      "url": "https://github.com",
-      "description": "全球领先的代码托管平台与开源协作网络，汇聚全球优秀工程师与开源典范",
-      "category": "dev",
-      "icon": "GH",
-      "tags": [
-        "开发",
-        "代码",
-        "开源",
-        "git",
-        "github",
-        "版本控制"
-      ],
-      "sort": 525,
-      "hidden": false
+      id: "social-discord",
+      name: "Discord",
+      url: "https://discord.com/",
+      description: "围绕服务器和频道组织的聊天社群平台，支持文字、语音、视频与屏幕分享。",
+      category: "social",
+      tags: ["Discord","社群","频道","文字聊天","语音","屏幕分享"],
+      icon: "DC",
+      notes: "入口类型：Discord 官网，可打开网页版或下载客户端。适合加入项目社群、参与讨论和语音沟通；不归入电子邮箱。依据：https://discord.com/；2026-11-21。"
+    },
+
+    // --- 5. 学习与资源 (9 卷) ---
+    {
+      id: "learn-scholar",
+      name: "谷歌学术",
+      url: "https://scholar.google.com/",
+      description: "跨出版社和学科检索论文、图书等学术文献，并查看引用、相关研究与作者资料。",
+      category: "knowledge",
+      tags: ["谷歌学术","Google Scholar","学术搜索","论文","引用","作者"],
+      icon: "GS",
+      notes: "入口类型：学术搜索引擎，适合发现文献与追踪引用。搜索结果不代表所有论文都可直接免费下载，全文获取取决于原站或学校权限。依据：https://scholar.google.com/；2026-11-21。"
     },
     {
-      "id": "dev-mdn",
-      "name": "MDN Web Docs",
-      "url": "https://developer.mozilla.org/zh-CN/",
-      "description": "Mozilla 维护的权威 Web 技术标准参考，全面涵盖 HTML、CSS 与 JavaScript",
-      "category": "dev",
-      "icon": "MDN",
-      "tags": [
-        "前端",
-        "文档",
-        "html",
-        "css",
-        "javascript",
-        "mdn",
-        "标准"
-      ],
-      "sort": 526,
-      "hidden": false
+      id: "learn-ecut-atrust",
+      name: "东华理工 · aTrust 校园 VPN",
+      url: "https://atrust1.ecut.edu.cn/portal/#/app_center",
+      description: "东华理工大学的校外访问入口，登录校园身份后访问学校授权开放的内网资源。",
+      category: "knowledge",
+      tags: ["东华理工大学","ECUT","aTrust","校园VPN","校外访问","CAS"],
+      icon: "VP",
+      notes: "入口类型：校园 aTrust 访问门户，学校官网提供 VPN 登录入口。此链接会跳转至校园 CAS 身份认证；具体可访问系统和数据库由学校授权决定，未登录验证。依据：https://www.ecut.edu.cn/main.htm、https://atrust1.ecut.edu.cn/；2026-11-21。"
     },
     {
-      "id": "dev-cloudflare",
-      "name": "Cloudflare",
-      "url": "https://dash.cloudflare.com",
-      "description": "域名解析、CDN 加速与 Pages / Workers 静态部署控制台",
-      "category": "deploy",
-      "icon": "CF",
-      "tags": [
-        "cloudflare",
-        "dns",
-        "域名",
-        "cdn",
-        "pages",
-        "workers",
-        "部署"
-      ],
-      "sort": 427,
-      "hidden": false
+      id: "learn-ecut-ehall",
+      name: "东华理工 · 网上办事大厅",
+      url: "https://ehall.ecut.edu.cn/new/index.html",
+      description: "东华理工大学师生在线办事门户，按学生办事、教师办事等入口查找校园服务。",
+      category: "knowledge",
+      tags: ["东华理工大学","ECUT","网上办事大厅","学生办事","教师办事","校园服务"],
+      icon: "办",
+      notes: "实际页面显示学生办事、教师办事和游客浏览，具体可办事项需校园账号登录后查看。因此不再未经验证地承诺能直接查成绩或课表。依据：https://ehall.ecut.edu.cn/new/index.html；2026-11-21。"
     },
     {
-      "id": "dev-stackoverflow",
-      "name": "Stack Overflow",
-      "url": "https://stackoverflow.com",
-      "description": "全球著名的软件开发技术问答社区，解决代码报错、系统架构与疑难杂症",
-      "category": "dev",
-      "icon": "SO",
-      "tags": [
-        "开发",
-        "问答",
-        "报错",
-        "社区",
-        "代码",
-        "调试"
-      ],
-      "sort": 528,
-      "hidden": false
+      id: "learn-cnki",
+      name: "中国知网",
+      url: "https://www.cnki.net/",
+      description: "检索中文期刊、学位论文、会议论文等学术资源，查摘要并按权限获取全文。",
+      category: "knowledge",
+      tags: ["中国知网","CNKI","中文论文","期刊","学位论文","文献检索"],
+      icon: "知",
+      notes: "入口类型：CNKI 学术数据库。找中文文献时使用，全文权限取决于账号、机构订阅或单篇授权。本次 www.cnki.net 按访问地区跳到海外站，未改收藏地址。依据：https://www.cnki.net/；2026-11-21。"
     },
     {
-      "id": "ai-hark",
-      "name": "Hark",
-      "url": "https://hark.com",
-      "description": "生活操作系统式 AI 助手，能替你订餐、管邮件、做网页与定时任务",
-      "category": "agents",
-      "icon": "HK",
-      "tags": [
-        "ai",
-        "hark",
-        "助理",
-        "效率",
-        "任务"
-      ],
-      "sort": 229,
-      "hidden": false
+      id: "learn-ecut",
+      name: "东华理工大学",
+      url: "https://www.ecut.edu.cn/main.htm",
+      description: "东华理工大学官方网站，查学校公告、院系机构、教学科研和校园服务入口。",
+      category: "knowledge",
+      tags: ["东华理工大学","ECUT","学校官网","通知公告","院系","校园"],
+      icon: "东",
+      notes: "入口类型：学校门户。官网上可见网上办事大厅、VPN 登录等入口；校园事务办理和校外访问另设独立收藏，方便直接进入。依据：https://www.ecut.edu.cn/main.htm；2026-11-21。"
     },
     {
-      "id": "ai-muse",
-      "name": "Muse",
-      "url": "https://muse.ai",
-      "description": "主动式 AI 个人助手，记住你的偏好并替你处理日常事务",
-      "category": "agents",
-      "icon": "MU",
-      "tags": [
-        "ai",
-        "muse",
-        "助手",
-        "智能",
-        "日常"
-      ],
-      "sort": 230,
-      "hidden": false
+      id: "user-sci-hub",
+      name: "Sci-Hub · 论文全文",
+      url: "https://www.sci-hub.ru/",
+      description: "通过论文标识或链接查找学术论文全文的入口，侧重获取文献而非引用统计。",
+      category: "knowledge",
+      tags: ["Sci-Hub","论文全文","DOI","学术文献","文献获取"],
+      icon: "SC",
+      notes: "入口类型：Sci-Hub 文献全文站。与 Google 学术的广泛检索、引用追踪区别归类；能否取得某篇论文取决于其收录。依据：https://www.sci-hub.ru/；2026-11-21。"
     },
     {
-      "id": "ai-chatgpt",
-      "name": "ChatGPT",
-      "url": "https://chatgpt.com",
-      "description": "OpenAI 旗下通用智能对话与深度推理助手，支持多模态创作与分析",
-      "category": "ai",
-      "icon": "GPT",
-      "tags": [
-        "ai",
-        "openai",
-        "chatgpt",
-        "大模型",
-        "写作",
-        "推理",
-        "gpt"
-      ],
-      "sort": 31,
-      "hidden": false
+      id: "user-tutor-chat",
+      name: "DeepTutor · 学习辅导",
+      url: "https://tutor.sueexin.dev/chat?dt_workspace=",
+      description: "自建 DeepTutor 学习辅导工作区，围绕学习资料开展问答、讲解和知识整理。",
+      category: "knowledge",
+      tags: ["DeepTutor","学习辅导","资料问答","知识整理","自建学习助手"],
+      icon: "TU",
+      notes: "实际站点标题为 DeepTutor，描述为 Agent-native intelligent learning companion；官方项目定位为个性化学习辅导。本次进入登录页，未确认此部署启用了哪些模块；dt_workspace 参数当前为空，不代表指定了某个工作区。依据：https://tutor.sueexin.dev/、https://github.com/HKUDS/DeepTutor；2026-11-21。"
     },
     {
-      "id": "ai-deepseek-platform",
-      "name": "DeepSeek 开放平台",
-      "url": "https://platform.deepseek.com",
-      "description": "DeepSeek 官方 API 平台，管理 API Key、充值与用量",
-      "category": "api",
-      "icon": "DP",
-      "tags": [
-        "ai",
-        "deepseek",
-        "api",
-        "开放平台",
-        "密钥",
-        "用量"
-      ],
-      "sort": 132,
-      "hidden": false,
-      "subLinks": [
-        {
-          "label": "API Keys",
-          "url": "https://platform.deepseek.com/api_keys"
-        },
-        {
-          "label": "Usage 账单",
-          "url": "https://platform.deepseek.com/usage"
-        },
-        {
-          "label": "Docs",
-          "url": "https://api-docs.deepseek.com/"
-        }
-      ]
+      id: "tool-tinypng",
+      name: "TinyPNG",
+      url: "https://tinypng.com",
+      description: "在线压缩和转换图片，减小 PNG、JPEG、WebP、AVIF 等文件的体积。",
+      category: "knowledge",
+      tags: ["TinyPNG","Tinify","图片压缩","智能有损","PNG","JPEG","WebP","AVIF"],
+      icon: "PNG",
+      notes: "入口类型：图片优化工具。官网明确使用 smart lossy compression，即智能有损压缩；视觉差异可很小，但不等于数学意义的无损，已纠正旧注释。依据：https://tinypng.com/；2026-11-21。"
     },
     {
-      "id": "ai-deepseek",
-      "name": "DeepSeek",
-      "url": "https://www.deepseek.com",
-      "description": "深度求索开源与高性价比大模型平台，专注高阶推理与严谨代码生成",
-      "category": "ai",
-      "icon": "DS",
-      "tags": [
-        "ai",
-        "deepseek",
-        "深度求索",
-        "开源",
-        "代码",
-        "推理"
-      ],
-      "sort": 33,
-      "hidden": false
+      id: "tool-cobalt",
+      name: "cobalt",
+      url: "https://cobalt.tools/",
+      description: "粘贴受支持平台的媒体链接，保存视频或音频，并按需选择音频或静音输出。",
+      category: "knowledge",
+      tags: ["cobalt","媒体下载","视频下载","音频下载","链接解析"],
+      icon: "CO",
+      notes: "入口类型：媒体下载工具，不是视频内容社区。页面提供 auto、audio、mute 等选项；能否下载取决于平台支持和内容可访问性，不再泛称能“去水印”。依据：https://cobalt.tools/；2026-11-21。"
+    },
+
+    // --- 6. 笔记与绘图 (1 卷) ---
+    {
+      id: "tool-notion",
+      name: "Notion",
+      url: "https://www.notion.so",
+      description: "用页面和数据库整理笔记、知识资料、任务与项目，并与他人协作。",
+      category: "tools",
+      tags: ["Notion","笔记","页面","数据库","知识管理","项目协作"],
+      icon: "NO",
+      notes: "入口类型：Notion 工作区入口，登录后进入个人或团队页面。这里用于编辑和组织资料，不是论文搜索引擎。依据：https://www.notion.so/；2026-11-21。"
+    },
+
+    // --- 7. 代码与开发文档 (1 卷) ---
+    {
+      id: "dev-github",
+      name: "GitHub",
+      url: "https://github.com",
+      description: "查找和托管代码仓库，跟踪提交、Issue、Pull Request 与自动化工作流。",
+      category: "dev",
+      tags: ["GitHub","代码仓库","Git","开源","Issue","Pull Request","Actions"],
+      icon: "GH",
+      notes: "入口类型：GitHub 首页，登录后可进入个人工作台。用于找开源项目、读源码和协作开发；与应用正式部署入口分开。依据：https://github.com/；2026-11-21。"
+    },
+
+    // --- 8. AI 与自动化 (7 卷) ---
+    {
+      id: "ai-muse",
+      name: "Muse",
+      url: "https://muse.ai",
+      description: "Meta 的个人 AI 智能体，在独立云电脑中执行任务，并可连接邮箱、日历等应用。",
+      category: "ai",
+      tags: ["Muse","Meta","AI智能体","云电脑","个人助手","应用连接"],
+      icon: "MU",
+      notes: "已实际打开 muse.ai，当前官网标题为 Muse — Your Personal AI Agent from Meta，并介绍 Secure VM 和操作审批。按当前页面用途归类，不沿用该域名过去的其他产品印象。依据：https://muse.ai/；2026-11-21。"
     },
     {
-      "id": "ai-gemini",
-      "name": "Gemini",
-      "url": "https://gemini.google.com/u/2/",
-      "description": "Google 多模态大模型助手，深度整合搜索与云端文档",
-      "category": "ai",
-      "icon": "GM",
-      "tags": [
-        "ai",
-        "gemini",
-        "谷歌",
-        "大模型",
-        "多模态"
-      ],
-      "sort": 34,
-      "hidden": false
+      id: "ai-gemini",
+      name: "Gemini",
+      url: "https://gemini.google.com/u/2/",
+      description: "Google 多模态大模型助手，深度整合搜索与云端文档",
+      category: "ai",
+      tags: ["ai","gemini","谷歌","大模型","多模态"],
+      icon: "GM",
+      notes: "入口类型：Gemini 网页应用，与面向开发者的 Google AI Studio 分开。保留收藏中的 /u/2/ 账户路径；Google 可能按当前登录状态重新选择账号。依据：https://gemini.google.com/；2026-11-21。"
     },
     {
-      "id": "ai-claude",
-      "name": "Claude",
-      "url": "https://claude.ai",
-      "description": "Anthropic 推出的高质量语言模型，擅长长文深度研读与编程代码实现",
-      "category": "ai",
-      "icon": "CL",
-      "tags": [
-        "ai",
-        "claude",
-        "anthropic",
-        "代码",
-        "长文",
-        "分析",
-        "克劳德"
-      ],
-      "sort": 35,
-      "hidden": false
+      id: "ai-hark",
+      name: "Hark",
+      url: "https://hark.com",
+      description: "具备记忆和浏览器操作能力的 AI 助手，可执行调研、网页制作和日常事务。",
+      category: "ai",
+      tags: ["Hark","AI智能体","电脑操作","浏览器任务","Handoff","个人助手"],
+      icon: "HK",
+      notes: "入口类型：Hark 产品首页。官网介绍 Handoff 独立电脑、Projects 和自定义 Panels；重点是让智能体执行任务，不只是问答。具体连接账号和执行动作仍需进入应用。依据：https://hark.com/；2026-11-21。"
     },
     {
-      "id": "ai-mw7xg0uw",
-      "name": "Mistral",
-      "url": "https://admin.mistral.ai/subscription",
-      "description": "Mistral AI 账号与订阅管理入口。",
-      "category": "api",
-      "tags": [],
-      "icon": "MI",
-      "createdAt": 1794148083032,
-      "sort": 136
+      id: "ai-chatgpt",
+      name: "ChatGPT",
+      url: "https://chatgpt.com",
+      description: "OpenAI 的对话工作台，用于提问、写作、编程，以及分析文件和图片。",
+      category: "ai",
+      tags: ["ChatGPT","OpenAI","AI聊天","写作","编程","文件分析"],
+      icon: "GPT",
+      notes: "入口类型：网页对话应用。适合直接向 AI 提交问题和材料；模型 API 的密钥、计费与接入不在此管理。依据：https://chatgpt.com/；核对日期：2026-11-21。"
     },
     {
-      "id": "dev-mw28nin5",
-      "name": "InstaBox",
-      "url": "https://dashboard.instabox.sh/dashboard/machines",
-      "description": "InstaBox 云端机器管理台，用于查看和操作已创建的开发环境。",
-      "category": "cloud",
-      "tags": [],
-      "icon": "IN",
-      "createdAt": 1793804111393,
-      "sort": 337
+      id: "ai-deepseek",
+      name: "DeepSeek",
+      url: "https://www.deepseek.com",
+      description: "DeepSeek 官方首页，用于了解模型并寻找网页对话、应用下载和开放平台入口。",
+      category: "ai",
+      tags: ["DeepSeek","深度求索","官方首页","模型","AI聊天入口"],
+      icon: "DS",
+      notes: "当前收藏的是 www.deepseek.com 官网，不是 platform.deepseek.com 开发者后台。本次官网出现客户端加载错误；API 平台登录页已核实。保留原始链接，未擅自替换成聊天地址。依据：https://www.deepseek.com/、https://platform.deepseek.com/；2026-11-21。"
     },
     {
-      "id": "knowledge-mwdmmgo5",
-      "name": "LinuxDo",
-      "url": "https://linux.do/",
-      "description": "LinuxDo 技术社区，浏览开发者讨论、经验分享与资源。",
-      "category": "content",
-      "tags": [],
-      "icon": "LI",
-      "createdAt": 1794492704741,
-      "sort": 738
+      id: "ai-claude",
+      name: "Claude",
+      url: "https://claude.ai",
+      description: "Anthropic 的 AI 助手，用于文档阅读、写作、代码分析和生成可继续编辑的内容。",
+      category: "ai",
+      tags: ["Claude","Anthropic","AI聊天","文档阅读","写作","代码"],
+      icon: "CL",
+      notes: "入口类型：Claude 网页应用。功能依据官方产品说明核实；claude.ai 本次触发安全校验，未进入个人会话或确认账号方案。依据：https://claude.com/product/overview；2026-11-21。"
     },
-    {
-      "id": "user-xingchi",
-      "name": "星驰 API",
-      "url": "https://xingchiapi.com/dashboard",
-      "description": "API 服务控制台，用于查看接口服务与账户用量。",
-      "category": "api",
-      "tags": [
-        "dev",
-        "常用入口"
-      ],
-      "icon": "星驰",
-      "sort": 139
-    },
-    {
-      "id": "user-apikey-casa",
-      "name": "APIKey Casa 兑换",
-      "url": "https://apikey.casa/redeem",
-      "description": "API Key 兑换入口，用于兑换或激活模型服务额度。",
-      "category": "api",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "AP",
-      "sort": 140
-    },
-    {
-      "id": "user-google-ai-studio",
-      "name": "Google AI Studio",
-      "url": "https://aistudio.google.com/u/2/prompts/new_chat?pli=1",
-      "description": "Google Gemini 提示词与对话工作区，可快速创建新对话。",
-      "category": "ai",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "GO",
-      "sort": 41
-    },
-    {
-      "id": "user-guiyi",
-      "name": "归一",
-      "url": "https://guiyi.sueexin.dev/",
-      "description": "归一 AI 对话入口，用于集中访问模型与开展对话。",
-      "category": "ai",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "归一",
-      "sort": 42
-    },
-    {
-      "id": "user-simular-box",
-      "name": "Simular Box",
-      "url": "https://box.simular.ai/box/",
-      "description": "Simular 云端 AI 工作空间入口。",
-      "category": "agents",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "SI",
-      "sort": 243
-    },
-    {
-      "id": "user-raksmart",
-      "name": "RAKsmart 客户中心",
-      "url": "https://billing.raksmart.com/whmcs/clientarea.php?language=chinese-cn",
-      "description": "RAKsmart 主机服务客户中心，管理产品、账单与工单。",
-      "category": "cloud",
-      "tags": [
-        "dev",
-        "常用入口"
-      ],
-      "icon": "RA",
-      "sort": 344
-    },
-    {
-      "id": "user-weeny-cloud",
-      "name": "Weeny Cloud",
-      "url": "https://weeny.cloud/dashboard",
-      "description": "Weeny Cloud 云服务控制台，查看和管理云端资源。",
-      "category": "cloud",
-      "tags": [
-        "dev",
-        "常用入口"
-      ],
-      "icon": "WE",
-      "sort": 345
-    },
-    {
-      "id": "user-cloady",
-      "name": "Cloady 项目部署",
-      "url": "https://cloady.com/w/august-lies/jpn1/production",
-      "description": "Cloady 工作区中的 production 环境入口，用于查看项目部署状态。",
-      "category": "deploy",
-      "tags": [
-        "dev",
-        "常用入口"
-      ],
-      "icon": "CL",
-      "sort": 446
-    },
-    {
-      "id": "user-esim-gg",
-      "name": "eSIM.gg 线路",
-      "url": "https://esim.gg/lines/ee/37254143017",
-      "description": "eSIM.gg 指定线路详情页，用于查看该号码线路状态与管理选项。",
-      "category": "social",
-      "tags": [
-        "tools",
-        "常用入口"
-      ],
-      "icon": "ES",
-      "sort": 947
-    },
-    {
-      "id": "user-flame-mail",
-      "name": "Flame Mail",
-      "url": "https://mail.flame.edu.kg/inbox",
-      "description": "Flame 邮箱收件箱，集中查看该邮箱收到的邮件。",
-      "category": "social",
-      "tags": [
-        "tools",
-        "常用入口"
-      ],
-      "icon": "FL",
-      "sort": 948
-    },
-    {
-      "id": "user-tiger-sms",
-      "name": "Tiger SMS",
-      "url": "https://tiger-sms.com/cn/cabinet/sms",
-      "description": "Tiger SMS 短信控制台，用于查看短信与号码服务。",
-      "category": "social",
-      "tags": [
-        "tools",
-        "常用入口"
-      ],
-      "icon": "TI",
-      "sort": 949
-    },
-    {
-      "id": "user-qq-agent",
-      "name": "QQ 智能体列表",
-      "url": "https://agent.qq.com/page/list?alias_id=alias_lqNNiBpW-cM23Z1n588qj3gtquUDqnx-",
-      "description": "QQ 智能体列表页，管理或打开对应智能体。",
-      "category": "agents",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "QQ",
-      "sort": 250
-    },
-    {
-      "id": "user-sci-hub",
-      "name": "Sci-Hub",
-      "url": "https://www.sci-hub.ru/",
-      "description": "论文检索入口，可用于查找学术文献。",
-      "category": "knowledge",
-      "tags": [
-        "knowledge",
-        "常用入口"
-      ],
-      "icon": "SC",
-      "sort": 651
-    },
-    {
-      "id": "user-tutor-chat",
-      "name": "Tutor 对话",
-      "url": "https://tutor.sueexin.dev/chat?dt_workspace=",
-      "description": "Tutor 工作区聊天入口，用于进入指定工作区继续对话。",
-      "category": "ai",
-      "tags": [
-        "ai",
-        "常用入口"
-      ],
-      "icon": "TU",
-      "sort": 52
-    }
   ]
 };
-if (typeof window !== "undefined") window.NAV_DATA = NAV_DATA;
-if (typeof module !== "undefined" && module.exports) module.exports = NAV_DATA;
+
+// 挂载到全局，供静态网页无构建直接运行
+if (typeof window !== "undefined") {
+  window.NAV_DATA = NAV_DATA;
+}
+
+// 供 Node.js 验证脚本与测试用例直接引用
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = NAV_DATA;
+}
