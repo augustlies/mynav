@@ -703,6 +703,14 @@
       return true;
     }
 
+    const activeEngine = window.NavEngine && typeof window.NavEngine.getCurrent === "function"
+      ? window.NavEngine.getCurrent()
+      : null;
+    if (!event.shiftKey && activeEngine && activeEngine.id !== "site") {
+      window.NavEngine.searchExternal(query);
+      return true;
+    }
+
     if (event.shiftKey) {
       if (window.NavEngine && typeof window.NavEngine.searchExternal === "function") {
         window.NavEngine.searchExternal(query);

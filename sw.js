@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "01cb58665d";
+const CACHE_VERSION = "60e170f55f";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -26,7 +26,7 @@ const PRECACHE = [
   "./js/favorites.js?v=1.7.1",
   "./js/visits.js?v=2.0.0",
   "./js/search.js?v=1.7.0",
-  "./js/engine.js?v=b3.10",
+  "./js/engine.js?v=b3.11",
   "./js/motion.js?v=1.7.0",
   "./js/sortable.js?v=1.7.1",
   "./js/shortcuts.js?v=b3.10",
@@ -36,7 +36,7 @@ const PRECACHE = [
   "./js/marginalia.js?v=2.0.0",
   "./js/constellations.js?v=2.0.0",
   "./js/sanctum.js?v=2.0.1",
-  "./app.js?v=20261117a",
+  "./app.js?v=20261122a",
   "./js/librarian.js?v=4.2.1",
   "./css/librarian.css?v=5.0.0",
   "./js/star-map.js?v=4.2.1",
@@ -55,7 +55,7 @@ const PRECACHE = [
   "./css/snippets.css?v=5.0.0",
   "./js/lore.js?v=b3.10",
   "./css/lore.css?v=5.0.0",
-  "./js/cloud-sync.js?v=2.3.1",
+  "./js/cloud-sync.js?v=2.3.2",
   "./js/exlibris.js?v=1.7.1",
   "./css/exlibris.css?v=5.0.0",
   "./js/serendipity.js?v=4.2.0",
