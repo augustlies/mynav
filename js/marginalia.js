@@ -36,6 +36,37 @@
     });
   }
 
+  // Catalogue research is shared content; the editable ledger note stays private.
+  function showCatalogueNotes(card) {
+    const app = window.NavApp;
+    if (!app || typeof app.getSiteById !== "function") return;
+    const panel = card.querySelector(".card-marginalia");
+    if (!panel) return;
+    const site = app.getSiteById(card.getAttribute("data-site-id"));
+    const notes = site && typeof site.notes === "string" ? site.notes.trim() : "";
+    let block = panel.querySelector("[data-catalogue-notes]");
+    if (!notes) {
+      if (block) block.remove();
+      return;
+    }
+    if (!block) {
+      block = document.createElement("div");
+      block.className = "marginalia-note-block";
+      block.setAttribute("data-catalogue-notes", "");
+      const label = document.createElement("div");
+      label.className = "marginalia-section-label";
+      label.textContent = "用途说明与核实备注";
+      const text = document.createElement("p");
+      text.className = "marginalia-note-text";
+      text.style.whiteSpace = "pre-wrap";
+      text.style.overflowWrap = "anywhere";
+      block.appendChild(label);
+      block.appendChild(text);
+      panel.insertBefore(block, panel.querySelector(".marginalia-note-block, .marginalia-stamp"));
+    }
+    block.querySelector("p").textContent = notes;
+  }
+
   function flip(siteId, force) {
     const card = typeof siteId === "string" ? getCard(siteId) : siteId;
     if (!card) return false;
@@ -45,6 +76,7 @@
     if (next && window.NavApp && typeof window.NavApp.hydrateMarginalia === "function") {
       try {
         window.NavApp.hydrateMarginalia(card);
+        showCatalogueNotes(card);
       } catch (error) {
         if (window.console && typeof window.console.warn === "function") {
           window.console.warn("[mynav] 批注面填充失败，已隔离：", error);
