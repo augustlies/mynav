@@ -910,6 +910,60 @@
     refreshUiAfterSync();
   }
 
+  async function syncOwnerCatalogue(doc) {
+    if (String(getUser() || "").toLowerCase() !== "sueexin") return;
+    let result = null;
+    for (let batch = 0; batch < 5; batch += 1) {
+      const response = await fetch("/api/cards", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: Object.assign({ "content-type": "application/json" }, authHeaders()),
+        body: JSON.stringify({ profileUpdatedAt: doc.updatedAt || 0 }),
+      });
+      if (response.status === 409) {
+        syncPending = true;
+        return;
+      }
+      if (response.status === 401) throw needLoginError();
+      result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(result.error || "Notion 目录写回失败");
+        error.code = result.code || "catalogue-write";
+        throw error;
+      }
+      if (!result.inProgress) break;
+    }
+    if (result && result.inProgress) {
+      syncPending = true;
+      return;
+    }
+    if (!result.clearOverrides) return;
+
+    const cleanData = normalizeData(doc.data);
+    cleanData.overrides = emptyOverrides();
+    const meta = getMeta();
+    const updatedAt = Math.max(Date.now(), (meta.updatedAt || 0) + 1, (doc.updatedAt || 0) + 1);
+    let saved;
+    try {
+      saved = await apiPut({ updatedAt, baseUpdatedAt: doc.updatedAt || 0, data: cleanData });
+    } catch (error) {
+      if (error.code === "conflict") {
+        syncPending = true;
+        return;
+      }
+      throw error;
+    }
+    writeDocData(cleanData);
+    finishSynced({ updatedAt: saved.updatedAt || updatedAt, data: cleanData });
+    refreshUiAfterSync();
+  }
+
+  async function finalizeSync(doc, apply) {
+    if (apply) applyDoc(doc);
+    else finishSynced(doc);
+    await syncOwnerCatalogue(doc);
+  }
+
   async function pushNow(keepalive) {
     if (!keepalive) {
       if (status === "syncing") {
@@ -1035,10 +1089,10 @@
         if (remote.empty) {
           if (localHasData()) {
             const ts = Math.max(Date.now(), (meta.updatedAt || 0) + 1);
-            await apiPut({ updatedAt: ts, baseUpdatedAt: 0, data: local });
-            finishSynced({ updatedAt: ts, data: local });
+            const saved = await apiPut({ updatedAt: ts, baseUpdatedAt: 0, data: local });
+            await finalizeSync({ updatedAt: saved.updatedAt || ts, data: local }, false);
           } else {
-            finishSynced({ updatedAt: 0, data: local });
+            await finalizeSync({ updatedAt: 0, data: local }, false);
           }
           return true;
         }
@@ -1054,18 +1108,18 @@
 
         // 新设备没有本地数据，直接下载；本地与上次同步快照一致，也可安全采用云端新版。
         if (!hasBase && !localHasData()) {
-          applyDoc({ updatedAt: remoteTs, data: remoteData });
+          await finalizeSync({ updatedAt: remoteTs, data: remoteData }, true);
           return true;
         }
         if (hasBase && localMatchesBase && (meta.baseUpdatedAt || 0) !== remoteTs) {
-          applyDoc({ updatedAt: remoteTs, data: remoteData });
+          await finalizeSync({ updatedAt: remoteTs, data: remoteData }, true);
           return true;
         }
 
         let merged;
         if (hasBase && (meta.baseUpdatedAt || 0) === remoteTs) {
           if (localMatchesBase) {
-            finishSynced({ updatedAt: remoteTs, data: remoteData });
+            await finalizeSync({ updatedAt: remoteTs, data: remoteData }, false);
             return true;
           }
           merged = local; // 只有本机变了，直接上传；baseUpdatedAt 防止期间被另一台覆盖。
@@ -1073,7 +1127,7 @@
           const prefer = (meta.updatedAt || 0) > remoteTs ? "local" : "remote";
           merged = mergeData(baseData, local, remoteData, prefer);
           if (equal(merged, remoteData)) {
-            applyDoc({ updatedAt: remoteTs, data: remoteData });
+            await finalizeSync({ updatedAt: remoteTs, data: remoteData }, true);
             return true;
           }
         }
@@ -1083,12 +1137,12 @@
         if (changedLocal) writeDocData(merged);
         setMeta({ updatedAt: ts });
         try {
-          await apiPut({ updatedAt: ts, baseUpdatedAt: remoteTs, data: merged });
+          const saved = await apiPut({ updatedAt: ts, baseUpdatedAt: remoteTs, data: merged });
+          await finalizeSync({ updatedAt: saved.updatedAt || ts, data: merged }, false);
         } catch (e) {
           if (e.code === "conflict" && attempt < 2) continue;
           throw e;
         }
-        finishSynced({ updatedAt: ts, data: merged });
         if (changedLocal) refreshUiAfterSync();
         return true;
       }

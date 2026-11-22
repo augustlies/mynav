@@ -120,6 +120,8 @@ test("exportDataJsString reads NavLedger marginalia fallback when site.notes is 
     "js/ledger.js",
     "js/overrides.js",
   ]);
+  const site = ctx.NAV_DATA.sites.find((item) => item.id === "ai-chatgpt");
+  delete site.notes;
   ctx.NavLedger.setMarginalia("ai-chatgpt", "账本里的馆主批注");
   const exported = ctx.NavOverrides.exportDataJsString();
   assert.ok(exported.includes("notes: \"账本里的馆主批注\""));

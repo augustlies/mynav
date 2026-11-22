@@ -172,3 +172,41 @@ test("两个独立会话经过上传、下载、冲突合并后数据一致", as
   assert.equal(await sync.syncNow(), true, "B 同步删除后的版本");
   assert.deepEqual(new Set(JSON.parse(await kv.get("profile:v2:owner")).data.favorites), new Set(["a2"]));
 });
+
+
+test("馆主目录改动写入 Notion 后清除账号覆写，个人数据仍同步", async () => {
+  const api = await apiPromise;
+  const kv = new MockKV();
+  await kv.put("session:owner-token", JSON.stringify({ username: "sueexin", expiresAt: Date.now() + 60000 }));
+  const device = makeDevice("owner-token", {
+    favorites: ["favorite-1"],
+    overrides: { modified: { "site-1": { name: "新标题" } }, added: [], hidden: [], deleted: [], unhidden: [] },
+  });
+  device.localStorage.setItem("mynav_arch_sync_user", "sueexin");
+  window.localStorage = device.localStorage;
+  let catalogueWrites = 0;
+
+  async function router(input, options = {}) {
+    const url = new URL(input, "https://mynav.test");
+    if (url.pathname === "/api/cards") {
+      catalogueWrites += 1;
+      return new Response(JSON.stringify({ ok: true, clearOverrides: true }), { status: 200 });
+    }
+    const request = new Request("https://mynav.test/api/sync", {
+      method: options.method || "GET",
+      headers: options.headers,
+      body: options.body,
+    });
+    const context = { env: { MYNAV_KV: kv }, request };
+    return (options.method || "GET") === "PUT" ? api.onRequestPut(context) : api.onRequestGet(context);
+  }
+  global.fetch = router;
+  window.fetch = router;
+
+  assert.equal(await sync.syncNow(), true);
+  const cloud = JSON.parse(await kv.get("profile:v2:sueexin"));
+  assert.deepEqual(cloud.data.favorites, ["favorite-1"]);
+  assert.deepEqual(cloud.data.overrides, emptyData().overrides);
+  assert.deepEqual(read("nav_site_overrides", {}), emptyData().overrides);
+  assert.equal(catalogueWrites, 1);
+});

@@ -1,14 +1,15 @@
 import { catalogue } from "../_catalogue.js";
+import { syncOwnerCatalogue } from "../_catalogue-write.js";
 
 /**
  * Cloudflare Pages Function: /api/cards —— Notion 卡片覆盖层
  *
  * GET  /api/cards            返回 KV 目录；缓存缺失或过期时限频检查 Notion
  * GET  /api/cards?v=<ver>    版本相同返回 { unchanged: true }
- * POST /api/cards            用 NOTION_TOKEN 拉取 Notion 并立即覆盖发布
+ * POST /api/cards            館主登录后将目录编辑写回 Notion，或用刷新口令发布
  *
- * 安全：POST 需要请求头 x-mynav-refresh-token，值来自环境变量
- *       MYNAV_CARDS_REFRESH_TOKEN。令牌只走环境变量，不出现在 URL。
+ * 安全：账号写回只接受 sueexin 的 Bearer 会话；运维发布仍使用
+ *       x-mynav-refresh-token，值来自 MYNAV_CARDS_REFRESH_TOKEN。
  * 缓存：KV 键 cards:v1:published；公开读取每两分钟至多触发一次更新。
  * 失败：保留上一版并返回错误，不返回空数组覆盖。
  */
@@ -367,6 +368,8 @@ export async function onRequestPost(context) {
   const env = context.env || {};
   const kv = env.MYNAV_KV;
   if (!kv) return fail("KV 未绑定：请在 Pages 设置里添加 MYNAV_KV 绑定", 500, "KV_MISSING");
+  const ownerSync = await syncOwnerCatalogue(context, env, kv, fetchNotion, json);
+  if (ownerSync) return ownerSync;
 
   const auth = authorizedRefresh(context, env);
   if (!auth.ok) {
