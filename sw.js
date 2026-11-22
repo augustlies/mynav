@@ -8,7 +8,7 @@
  * - 首次访问（尚无缓存）照常走网络；/api/ 与跨站请求一律不经手。
  * 清单由 `node scripts/build-sw.js` 生成，请勿手改 PRECACHE。
  */
-const CACHE_VERSION = "6a18f5fc1c";
+const CACHE_VERSION = "ca57c4d38c";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -25,7 +25,7 @@ const PRECACHE = [
   "./js/theme.js?v=1.7.1",
   "./js/favorites.js?v=1.7.1",
   "./js/visits.js?v=2.0.0",
-  "./js/search.js?v=1.7.0",
+  "./js/search.js?v=1.7.1",
   "./js/engine.js?v=b3.11",
   "./js/motion.js?v=1.7.0",
   "./js/sortable.js?v=1.7.1",

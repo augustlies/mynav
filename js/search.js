@@ -260,6 +260,8 @@
       if (!Array.isArray(sites)) return [];
       const q = normalize(query);
       if (!q) return sites.slice();
+      const exactNameMatches = sites.filter((site) => normalize(site.name) === q);
+      if (exactNameMatches.length) return exactNameMatches;
 
       const scoredList = [];
       for (const site of sites) {
