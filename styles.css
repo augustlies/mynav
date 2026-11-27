@@ -4329,6 +4329,31 @@ body.modal-open {
   text-decoration: none;
 }
 
+/* Desktop pointers: extend the compact card's native link across its surface.
+   Keep the index and bookmark above it so their own actions remain reachable. */
+@media (hover: hover) and (pointer: fine) {
+  .folio-main .card--slip:not(.is-flipped):not(.card--sealed) .card-slip-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .folio-main .card--slip .card-slip-index {
+    position: relative;
+    z-index: 2;
+  }
+
+  .folio-main .card--slip .card-slip-link:focus-visible::before {
+    outline: 2px solid var(--border-focus);
+    outline-offset: -2px;
+  }
+
+  .arrange-mode .card--slip .card-slip-link::before {
+    display: none;
+  }
+}
+
 .folio-main .card--slip .card-slip-title,
 .folio-main .card--slip .card-slip-summary {
   display: block;
